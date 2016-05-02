@@ -3,11 +3,22 @@ import time
 import os
 import signal
 import logging
-import json
+#import json
 from subprocess import Popen, PIPE
 
 # Third-party
 import serial
+
+from appendages.encoder import encoder
+from appendages.i2cencoder import i2cencoder
+from appendages.linesensor import linesensor
+from appendages.linesensor_array import linesensor_array
+from appendages.switch import switch
+from appendages.ultrasonic import ultrasonic
+from appendages.servo import servo
+from appendages.monsterMotoMotor import monsterMotoMotor
+from appendages.arm import arm
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +67,8 @@ class get_spine:
     `this article <http://effbot.org/zone/python-with-statement.htm>`_.
     '''
 
-    def __enter__(self):
-        self.s = Spine()
+    def __enter__(self, ports=dict(), config=dict()):
+        self.s = Spine(ports, config)
         self.s.startup()
         return self.s
 
@@ -111,7 +122,8 @@ class Spine:
         self.ser = {}
         self.use_lock = kwargs.get('use_lock', True)
         self.lock_dir = kwargs.get('lock_dir', '/var/lock/')
-        self.ports = kwargs.get('ports', dict())
+        self.ports = kwargs.get('ports', DEF_PORTS)
+        config = kwargs.get('config', dict())
         first = True
         for devname, port in self.ports.iteritems():
             if self.use_lock:
@@ -132,6 +144,7 @@ class Spine:
             else:
                 logger.info('Waiting for connection to stabilize.')
                 time.sleep(1)
+        self.configure_arduino(config)
         self.delim = delim
         self.wsServer = Popen(['wsServer', '9000'], stdout=PIPE, stdin=PIPE)
 
@@ -190,3 +203,52 @@ class Spine:
         command = 'le ' + ('on' if status else 'off')
         response = self.send(devname, command)
         assert response == 'ok'
+
+    def configure_arduino(self, arduino_config):
+        '''
+        '''
+        self.appendages = dict()
+        encoders = 0
+        i2cencoders = 0
+        linesensors = 0
+        linesensor_arrays = 0
+        switches = 0
+        ultrasonics = 0
+        servos = 0
+        motors = 0
+        arms = 0
+        for arduino in arduino_config:
+            devname = arduino['devname']
+            for appendage in arduino:
+                if appendage['type'] == 'encoder':
+                    self.appendages[appendage['label']] = encoder(self, devname, appendage['label'], encoders)
+                    encoders += 1
+                elif appendage['type'] == 'i2cencoder':
+                    self.appendages[appendage['label']] = i2cencoder(self, devname, appendage['label'], i2cencoders)
+                    i2cencoders += 1
+                elif appendage['type'] == 'linesensor':
+                    self.appendages[appendage['label']] = linesensor(self, devname, appendage['label'], linesensors, appendage['analog'])
+                    linesensors += 1
+                elif appendage['type'] == 'linesensor_array':
+                    self.appendages[appendage['label']] = linesensor_array(self, devname, appendage['label'], linesensor_arrays, appendage['analog'])
+                    linesensor_arrays += 1
+                elif appendage['type'] == 'switch':
+                    self.appendages[appendage['label']] = switch(self, devname, appendage['label'], encoders)
+                    switches += 1
+                elif appendage['type'] == 'ultrasonic':
+                    self.appendages[appendage['label']] = ultrasonic(self, devname, appendage['label'], ultrasonics)
+                    ultrasonics += 1
+                elif appendage['type'] == 'servo':
+                    self.appendages[appendage['label']] = servo(self, devname, appendage['label'], servos)
+                    servos += 1
+                elif appendage['type'] == 'monsterMotoMotor':
+                    self.appendages[appendage['label']] = monsterMotoMotor(self, devname, appendage['label'], motors)
+                    motors += 1
+                elif appendage['type'] == 'arm':
+                    self.appendages[appendage['label']] = arm(self, devname, appendage['label'], arms)
+                    arms += 1
+                else:
+                    logging.e("Unknown appendage")
+
+    def get_appendage(self, label):
+        return self.appendages[label]
