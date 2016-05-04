@@ -14,12 +14,12 @@ class VideoStream:
 
             # initialize the picamera stream and allow the camera
             # sensor to warmup
-            self.stream = PiVideoStream(kwargs)
+            self.stream = PiVideoStream(**kwargs)
 
         # otherwise, we are using OpenCV so initialize the webcam
         # stream
         else:
-            self.stream = WebcamVideoStream(kwargs)
+            self.stream = WebcamVideoStream(**kwargs)
 
     def start(self):
         # start the threaded video stream

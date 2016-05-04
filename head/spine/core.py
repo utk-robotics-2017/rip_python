@@ -9,6 +9,7 @@ from subprocess import Popen, PIPE
 # Third-party
 import serial
 
+from ourlogging import setup_logging
 from appendages.encoder import encoder
 from appendages.i2cencoder import i2cencoder
 from appendages.linesensor import linesensor
@@ -20,6 +21,7 @@ from appendages.monsterMotoMotor import monsterMotoMotor
 from appendages.arm import arm
 
 
+setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
 DEF_PORTS = {
