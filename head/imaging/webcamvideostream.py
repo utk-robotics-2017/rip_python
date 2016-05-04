@@ -9,6 +9,9 @@ class WebcamVideoStream:
         # from the stream
         src = kwargs.get('src', 0)
         self.stream = cv2.VideoCapture(src)
+        self.resolution = kwargs.get('resolution', (320, 240))
+        self.stream.set(3, self.resolution[0])
+        self.stream.set(4, self.resolution[1])
         (self.grabbed, self.frame) = self.stream.read()
 
         # initialize the variable used to indicate if the thread should
