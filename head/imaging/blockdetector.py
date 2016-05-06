@@ -16,7 +16,7 @@ class Block:
 
 
 DEF_COLORS = [{'name': 'red', 'lowerRange': (0, 100, 0), 'upperRange': (5, 255, 255), 'lowerRange2': (165, 100, 0), 'upperRange2': (180, 255, 255), 'display': (0, 0, 255)},
-              {'name': 'orange', 'lowerRange': (5, 100, 0), 'upperRange': (25, 255, 255), 'display': (0, 127, 255)},
+              {'name': 'orange', 'lowerRange': (5, 100, 0), 'upperRange': (15, 255, 255), 'display': (0, 127, 255)},
               {'name': 'blue', 'lowerRange': (105, 100, 0), 'upperRange': (135, 255, 255), 'display': (255, 0, 0)},
               {'name': 'green', 'lowerRange': (45, 100, 0), 'upperRange': (75, 255, 255), 'display': (0, 255, 0)},
               {'name': 'yellow', 'lowerRange': (15, 100, 0), 'upperRange': (45, 255, 255), 'display': (0, 255, 255)}]
@@ -74,15 +74,16 @@ class BlockDetector:
         sobelx = np.uint8(sobelx)
         ret, sobelx = cv2.threshold(sobelx, 40, 255, cv2.THRESH_BINARY_INV)
 
-        sobelxy = cv2.bitwise_or(sobelx, sobely)
+        sobelxy = cv2.bitwise_and(sobelx, sobely)
 
         hsv = cv2.bitwise_and(hsv, hsv, mask=sobelxy)
 
-        colorCountours = []
+        colorContours = []
         blocks = []
 
         if display or save:
             displayImage = image.copy()
+            contourImage = image.copy()
 
         for color in self.colorOptions:
             colorMask = cv2.inRange(hsv, color['lowerRange'], color['upperRange'])
@@ -90,13 +91,16 @@ class BlockDetector:
                 colorMask2 = cv2.inRange(hsv, color['lowerRange2'], color['upperRange2'])
                 colorMask = cv2.bitwise_or(colorMask, colorMask2)
             contours, hierarchy = cv2.findContours(colorMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
+            #cv2.drawContours(contourImage, contours, -1, color['display'], 3)
             filtered_contours = []
+            displayContours = []
             for contour in contours:
                 area = cv2.contourArea(contour)
                 # Filter by area
                 if (self.maxArea != -1 and area > self.maxArea) or (self.minArea != -1 and area < self.minArea):
                     continue
+
+                displayContours.append(contour)
 
                 if(self.checkRectangle):
                     epsilon = 0.1 * cv2.arcLength(contour, True)
@@ -110,7 +114,9 @@ class BlockDetector:
                 rect = (x, y), (w, h), angle = cv2.minAreaRect(contour)
 
                 if w > h * 1.5:
-                    continue
+                    temp = h
+                    w = h
+                    h = temp
 
                 # TODO: use camera height/angle/fov and block height to convert width and height from pixels to inches
 
@@ -122,11 +128,12 @@ class BlockDetector:
                 filtered_contours.append(contour)
             if display or save:
                 cv2.drawContours(displayImage, filtered_contours, -1, color['display'], -1)
-            colorCountours.append(filtered_contours)
+                cv2.drawContours(contourImage, displayContours, -1, color['display'], 3)
+            colorContours.append(filtered_contours)
 
         if display or save:
             allColorMasks = np.zeros(hsv.shape, np.uint8)
-            for color in colorCountours:
+            for color in colorContours:
                 cv2.drawContours(allColorMasks, color, -1, (255, 255, 255), -1)
             allColorMasks = cv2.inRange(allColorMasks, (127, 127, 127), (255, 255, 255))
             displayImage = cv2.bitwise_and(displayImage, displayImage, mask=allColorMasks)
@@ -138,7 +145,7 @@ class BlockDetector:
 
             both = np.hstack((image, displayImage))
             image2 = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-            both2 = np.hstack((image2, image))
+            both2 = np.hstack((image2, contourImage))
             three = np.vstack((both, both2))
             if display:
                 cv2.imshow("BlockDetector", three)
