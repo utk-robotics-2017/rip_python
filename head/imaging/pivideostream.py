@@ -1,8 +1,7 @@
 # import the necessary packages
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-from threading import Thread
-#import cv2
+from multiprocessing import Process
 
 
 class PiVideoStream:
@@ -37,10 +36,9 @@ class PiVideoStream:
         self.stopped = False
 
     def start(self):
-        # start the thread to read frames from the video stream
-        t = Thread(target=self.update, args=())
-        t.daemon = True
-        t.start()
+        # start the process to read frames from the video stream
+        p = Process(target=self.update, args=())
+        p.start()
         return self
 
     def update(self):
