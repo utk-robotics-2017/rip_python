@@ -3,7 +3,7 @@ class VPID:
     Discrete Velocity PID control
     """
 
-    def __init__(self, P=2.0, I=0.0, D=1.0, outputMax=500, outputMin=-500):
+    def __init__(self, P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0):
 
         self.kP = P
         self.kI = I
@@ -21,6 +21,10 @@ class VPID:
         """
         Calculate PID output value for given reference input and feedback
         """
+
+        if(self.setpoint == 0):
+            self.reset()
+            return 0
 
         error = self.set_point - current_value
 
@@ -52,9 +56,6 @@ class VPID:
         Initilize the setpoint of PID
         """
         self.set_point = set_point
-        self.integrator = 0
-        self.last_error = 0
-        self.last_output = 0
 
     def setKp(self, P):
         self.kP = P

@@ -5,8 +5,8 @@ import time
 import operator
 import logging
 
-from head.spine.arm_kinematics import revkin
-from head.spine.Vec3d import Vec3d
+from head.extensions.ArmKinematics import revkin
+from head.extensions.Vec3d import Vec3d
 
 logger = logging.getLogger(__name__)
 
@@ -115,20 +115,20 @@ class get_arm:
 
 class Arm(object):
 
-    def __init__(self, s):
-        self.s = s
+    def __init__(self, arm):
         self.servos = PARKED
+        self.arm = arm
 
     # Wrist is the amount of up rotation, from straight down, in radians
     # cuppos assumes that wrist is set to 0 radians
     # This is a raw function - use move_to instead
     def set_pos(self, cuppos, wrist, wristrotate):
         self.servos = to_servos(cuppos, wrist, wristrotate)
-        self.s.set_arm(self.servos)
+        self.arm.set(self.servos)
 
     def set_servos(self, *args):
         self.servos = args
-        self.s.set_arm(list(args))
+        self.arm.set(list(args))
 
     def move_to(self, cuppos, wrist, wristrotate, seconds=1, smoothing='sigmoid'):
         '''Wrist measurement is in radians!!!'''
@@ -147,4 +147,4 @@ class Arm(object):
 
     def park(self, seconds=2):
         self.move_to_abs(PARKED, seconds)
-        self.s.detach_arm_servos()
+        self.arm.detach()

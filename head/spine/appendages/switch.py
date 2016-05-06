@@ -6,4 +6,5 @@ class switch:
         self.index = index
 
     def read(self):
-        return self.spine.send(self.devname, "rs %d" % self.index)
+        response = self.spine.send(self.devname, "rs %d" % self.index)
+        return {'1': True, '0': False}[response]

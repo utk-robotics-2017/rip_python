@@ -3,6 +3,7 @@ import time
 import os
 import signal
 import logging
+from multiprocessing import Lock
 #import json
 from subprocess import Popen, PIPE
 
@@ -149,6 +150,7 @@ class Spine:
         self.configure_arduino(config)
         self.delim = delim
         self.wsServer = Popen(['wsServer', '9000'], stdout=PIPE, stdin=PIPE)
+        self.sendMutex = Lock()
 
     def send(self, devname, command):
         '''Send a command to a device and return the result.
@@ -167,6 +169,7 @@ class Spine:
         :type command: ``string``
         :return: The string response of the command, without the newline.
         '''
+        self.sendMutex.acquire()
         logger.debug("Sending %s to '%s'" % (repr(command), devname))
         with DelayedKeyboardInterrupt():
             self.ser[devname].write(command + self.delim)
@@ -181,6 +184,7 @@ class Spine:
             raise
         logger.debug("Response: %s" % repr(response[:-2]))
         # Be sure to chop off newline. We don't need it.
+        self.sendMutex.release()
         return response[:-2]
 
     def ping(self):
