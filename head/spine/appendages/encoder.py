@@ -6,7 +6,14 @@ class encoder:
         self.index = index
 
     def read(self):
-        return self.spine.send(self.devname, "re %d" % self.index)
+        '''
+        Read the encoder.
+        '''
+        return float(self.spine.send(self.devname, "re %d" % self.index))
 
     def zero(self):
-        self.spine.send(self.devname, "ze %d" % self.index)
+        response = self.spine.send(self.devname, "ze %d" % self.index)
+        assert response == 'ok'
+
+    def pidGet(self):
+        return self.read()

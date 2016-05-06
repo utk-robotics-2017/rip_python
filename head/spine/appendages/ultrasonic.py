@@ -5,5 +5,19 @@ class ultrasonic:
         self.label = label
         self.index = index
 
-    def read(self):
-        return self.spine.send(self.devname, "rus %d" % self.index)
+    def read(self, unit):
+        '''
+        Reads the ultrasonics
+        :return: distance in specified unit
+        '''
+        response = self.spine.send(self.devname, "rus %d" % self.index)
+        assert unit in ['inch', 'cm']
+        if unit == 'inch':
+            response = float(response) / 2.0 / 73.746
+        elif unit == 'cm':
+            response = float(response) / 2.0 / 29.1
+
+        if response == 0:
+            response = float('inf')
+
+        return response

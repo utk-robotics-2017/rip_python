@@ -6,7 +6,15 @@ class monsterMotoMotor:
         self.index = index
 
     def drive(self, value):
-        self.spine.send(self.devname, "mod %d %d", (self.index, value))
+        if value == 0:
+            self.stop()
+            return
+        response = self.spine.send(self.devname, "mod %d %d", (self.index, value))
+        assert response == 'ok'
 
     def stop(self):
-        self.spine.send(self.devname, "mod %d", self.index)
+        response = self.spine.send(self.devname, "mod %d", self.index)
+        assert response == 'ok'
+
+    def pidSet(self, value):
+        self.drive(value)
