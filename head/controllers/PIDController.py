@@ -1,7 +1,12 @@
 from multiprocessing import Process
-from PID import PID
-from VPID import VPID
 import math
+
+from head.spine.ourlogging import setup_logging
+from head.controllers.PID import PID
+from head.controllers.VPID import VPID
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class PIDController:

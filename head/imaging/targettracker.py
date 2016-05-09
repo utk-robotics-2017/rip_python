@@ -1,8 +1,9 @@
-from videostream import VideoStream
 import numpy as np
 import cv2
 import math
 from datetime import datetime
+
+from videostream import VideoStream
 
 
 class Target:
