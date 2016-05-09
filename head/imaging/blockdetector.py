@@ -1,9 +1,14 @@
-from videostream import VideoStream
 import numpy as np
 import cv2
 import math
 from datetime import datetime
+
+#from head.spine.ourlogging import setup_logging
 from convience import resize
+from videostream import VideoStream
+
+#setup_logging(__file__)
+#logger = logging.getLogger(__name__)
 
 
 class Block:

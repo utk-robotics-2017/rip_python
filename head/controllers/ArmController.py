@@ -5,10 +5,12 @@ import time
 import operator
 import logging
 
-from head.extensions.ArmKinematics import revkin
-from head.extensions.Vec3d import Vec3d
+from ArmKinematics import revkin
+from Vec3d import Vec3d
+#from head.spine.ourlogging import setup_logging
 
-logger = logging.getLogger(__name__)
+#setup_logging(__file__)
+#logger = logging.getLogger(__name__)
 
 wristToCup = 10  # Distance in centimeters from wrist center to cup tip
 

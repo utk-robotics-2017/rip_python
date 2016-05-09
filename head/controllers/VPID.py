@@ -1,6 +1,12 @@
-class PID:
+from head.spine.ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
+
+
+class VPID:
     """
-    Discrete PID control
+    Discrete Velocity PID control
     """
 
     def __init__(self, P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0):
@@ -15,11 +21,16 @@ class PID:
 
         self.set_point = 0.0
         self.last_error = 0.0
+        self.last_output = 0.0
 
     def update(self, current_value):
         """
         Calculate PID output value for given reference input and feedback
         """
+
+        if(self.setpoint == 0):
+            self.reset()
+            return 0
 
         error = self.set_point - current_value
 
@@ -35,12 +46,14 @@ class PID:
         d = self.kD * (error - self.last_error)
         self.last_error = error
 
-        output = p + i + d
+        output = self.last_output + p + i + d
 
         if output > self.outputMax:
             output = self.outputMax
         elif self.integrator < self.outputMin:
             output = self.outputMin
+
+        self.last_output = output
 
         return output
 
@@ -49,8 +62,6 @@ class PID:
         Initilize the setpoint of PID
         """
         self.set_point = set_point
-        self.integrator = 0
-        self.last_error = 0
 
     def setKp(self, P):
         self.kP = P
@@ -67,3 +78,4 @@ class PID:
     def reset(self):
         self.last_error = 0
         self.integrator = 0
+        self.last_output = 0
