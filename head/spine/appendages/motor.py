@@ -1,4 +1,4 @@
-class monsterMotoMotor:
+class motor:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
