@@ -22,3 +22,5 @@ class vpid:
 
     def display(self):
         response = self.spine.send(self.devname, "vpd %d", (self.index))
+        # TODO: break response up into parts
+        return response

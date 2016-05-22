@@ -7,3 +7,6 @@
 [submodule "head/navigation/navX-Python"]
 	path = head/navigation/navX-Python
 	url = https://github.com/utk-robotics-2017/navX-Python.git
+[submodule "head/Adafruit_GPIO"]
+	path = head/Adafruit_GPIO
+	url = https://github.com/utk-robotics-2017/Adafruit_Python_GPIO.git
