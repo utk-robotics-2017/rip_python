@@ -41,7 +41,7 @@ Next, you will want to determine the peripherals and microcontroller(s) being us
 - Lynxmotion AL5D Arm
 
 ###Drivetrain Configurations
-- Mechanum
+- Mecanum
 - Tank Drive
 
 Related Repos:
