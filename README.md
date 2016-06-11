@@ -22,6 +22,7 @@ Next, you will want to determine the peripherals and microcontroller(s) being us
 ##Standard Supported Hardware
 ###Microprocessor and Microcontroller Boards
 - Raspberry Pi 3 B+
+- BeagleBone Black
 - Arduino Uno R3
 - Arduino Mega 2560
 
