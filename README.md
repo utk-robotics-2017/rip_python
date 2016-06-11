@@ -6,7 +6,7 @@ The goal is to provide a stable platform for future robots developed by the UTK 
 
 ##Getting Started
 
-First, you should clone this repository and obtain the submodules. To get all of the submodules, run  ```git pull && git submodule init && git submodule update``` from the root of the repository.
+First, you should clone this repository and obtain the submodules. To get all of the submodules, run  ```git pull && git submodule init && git submodule update``` from the root of the repository. Then, run ```git submodule foreach git pull origin master``` to get all the submodules on the latest code & tracking the master branch. 
 
 Next, you will want to determine the peripherals and microcontroller(s) being used. With this information, you can prepare a configuration file for ArduinoGen to generate the microcontroller code. This configuration also provides the necessary information for the Python interface in torso.
 
