@@ -1,5 +1,6 @@
 from multiprocessing import Process
 import math
+import logging
 
 from head.spine.ourlogging import setup_logging
 from head.controllers.PID import PID
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class PIDController:
+
     def __init__(self, type='position', P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0, inputSources=None, outputSources=None, reverse=None, tolerance=1):
         if(type == 'position'):
             self.PID = PID(P, I, D, outputMax, outputMin)
@@ -53,7 +55,7 @@ class PIDController:
         self.output_ = self.PID.calculate(input_)
 
         # outputSources is None if this PIDController is chained to another PIDController
-        if not self.outputSources is None:
+        if self.outputSources is not None:
             # outputSources is a list if multiple outputs are set to follow one input
             if isinstance(self.outputSources, list):
                 if not self.reverse is None:
@@ -67,7 +69,7 @@ class PIDController:
                         self.outputSources.pidSet(-self.output_)
             # single input to single output
             else:
-                if not reverse is None or not reverse:
+                if reverse is not None or not reverse:
                     self.outputSources.pidSet(self.output_)
                 else:
                     self.outputSources.pidSet(-self.output_)

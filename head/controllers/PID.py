@@ -1,3 +1,5 @@
+import logging
+
 from head.spine.ourlogging import setup_logging
 
 setup_logging(__file__)

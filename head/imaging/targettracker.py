@@ -7,6 +7,7 @@ from videostream import VideoStream
 
 
 class Target:
+
     def __init__(self, contour, cx, cy, width, height, hAngle, vAngle, distance):
         self.contour = contour
         self.cx = cx
@@ -19,6 +20,7 @@ class Target:
 
 
 class TargetTracker:
+
     def __init__(self, **kwargs):
         self.fov = kwargs.get('fov', 60)
 
@@ -56,7 +58,7 @@ class TargetTracker:
         self.resolution = kwargs.get('resolution', self.resolution)
         self.fl = self.resolution[0] / (2 * math.tan(self.fov / 2.0))
         self.videostream.stop()
-        self.videostream = videostream(kwargs)
+        self.videostream = VideoStream(kwargs)
 
         self.cx = self.resolution[0] / 2.0 - 0.5
         self.cy = self.resolution[1] / 2.0 - 0.5
@@ -88,7 +90,7 @@ class TargetTracker:
     def calculate(self, image=None, display=False, save=False):
         if image is None:
             image = self.videostream.read()
-        elif isInstance(image, str):
+        elif isinstance(image, str):
             image = cv2.imread(image)
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -140,13 +142,20 @@ class TargetTracker:
 
             if display or save:
                 cv2.circle(res, (u, v), 5, (255, 0, 0), 5)
-                cv2.putText(res, "CX: %d" % (u), (u + 20, v - 70), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-                cv2.putText(res, "CY: %d" % (v), (u + 20, v - 50), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-                cv2.putText(res, "Width: %d" % (w), (u + 20, v - 30), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-                cv2.putText(res, "Height: %d" % (h), (u + 20, v - 10), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-                cv2.putText(res, "H Angle: %f" % (hAngle), (u + 20, v + 10), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-                cv2.putText(res, "V Angle: %f" % (vAngle), (u + 20, v + 30), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
-                cv2.putText(res, "Distance: %d" % (distance), (u + 20, v + 50), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "CX: %d" % (u), (u + 20, v - 70),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "CY: %d" % (v), (u + 20, v - 50),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "Width: %d" % (w), (u + 20, v - 30),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "Height: %d" % (h), (u + 20, v - 10),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "H Angle: %f" % (hAngle), (u + 20, v + 10),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "V Angle: %f" % (vAngle), (u + 20, v + 30),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
+                cv2.putText(res, "Distance: %d" % (distance), (u + 20, v + 50),
+                            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 0, 0))
             targets.append(Target(contour, u, v, w, h, hAngle, vAngle, distance))
 
         if display or save:

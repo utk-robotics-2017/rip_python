@@ -11,6 +11,4 @@ tracker = TargetTracker(lowerRange=(165, 150, 0),
 tracker.startVideoStream()
 while True:
     targets = tracker.calculate(display=True)
-
-    #print len(targets)
     cv2.waitKey(1)

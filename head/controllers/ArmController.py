@@ -7,10 +7,10 @@ import logging
 
 from ArmKinematics import revkin
 from Vec3d import Vec3d
-#from head.spine.ourlogging import setup_logging
+from head.spine.ourlogging import setup_logging
 
-#setup_logging(__file__)
-#logger = logging.getLogger(__name__)
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 wristToCup = 10  # Distance in centimeters from wrist center to cup tip
 
@@ -107,7 +107,7 @@ class get_arm:
         return self.arm_controller
 
     def __exit__(self, type, value, traceback):
-        #for i in range(2):
+        # for i in range(2):
         #    for devname, port in self.s.ports.iteritems():
         #        self.s.ser[devname].flushOutput()
         #        self.s.ser[devname].flushInput()
