@@ -4,7 +4,7 @@ import os
 import signal
 import logging
 from multiprocessing import Lock
-#import json
+# import json
 from subprocess import Popen, PIPE
 
 # Third-party

@@ -60,7 +60,7 @@ def non_max_suppression(boxes, probs=None, overlapThresh=0.3):
         # delete all indexes from the index list that have overlap greater
         # than the provided overlap threshold
         idxs = np.delete(idxs, np.concatenate(([last],
-            np.where(overlap > overlapThresh)[0])))
+                                               np.where(overlap > overlapThresh)[0])))
 
     # return only the bounding boxes that were picked
     return boxes[pick].astype("int")

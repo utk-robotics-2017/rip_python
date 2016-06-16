@@ -3,15 +3,16 @@ import cv2
 import math
 from datetime import datetime
 
-#from head.spine.ourlogging import setup_logging
+# from head.spine.ourlogging import setup_logging
 from convience import resize
 from videostream import VideoStream
 
-#setup_logging(__file__)
-#logger = logging.getLogger(__name__)
+# setup_logging(__file__)
+# logger = logging.getLogger(__name__)
 
 
 class Block:
+
     def __init__(self, color, length, width, cx, cy):
         self.color = color
         self.length = length
@@ -21,15 +22,19 @@ class Block:
 
 
 DEF_COLORS = [{'name': 'red', 'lowerRange': (0, 100, 0), 'upperRange': (5, 255, 255), 'lowerRange2': (165, 100, 0), 'upperRange2': (180, 255, 255), 'display': (0, 0, 255)},
-              {'name': 'orange', 'lowerRange': (5, 100, 0), 'upperRange': (15, 255, 255), 'display': (0, 127, 255)},
-              {'name': 'blue', 'lowerRange': (105, 100, 0), 'upperRange': (135, 255, 255), 'display': (255, 0, 0)},
-              {'name': 'green', 'lowerRange': (45, 100, 0), 'upperRange': (75, 255, 255), 'display': (0, 255, 0)},
+              {'name': 'orange', 'lowerRange': (5, 100, 0), 'upperRange': (
+                  15, 255, 255), 'display': (0, 127, 255)},
+              {'name': 'blue', 'lowerRange': (105, 100, 0), 'upperRange': (
+                  135, 255, 255), 'display': (255, 0, 0)},
+              {'name': 'green', 'lowerRange': (45, 100, 0), 'upperRange': (
+                  75, 255, 255), 'display': (0, 255, 0)},
               {'name': 'yellow', 'lowerRange': (15, 100, 0), 'upperRange': (45, 255, 255), 'display': (0, 255, 255)}]
 
 DEF_LENGTHS = [2.5, 5, 7.5]  # in inches
 
 
 class BlockDetector:
+
     def __init__(self, **kwargs):
 
         self.colorOptions = kwargs.get('colorOptions', DEF_COLORS)
@@ -62,7 +67,8 @@ class BlockDetector:
         if image is None:
             image = self.videostream.read()
         elif isinstance(image, str):
-            image = resize(image=cv2.imread(image), width=self.resolution[0], height=self.resolution[1])
+            image = resize(image=cv2.imread(image), width=self.resolution[
+                           0], height=self.resolution[1])
         else:
             image = resize(image=image, width=self.resolution[0], height=self.resolution[1])
 
@@ -96,7 +102,7 @@ class BlockDetector:
                 colorMask2 = cv2.inRange(hsv, color['lowerRange2'], color['upperRange2'])
                 colorMask = cv2.bitwise_or(colorMask, colorMask2)
             contours, hierarchy = cv2.findContours(colorMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-            #cv2.drawContours(contourImage, contours, -1, color['display'], 3)
+            # cv2.drawContours(contourImage, contours, -1, color['display'], 3)
             filtered_contours = []
             displayContours = []
             for contour in contours:
@@ -123,7 +129,8 @@ class BlockDetector:
                     w = h
                     h = temp
 
-                # TODO: use camera height/angle/fov and block height to convert width and height from pixels to inches
+                # TODO: use camera height/angle/fov and block height to convert width and
+                # height from pixels to inches
 
                 blocks.append(Block(color['name'], h, w, x, y))
                 if(self.box):
@@ -145,8 +152,10 @@ class BlockDetector:
 
             for block in blocks:
                 cv2.circle(displayImage, (int(block.cx), int(block.cy)), 3, (255, 255, 255), 3)
-                cv2.putText(displayImage, "L: %d" % (block.length), (int(block.cx), int(block.cy) + 20), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
-                cv2.putText(displayImage, "W: %d" % (block.width), (int(block.cx), int(block.cy) + 40), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
+                cv2.putText(displayImage, "L: %d" % (block.length), (int(block.cx), int(
+                    block.cy) + 20), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
+                cv2.putText(displayImage, "W: %d" % (block.width), (int(block.cx), int(
+                    block.cy) + 40), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
             both = np.hstack((image, displayImage))
             image2 = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)

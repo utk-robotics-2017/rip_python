@@ -1,110 +1,46 @@
-from enum import Enum
 import time
 
 
-class DriveType(Enum):
-    Voltage = 0
-    Velocity = 1
-    Distance = 2
-
-
 class TankDrive:
+
     def __init__(self, **kwargs):
-        self.leftDriveMotors = kwargs.get('leftDriveMotors', [])
-        self.rightDriveMotors = kwargs.get('rightDriveMotors', [])
-
-        self.leftDistanceController = kwargs.get('leftDistanceController', None)
-        self.rightDistanceController = kwargs.get('rightDistanceController', None)
-        self.angleController = kwargs.get('angleController', None)
-
-        self.leftVelocityControllers = kwargs.get('leftVelocityControllers', [])
-        self.rightVelocityControllers = kwargs.get('rightVelocityControllers', [])
-
-        self.wheelbase_width = kwargs.get('wheelbase_width', 8.0)
-        self.wheelsize = kwargs.get('wheelsize', 4.0)
-        self.distanceTolerance = kwargs.get('distanceTolerance', 1.0)
-        self.angleTolerance = kwargs.get('angleTolerance', 1.0)
-
+        self.fourWheelDrive = kwargs.get('tankDrive', None)
         self.gyro = kwargs.get('gyro', None)
-
-    def driveStraight(self, value, driveType):
-        if(driveType == DriveType.Voltage):
-            self.driveStraightVoltage(value)
-        elif(driveType == DriveType.Velocity):
-            self.driveStraightVelocity(value)
-        elif(driveType == DriveType.Distance):
-            self.driveStraightDistance(value)
+        self.wheelbase_width = kwargs.get('wheelbase_width', 0)
 
     def driveStraightVoltage(self, value):
-        if leftValue == 0 and rightValue == 0:
-            for i in range(len(self.leftDriveMotors)):
-                self.leftDriveMotors[i].stop()
-                self.rightDriveMotors[i].stop()
+        if value == 0:
+            self.fourWheelDrive.stop()
         else:
-            for i in range(len(self.leftDriveMotors)):
-                self.leftDriveMotors[i].drive(value)
-                self.rightDriveMotors[i].drive(value)
+            self.fourWheelDrive.drive(value)
+
+    def driveArcVoltage(self, value, radius):
+        self.fourWheelDrive.drive(value + arc, value - arc)
 
     def driveStraightVelocity(self, velocity):
-        if velocity == 0:
-            for i in range(len(self.leftVelocityControllers)):
-                self.leftVelocityControllers.stop()
-                self.rightVelocityControllers.stop()
-
-            for i in range(len(self.leftDriveMotors)):
-                self.leftDriveMotors[i].stop()
-                self.rightDriveMotors[i].stop()
+        if(value == 0):
+            self.fourWheelDrive.stop()
         else:
-            for i in range(len(self.leftVelocityControllers)):
-                self.leftVelocityControllers.setPoint(velocity)
-                self.leftVelocityControllers.start()
-                self.rightVelocityControllers.setPoint(velocity)
-                self.rightVelocityControllers.start()
+            self.fourWheelDrive.driveVelocity(velocity)
+
+    def driveArcVelocity(self, velocity, arc):
+        self.fourWheelDrive.driveVelocity(velocity + arc, velocity - arc)
 
     def driveStraightVelocityForTime(self, velocity, delay):
-        if velocity == 0:
-            for i in range(len(self.leftVelocityControllers)):
-                self.leftVelocityControllers.stop()
-                self.rightVelocityControllers.stop()
+        driveStraightVelocity(velocity)
+        time.sleep(delay)
 
-            for i in range(len(self.leftDriveMotors)):
-                self.leftDriveMotors[i].stop()
-                self.rightDriveMotors[i].stop()
-            times.sleep(delay)
-        else:
-            for i in range(len(self.leftVelocityControllers)):
-                self.leftVelocityControllers.setPoint(velocity)
-                self.leftVelocityControllers.start()
-                self.rightVelocityControllers.setPoint(velocity)
-                self.rightVelocityControllers.start()
-            time.sleep(delay)
-            for i in range(len(self.leftVelocityControllers)):
-                self.leftVelocityControllers.stop()
-                self.rightVelocityControllers.stop()
-
+    def driveArcVelocityForTime(self, velocity, arc, delay):
+        driveArcVelocity(velocity, arc)
+        time.sleep(delay)
 
     def driveStraightDistance(self, distance):
         if distance == 0:
-            self.leftDistanceController.stop()
-            self.rightDistanceController.stop()
-            for i in range(len(self.leftDriveMotors)):
-                self.leftDriveMotors[i].stop()
-                self.rightDriveMotors[i].stop()
-
+            self.fourWheelDrive.stop()
         else:
-            self.leftDistanceController.setPoint(distance)
-            self.rightDistanceController.setPoint(distance)
-            self.leftDistanceController.start()
-            self.rightDistanceController.start()
-            while not self.leftDistanceController.isFinished() and not self.rightDistanceController.isFinished():
-                time.sleep(10)
-            self.leftDistanceController.stop()
-            self.rightDistanceController.stop()
-            
+            self.fourWheelDrive.driveDistance(distance)
 
-    def rotateToAngle(self, angle, useGyro=True, fieldCentric=False,  useEncoders=False):
-        initial_angle = 0
-
+    def rotateToAngle(self, angle, sensor='gyro', fieldCentric=False):
         # useGyro must be true to be field centric
         if useGyro:
             initial_angle = 0
@@ -118,8 +54,25 @@ class TankDrive:
         elif useEncoders:
             pass
 
-    def followTrajectory(self, trajectory):
-        return
+    def followTrajectory(self, leftConfig, leftTrajectory, rightConfig, rightTrajectory):
+        leftFollower = DistanceFollower(leftTrajectory)
+        leftFollower.configurePIDVA(kp=leftConfig['kp'], ki=leftConfig['ki'], kd=leftConfig['kd'], kv=leftConfig['kv'], ka=leftConfig['ka'])
 
-    def followTrajectoryFile(self, trajectoryFilename):
-        return
+        rightFollower = DistanceFollower(rightTrajectory)
+        rightFollower.configurePIDVA(kp=rightConfig['kp'], ki=rightConfig['ki'], kd=rightConfig['kd'], kv=rightConfig['kv'], ka=rightConfig['ka'])
+
+        while not leftFollower.isFinished() | | not rightFollower.isFinished():
+            leftInput = fourWheelDrive.getLeftPosiiton()
+            rightInput = fourWheelDrive.getRightPosition()
+
+            leftOutput = leftFollower.calculate(leftInput)
+            rightOutput = rightFollower.calculate(rightInput)
+
+            actualAngle = gyro.getHeading()
+            desiredAngle = degrees(leftFollower.getHeading())
+            angleDifference = desiredAngle - actualAngle
+            # TODO: figure out reason behind constant
+            turn = 0.8 * (-1.0 / 80.0) * angleDifference
+
+            self.fourWheelDrive.drive(leftOutput + turn, rightOutput - turn)
+        self.fourWheelDrive.stop()
