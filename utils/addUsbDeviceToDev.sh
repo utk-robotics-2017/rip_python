@@ -71,17 +71,38 @@ shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
 
 ### End getopts code ###
 
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root." >&2
+    exit 1
+fi
+
 if ( $listDevs && ( $devNameListed || $devNumListed )); then
     echo "You cannot list devices and add an arduino at the same time." >&2
     exit 1
 elif ( $listDevs ); then
-    lsusb
-    exit 0
-fi
+    arduinoNames=`ls /etc/udev/rules.d | grep 100-.*-usb-serial.rules | xargs -rn 1 basename | sed -nr "s/100-(.*)-usb-serial.rules/\1/p"`
 
-if [[ $EUID -ne 0 ]]; then
-    echo "This script must be run as root." >&2
-    exit 1
+    printf '%-10s  %-7s  %s\n' "DeviceName" "SlotNum" "Product"
+    printf '============================\n'
+    lsusb -d 2341: | while read -r arduinoDevice; do
+        busNum=`echo $arduinoDevice | sed -nr 's/.*Bus ([[:digit:]]+).*/\1/p'`
+        devNum=`echo $arduinoDevice | sed -nr 's/.*Device ([[:digit:]]+).*/\1/p'`
+        devInfo=`lsusb -v -s $busNum:$devNum`
+        devProduct=`echo "$devInfo" | grep -oP "iProduct.*\d+ \K.*"`
+        devSerial=`echo "$devInfo" | grep -oP "iSerial.*\d+ \K\d+"`
+
+        devName="Unnamed"
+        for arduinoName in $arduinoNames; do
+            arduinoSerial=`cat /etc/udev/rules.d/100-$arduinoName-usb-serial.rules | sed -nr 's/.*ATTRS\{serial\}=="([[:digit:]]+)".*/\1/p'`
+
+            if [ "$devSerial" == "$arduinoSerial" ]; then
+                devName=$arduinoName
+            fi
+        done
+        printf '%-10s  %7s  %s\n' "$devName" "$busNum:$devNum" "$devProduct"
+    done
+
+    exit 0
 fi
 
 devInfo=`lsusb -v -s $devNum`
@@ -91,6 +112,9 @@ devProduct=`echo "$devInfo" | grep -oP "idProduct.*0x\K\d+"`
 devSerial=`echo "$devInfo" | grep -oP "iSerial.*\d+ \K\d+"`
 
 udevRule=`printf 'SUBSYSTEM=="tty", ATTRS{idVendor}=="%s", ATTRS{idProduct}=="%s", ATTRS{serial}=="%s", SYMLINK+="%s"\n' "$devVendor" "$devProduct" "$devSerial" "$devName"`
+udevRulePath="/etc/udev/rules.d/100-$devName-usb-serial.rules"
 
-echo $udevRule >> /etc/udev/rules.d/100-$devName-usb-serial.rules
+echo $udevRule > $udevRulePath
 udevadm trigger
+
+mkdir "/currentArduinoCode/$devName"
