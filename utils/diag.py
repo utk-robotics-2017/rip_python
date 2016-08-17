@@ -8,11 +8,10 @@ import argparse
 import sys
 
 #wild shot in the dark to get these imports to fucking work
-#sys.path.append('/home/kevin/general_robot_platform')
+sys.path.append('../')
 
 # Local modules
 from head.spine.core import get_spine
-from head.spine.Vec3d import Vec3d
 from head.spine.ourlogging import setup_logging
 
 setup_logging(__file__)
