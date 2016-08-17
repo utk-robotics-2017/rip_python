@@ -88,10 +88,12 @@ elif ( $listDevs ); then
         busNum=`echo $arduinoDevice | sed -nr 's/.*Bus ([[:digit:]]+).*/\1/p'`
         devNum=`echo $arduinoDevice | sed -nr 's/.*Device ([[:digit:]]+).*/\1/p'`
         devInfo=`lsusb -v -s $busNum:$devNum`
-        devProduct=`echo "$devInfo" | grep -oP "iProduct.*\d+ \K.*"`
+        #devProduct=`echo "$devInfo" | grep -oP "iProduct.*\d+ \K.*"`
+        devVendor=`echo "$devInfo" | grep -oP "idVendor.*0x\d+ \K.*"`
+        devProduct=`echo "$devInfo" | grep -oP "idProduct.*0x\d+ \K.*"`
         devSerial=`echo "$devInfo" | grep -oP "iSerial.*\d+ \K\d+"`
 
-        devName="Unnamed"
+        devName="[UNNAMED]"
         for arduinoName in $arduinoNames; do
             arduinoSerial=`cat /etc/udev/rules.d/100-$arduinoName-usb-serial.rules | sed -nr 's/.*ATTRS\{serial\}=="([[:digit:]]+)".*/\1/p'`
 
@@ -99,7 +101,7 @@ elif ( $listDevs ); then
                 devName=$arduinoName
             fi
         done
-        printf '%-10s  %7s  %s\n' "$devName" "$busNum:$devNum" "$devProduct"
+        printf '%-10s  %7s  %s %s\n' "$devName" "$busNum:$devNum" "$devVendor" "$devProduct"
     done
 
     exit 0
@@ -117,4 +119,4 @@ udevRulePath="/etc/udev/rules.d/100-$devName-usb-serial.rules"
 echo $udevRule > $udevRulePath
 udevadm trigger
 
-mkdir "/currentArduinoCode/$devName"
+mkdir "/currentArduinoCode/$devName" -m 777
