@@ -3,6 +3,8 @@ import time
 import logging
 import cv2
 import os
+import json
+import argparse
 
 # Local modules
 from head.spine.core import get_spine
@@ -11,6 +13,23 @@ from head.spine.ourlogging import setup_logging
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
+
+#set up command line arguemnts
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--input", required=True, help="Path to json config file for what is connected to the Arduino.")
+args = vars(ap.parse_args())
+
+#open input file for reading
+try:
+    fi = open(args["input"], "r")
+except IOError:
+    print "Fool! Your config file does not exist. Please enter a valid path to the file."
+
+#read in config file given on command line
+file_text= ""
+for line in fi:
+    file_text = file_text + line
+json_data = json.loads(file_text)
 
 with get_spine() as s:
     def test(f, prompt):
