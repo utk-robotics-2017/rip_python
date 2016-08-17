@@ -5,6 +5,10 @@ import cv2
 import os
 import json
 import argparse
+import sys
+
+#wild shot in the dark to get these imports to fucking work
+#sys.path.append('/home/kevin/general_robot_platform')
 
 # Local modules
 from head.spine.core import get_spine
