@@ -3,32 +3,21 @@ import time
 import os
 import signal
 import logging
+import json
+import sys
 from multiprocessing import Lock
-# import json
 from subprocess import Popen, PIPE
+import importlib
 
 # Third-party
 import serial
 
 from ourlogging import setup_logging
-from appendages.encoder import encoder
-from appendages.i2cencoder import i2cencoder
-from appendages.linesensor import linesensor
-from appendages.linesensor_array import linesensor_array
-from appendages.switch import switch
-from appendages.ultrasonic import ultrasonic
-from appendages.servo import servo
-from appendages.motor import motor
-from appendages.arm import arm
-
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
-DEF_PORTS = {
-    'mega': '/dev/mega',
-}
-
+CURRENT_ARDUINO_CODE_DIR = "/currentArduinoCode"
 
 class DelayedKeyboardInterrupt(object):
     def __enter__(self):
@@ -70,26 +59,21 @@ class get_spine:
     `this article <http://effbot.org/zone/python-with-statement.htm>`_.
     '''
 
-    def __enter__(self, ports=dict(), config=dict()):
-        self.s = Spine(ports, config)
-        self.s.startup()
+    def __enter__(self, devices=""):
+        if devices == "":
+            self.s = Spine()
+        else:
+            self.s = Spine(devices=devices)
+        #self.s.startup()
         return self.s
 
     def __exit__(self, type, value, traceback):
         for i in range(2):
-            for devname, port in self.s.ports.iteritems():
-                self.s.ser[devname].flushOutput()
-                self.s.ser[devname].flushInput()
+            for device in self.s.devices:
+                self.s.ser[device].flushOutput()
+                self.s.ser[device].flushInput()
             time.sleep(0.1)
-
         self.s.stop()
-        for i in range(2):
-            self.s.stop_loader_motor(i)
-        self.s.stop_width_motor()
-        self.s.stop_lift_motor()
-        self.s.detach_loader_servos()
-        self.s.set_release_suction(False)
-        self.s.set_suction(False)
         self.s.close()
 
 
@@ -125,19 +109,21 @@ class Spine:
         self.ser = {}
         self.use_lock = kwargs.get('use_lock', True)
         self.lock_dir = kwargs.get('lock_dir', '/var/lock/')
-        self.ports = kwargs.get('ports', DEF_PORTS)
-        config = kwargs.get('config', dict())
+
+        self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
+
         first = True
-        for devname, port in self.ports.iteritems():
+        config = {}
+        for device in devices:
             if self.use_lock:
-                fndevname = port.split('/dev/')[1]
-                lockfn = '%sLCK..%s' % (self.lock_dir, fndevname)
+                lockfn = '%s%s.lck' % (self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
-                    raise SerialLockException(
-                        "Lockfile %s exists. It's possible that someone is using this serial port. If not, remove this lock file. Closing and raising error." % lockfn)
-            logger.info('Connecting to %s.' % port)
-            self.ser[devname] = serial.Serial(port, 115200, timeout=t_out)
+                    print "Lockfile %s exists. It's possible that someone is using this serial port. If not, remove this lock file. Closing and raising error." % lockfn
+                    sys.exit()
+
+            logger.info('Connecting to /dev/%s.' % device)
+            self.ser[device] = serial.Serial("/dev/%s" % device, 115200, timeout=t_out)
             if self.use_lock:
                 with open(lockfn, 'w') as f:
                     f.write('-1')
@@ -147,10 +133,42 @@ class Spine:
             else:
                 logger.info('Waiting for connection to stabilize.')
                 time.sleep(1)
+            config_text = ""
+            config_file = open("%s/%s/%s.json" % (CURRENT_ARDUINO_CODE_DIR, device, device))
+            config[device] = json.loads(config_file.read())
         self.configure_arduino(config)
         self.delim = delim
-        self.wsServer = Popen(['wsServer', '9000'], stdout=PIPE, stdin=PIPE)
         self.sendMutex = Lock()
+
+    def grab_connected_devices(self):
+        deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR) if os.path.isdir("%s/%s" % (CURRENT_ARDUINO_CODE_DIR, d)) and not d == ".git" and os.path.exists("%s/%s/%s.json" % (CURRENT_ARDUINO_CODE_DIR, d, d))]
+
+        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/%s" % d)]
+        return connectedDeviceOptions
+    
+    def stop(self):
+        ''' Stop all motors '''
+        pass
+
+    def close(self):
+        '''Close all serial connections and remove locks.
+
+        Failing to call this when you are done with the Spine object will force 
+        others to manually remove the locks that you created.
+
+        :note:
+            If you are using a :func:`get_spine` environment, this method will
+            get called automatically during cleanup.
+        '''
+        for devname in self.ser.keys():
+            if self.use_lock:
+                lockfn = '%s%s.lck' % (self.lock_dir, devname)
+            self.ser[devname].close()
+            logger.info('Closed serial connection %s.' % self.ser[devname].port)
+            if self.use_lock:
+                os.remove(lockfn)
+                logger.info('Removed lock at %s.' % lockfn)
+
 
     def send(self, devname, command):
         '''Send a command to a device and return the result.
@@ -214,50 +232,33 @@ class Spine:
         '''
         '''
         self.appendages = dict()
-        encoders = 0
-        i2cencoders = 0
-        linesensors = 0
-        linesensor_arrays = 0
-        switches = 0
-        ultrasonics = 0
-        servos = 0
-        motors = 0
-        arms = 0
-        steppers = 0
-        for arduino in arduino_config:
-            devname = arduino['devname']
-            for appendage in arduino:
-                if appendage['type'] == 'encoder':
-                    self.appendages[appendage['label']] = encoder(self, devname, appendage['label'], encoders)
-                    encoders ++
-                elif appendage['type'] == 'i2cencoder':
-                    self.appendages[appendage['label']] = i2cencoder(self, devname, appendage['label'], i2cencoders)
-                    i2cencoders ++
-                elif appendage['type'] == 'linesensor':
-                    self.appendages[appendage['label']] = linesensor(self, devname, appendage['label'], linesensors, appendage['analog'])
-                    linesensors ++
-                elif appendage['type'] == 'linesensor_array':
-                    self.appendages[appendage['label']] = linesensor_array(self, devname, appendage['label'], linesensor_arrays, appendage['analog'])
-                    linesensor_arrays ++
-                elif appendage['type'] == 'switch':
-                    self.appendages[appendage['label']] = switch(self, devname, appendage['label'], encoders)
-                    switches ++
-                elif appendage['type'] == 'ultrasonic':
-                    self.appendages[appendage['label']] = ultrasonic(self, devname, appendage['label'], ultrasonics)
-                    ultrasonics ++
-                elif appendage['type'] == 'servo':
-                    self.appendages[appendage['label']] = servo(self, devname, appendage['label'], servos)
-                    servos ++
-                elif appendage['type'] == 'motor':
-                    self.appendages[appendage['label']] = motor(self, devname, appendage['label'], motors)
-                    motors ++
-                elif appendage['type'] == 'arm':
-                    self.appendages[appendage['label']] = arm(self, devname, appendage['label'], arms)
-                    arms ++
-                elif appendage['type'] == 'stepper':
-                    self.appendages[appendage['label']] = stepper(self, devname, appendage['label'], steppers)
-                else:
-                    logging.e("Unknown appendage")
+        counts = dict()
 
+        for devname, arduino in arduino_config.iteritems():
+            for appendage in arduino:
+                
+                if appendage['type'].lower() == 'limit_switch' or appendage['type'].lower() == 'button':
+                    appendage['type'] = 'switch'
+        
+                if appendage['type'].lower() == 'monstermotomotor':
+                    appendage['type'] = 'motor'
+                elif appendage['type'].lower() == 'roverfivemotor':
+                    appendage['type'] = 'motor'
+
+                # Initializes the count for the first appendage of a specific type 
+                if not hasattr(counts, appendage['type']):
+                    counts[appendage['type']] = 0
+
+                # Magic voodoo that imports a class from the appendages folder with the specific type and instantiates it
+                # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
+                module = importlib.import_module("head.spine.appendages.%s" % (appendage['type']))
+                class_ = getattr(module, appendage['type'])
+
+                self.appendages[appendage['label']] = class_(self, devname, appendage['label'], counts[appendage['type']])
+                counts[appendage['type']] += 1
+    
     def get_appendage(self, label):
         return self.appendages[label]
+    
+    def print_appendages(self):
+        print self.appendages
