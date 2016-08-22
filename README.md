@@ -1,8 +1,7 @@
-[![Circle CI](https://travis-ci.com/utk-robotics-2017/general_robot_platform.svg?token=ZbU2mzJqy2bwdxUCNR2d)](https://travis-ci.com/utk-robotics-2017/general_robot_platform)
 
-# UTK IEEE General Robot Platform
+# UTK IEEE Robotics Integrated Platform (RIP)
 
-Welcome to the general robot platform for the University of Tennessee IEEE Robotics Team. This will provide a framework for small (typically < 1 cubic foot) autonomous robots based primarily off of standard off the shelf parts. The framework will be organized, extendable, flexible, and well documented.
+Welcome to the Robotics Integrated Platform for the University of Tennessee IEEE Robotics Team. This will provide a framework for small (typically < 1 cubic foot) autonomous robots based primarily off of standard off the shelf parts. The framework will be organized, extendable, flexible, and well documented.
 
 The goal is to provide a stable platform for future robots developed by the UTK IEEE Robotics Team and others.
 

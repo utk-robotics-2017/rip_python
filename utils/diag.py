@@ -14,6 +14,27 @@ sys.path.append('../')
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
 
+#sensors
+from head.spine.appendages import ultrasonic
+from head.spine.appendages import linesensor
+from head.spine.appendages import linesensor_array
+from head.spine.appendages import i2cencoder
+from head.spine.appendages import encoder
+from head.spine.appendages import switch
+
+#actuator
+from head.spine.appendages import servo
+from head.spine.appendages import motor
+from head.spine.appendages import stepper
+
+#control
+from head.spine.appendages import pid
+
+#system
+from head.spine.appendages import arm
+from head.spine.appendages import velocitycontrolledmotor
+#from head.spine.appendages import fourwheeldrivebase
+
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
@@ -33,6 +54,23 @@ file_text= ""
 for line in fi:
     file_text = file_text + line
 json_data = json.loads(file_text)
+
+#create dictionary of device classes
+device_type = {
+    'ultrasonic' : ultrasonic,
+    'linesensor' : linesensor,
+    'i2cencoder' : i2cencoder,
+    'encoder' : encoder,
+    'switch' : switch,
+    'arm' : arm,
+    'pid' : pid,
+    'servo' : servo,
+    'motor' : motor,
+    'linesensor_array' : linesensor_array,
+    'stepper' : stepper,
+    'velocityControlledMotor' : velocitycontrolledmotor,
+#    'fourWheelDriveBase' : fourwheeldrivebase
+}
 
 with get_spine() as s:
     def test(f, prompt):
