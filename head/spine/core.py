@@ -236,6 +236,37 @@ class Spine:
 
         for devname, arduino in arduino_config.iteritems():
             for appendage in arduino:
+                if appendage['type'] == 'encoder':
+                    self.appendages[appendage['label']] = encoder(self, devname, appendage['label'], encoders)
+                    encoders+=1
+                elif appendage['type'] == 'i2cencoder':
+                    self.appendages[appendage['label']] = i2cencoder(self, devname, appendage['label'], i2cencoders)
+                    i2cencoders+=1
+                elif appendage['type'] == 'linesensor':
+                    self.appendages[appendage['label']] = linesensor(self, devname, appendage['label'], linesensors, appendage['analog'])
+                    linesensors+=1
+                elif appendage['type'] == 'linesensor_array':
+                    self.appendages[appendage['label']] = linesensor_array(self, devname, appendage['label'], linesensor_arrays, appendage['analog'])
+                    linesensor_arrays+=1
+                elif appendage['type'] == 'switch':
+                    self.appendages[appendage['label']] = switch(self, devname, appendage['label'], encoders)
+                    switches+=1
+                elif appendage['type'] == 'ultrasonic':
+                    self.appendages[appendage['label']] = ultrasonic(self, devname, appendage['label'], ultrasonics)
+                    ultrasonics+=1
+                elif appendage['type'] == 'servo':
+                    self.appendages[appendage['label']] = servo(self, devname, appendage['label'], servos)
+                    servos+=1
+                elif appendage['type'] == 'motor':
+                    self.appendages[appendage['label']] = motor(self, devname, appendage['label'], motors)
+                    motors+=1
+                elif appendage['type'] == 'arm':
+                    self.appendages[appendage['label']] = arm(self, devname, appendage['label'], arms)
+                    arms+=1
+                elif appendage['type'] == 'stepper':
+                    self.appendages[appendage['label']] = stepper(self, devname, appendage['label'], steppers)
+                else:
+                    logging.e("Unknown appendage")
                 
                 if appendage['type'].lower() == 'limit_switch' or appendage['type'].lower() == 'button':
                     appendage['type'] = 'switch'
