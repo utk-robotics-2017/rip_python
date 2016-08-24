@@ -24,3 +24,11 @@ class velocitycontrolledmotor:
     def stop(self):
         response = self.spine.send(self.devname, "vcms %d", (self.index))
         assert response == 'ok'
+
+    def test(self):
+        '''
+        Method:
+        Set a hard coded velocity (probably)
+        Check the velocity with getVelocity
+        See if they are the same
+        '''

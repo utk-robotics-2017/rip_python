@@ -24,3 +24,6 @@ class pid:
         response = self.spine.send(self.devname, "pd %d", (self.index))
         # TODO: break response up into parts
         return response
+
+    def test(self):
+        # idk my bff jill
