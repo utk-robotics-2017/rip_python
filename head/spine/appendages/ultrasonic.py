@@ -1,3 +1,5 @@
+import time
+
 class ultrasonic:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
@@ -21,3 +23,24 @@ class ultrasonic:
             response = float('inf')
 
         return response
+
+    def test(self):
+        unit = 'cm'
+
+        print("\nUltrasonic\n")
+
+        time_end = time.time() + 5
+        while time.time() < time_end:
+            print("%d" % self.read(unit) + unit)
+        
+        # correctness test
+        while True:
+            query = raw_input("Is this correct? (y/n): ")
+            if query == 'y' or query == 'n':
+                break
+
+        # pass/fail
+        if query == 'n':
+            return False
+        else:
+            return True
