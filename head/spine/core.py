@@ -114,6 +114,7 @@ class Spine:
 
         first = True
         config = {}
+        indices = {}
         for device in devices:
             if self.use_lock:
                 lockfn = '%s%s.lck' % (self.lock_dir, device)
@@ -133,10 +134,12 @@ class Spine:
             else:
                 logger.info('Waiting for connection to stabilize.')
                 time.sleep(1)
-            config_text = ""
             config_file = open("%s/%s/%s.json" % (CURRENT_ARDUINO_CODE_DIR, device, device))
             config[device] = json.loads(config_file.read())
-        self.configure_arduino(config)
+
+            indices_file = open("%s/%s/%s_indices.json" % (CURRENT_ARDUINO_CODE_DIR, device, device))
+            indices[device] = json.loads(indices_file.read())
+        self.configure_arduino(config, indices)
         self.delim = delim
         self.sendMutex = Lock()
 
@@ -228,13 +231,12 @@ class Spine:
         response = self.send(devname, command)
         assert response == 'ok'
 
-    def configure_arduino(self, arduino_config):
+    def configure_arduino(self, config, indices):
         '''
         '''
         self.appendages = dict()
-        counts = dict()
 
-        for devname, arduino in arduino_config.iteritems():
+        for devname, arduino in config.iteritems():
             for appendage in arduino:
                
                 if appendage['type'].lower() == 'limit_switch' or appendage['type'].lower() == 'button':
@@ -245,17 +247,12 @@ class Spine:
                 elif appendage['type'].lower() == 'roverfivemotor':
                     appendage['type'] = 'motor'
 
-                # Initializes the count for the first appendage of a specific type 
-                if not hasattr(counts, appendage['type']):
-                    counts[appendage['type']] = 0
-
                 # Magic voodoo that imports a class from the appendages folder with the specific type and instantiates it
                 # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
                 module = importlib.import_module("head.spine.appendages.%s" % (appendage['type']))
                 class_ = getattr(module, appendage['type'])
 
-                self.appendages[appendage['label']] = class_(self, devname, appendage['label'], counts[appendage['type']])
-                counts[appendage['type']] += 1
+                self.appendages[appendage['label']] = class_(self, devname, appendage['label'], indices[devname][appendage['label'])
     
     def get_appendage(self, label):
         return self.appendages[label]
