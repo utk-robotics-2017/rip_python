@@ -12,7 +12,7 @@ class stepper:
             Speed for the stepper to turn at
         :type value: ``int``
         '''
-        response = self.spine.send(self.devname, "sssp %d %d" % (self.index, value))
+        response = self.spine.send(self.devname, "sssp {} {}".format(self.index, value))
         assert response == 'ok'
 
     def step(self, value):
@@ -23,5 +23,5 @@ class stepper:
             Number of steps the motor will turn
         :type value: ``int``
         '''
-        response = self.spine.send(self.devname, "sss %d %d" % (self.index, value))
+        response = self.spine.send(self.devname, "sss {} {}".format(self.index, value))
         assert response == 'ok'

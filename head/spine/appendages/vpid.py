@@ -8,19 +8,19 @@ class vpid:
 
     def modify_constants(self, kp, ki, kd):
         response = self.spine.send(
-            self.devname, "vpc %d %f %f %f", (self.index, kp, ki, kd))
+            self.devname, "vpc {} {} {} {}".format(self.index, kp, ki, kd))
         assert response == 'ok'
 
     def set(self, setpoint):
         response = self.spine.send(
-            self.devname, "vps %d %f", (self.index, setpoint))
+            self.devname, "vps {} {}".format(self.index, setpoint))
         assert response == 'ok'
 
     def off(self):
-        response = self.spine.send(self.devname, "vpoff %d", (self.index))
+        response = self.spine.send(self.devname, "vpoff {}".format(self.index))
         assert response == 'ok'
 
     def display(self):
-        response = self.spine.send(self.devname, "vpd %d", (self.index))
+        response = self.spine.send(self.devname, "vpd {}".format(self.index))
         # TODO: break response up into parts
         return response

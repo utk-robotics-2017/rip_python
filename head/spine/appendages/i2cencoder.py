@@ -10,19 +10,19 @@ class i2cencoder:
         self.pidSource = source
 
     def position(self):
-        return float(self.spine.send(self.devname, "ep %d" % self.index))
+        return float(self.spine.send(self.devname, "ep {}".format(self.index)))
 
     def raw_position(self):
-        return float(self.spine.send(self.devname, "erp %d" % self.index))
+        return float(self.spine.send(self.devname, "erp {}".format(self.index)))
 
     def speed(self):
-        return float(self.spine.send(self.devname, "es %d" % self.index))
+        return float(self.spine.send(self.devname, "es {}".format(self.index)))
 
     def velocity(self):
-        return float(self.spine.send(self.devname, "ev %d" % self.index))
+        return float(self.spine.send(self.devname, "ev {}".format(self.index)))
 
     def zero(self):
-        response = self.spine.send(self.devname, "ez %d" % self.index)
+        response = self.spine.send(self.devname, "ez {}".format(self.index))
         assert response == 'ok'
 
     def pidGet(self):

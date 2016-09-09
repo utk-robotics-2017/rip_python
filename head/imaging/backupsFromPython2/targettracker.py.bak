@@ -100,7 +100,7 @@ class TargetTracker:
             res = cv2.bitwise_and(image, image, mask=mask)
             ranged = res.copy()
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        print(len(contours))
+        print len(contours)
         if display or save:
             cv2.drawContours(res, contours, -1, (0, 0, 255), -1)
         targets = []

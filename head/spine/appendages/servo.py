@@ -16,9 +16,9 @@ class servo:
         :type value: ``int``
         '''
         assert 0 <= value <= 255
-        response = self.spine.send(self.devname, "ss %d %d" % (self.index, value))
+        response = self.spine.send(self.devname, "ss {} {}".format(self.index, value))
         assert response == 'ok'
 
     def detach(self):
-        response = self.spine.send(self.devname, "sd %d" % self.index)
+        response = self.spine.send(self.devname, "sd {}".format(self.index))
         assert response == 'ok'

@@ -9,11 +9,11 @@ class motor:
         if value == 0:
             self.stop()
             return
-        response = self.spine.send(self.devname, "mod %d %d", (self.index, value))
+        response = self.spine.send(self.devname, "mod {} {}".format(self.index, value))
         assert response == 'ok'
 
     def stop(self):
-        response = self.spine.send(self.devname, "mod %d", self.index)
+        response = self.spine.send(self.devname, "mod {}".format(self.index))
         assert response == 'ok'
 
     def pidSet(self, value):
