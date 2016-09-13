@@ -6,23 +6,23 @@ class velocitycontrolledmotor:
         self.index = index
 
     def drive(self, value):
-        response = self.spine.send(self.devname, "vcmd %d %d", (self.index, value))
+        response = self.spine.send(self.devname, "vcmd {} {}".format(self.index, value))
         assert response == 'ok'
 
     def set(self, value):
-        response = self.spine.send(self.devname, "vcdsv %d %f", (self.index, value))
+        response = self.spine.send(self.devname, "vcdsv {} {}".format(self.index, value))
         assert response == 'ok'
 
     def getVelocity(self):
-        response = self.spine.send(self.devname, "vcdgv %d", (self.index))
+        response = self.spine.send(self.devname, "vcdgv {}".format(self.index))
         return response
 
     def getPosition(self):
-        response = self.spine.send(self.devname, "vcdgp %d", (self.index))
+        response = self.spine.send(self.devname, "vcdgp {}".format(self.index))
         return response
 
     def stop(self):
-        response = self.spine.send(self.devname, "vcms %d", (self.index))
+        response = self.spine.send(self.devname, "vcms {}".format(self.index))
         assert response == 'ok'
 
     def test(self):

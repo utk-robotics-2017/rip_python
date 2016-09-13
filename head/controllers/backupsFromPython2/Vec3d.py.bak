@@ -5,11 +5,10 @@ import math
 
 class Vec3d(object):
 
-    """
-        3d vector class, supports vector and scalar operators,
-        and also provides a bunch of high level functions.
-        reproduced from the vec2d class on the pygame wiki site.
-    """
+    """3d vector class, supports vector and scalar operators,
+            and also provides a bunch of high level functions.
+            reproduced from the vec2d class on the pygame wiki site.
+            """
     __slots__ = ['x', 'y', 'z']
 
     def __init__(self, x_or_triple, y=None, z=None):
@@ -62,7 +61,7 @@ class Vec3d(object):
         else:
             return True
 
-    def __bool__(self):
+    def __nonzero__(self):
         return self.x or self.y or self.z
 
     # Generic operator handlers
@@ -442,56 +441,56 @@ if __name__ == "__main__":
 
         def testCreationAndAccess(self):
             v = Vec3d(111, 222, 333)
-            self.assertTrue(v.x == 111 and v.y == 222 and v.z == 333)
+            self.assert_(v.x == 111 and v.y == 222 and v.z == 333)
             v.x = 333
             v[1] = 444
             v.z = 555
-            self.assertTrue(v[0] == 333 and v[1] == 444 and v[2] == 555)
+            self.assert_(v[0] == 333 and v[1] == 444 and v[2] == 555)
 
         def testMath(self):
             v = Vec3d(111, 222, 333)
             self.assertEqual(v + 1, Vec3d(112, 223, 334))
-            self.assertTrue(v - 2 == [109, 220, 331])
-            self.assertTrue(v * 3 == (333, 666, 999))
-            self.assertTrue(v / 2.0 == Vec3d(55.5, 111, 166.5))
-            self.assertTrue(v / 2 == (55, 111, 166))
-            self.assertTrue(v ** Vec3d(2, 3, 2) == [12321, 10941048, 110889])
-            self.assertTrue(v + [-11, 78, 67] == Vec3d(100, 300, 400))
-            self.assertTrue(v / [11, 2, 9] == [10, 111, 37])
+            self.assert_(v - 2 == [109, 220, 331])
+            self.assert_(v * 3 == (333, 666, 999))
+            self.assert_(v / 2.0 == Vec3d(55.5, 111, 166.5))
+            self.assert_(v / 2 == (55, 111, 166))
+            self.assert_(v ** Vec3d(2, 3, 2) == [12321, 10941048, 110889])
+            self.assert_(v + [-11, 78, 67] == Vec3d(100, 300, 400))
+            self.assert_(v / [11, 2, 9] == [10, 111, 37])
 
         def testReverseMath(self):
             v = Vec3d(111, 222, 333)
-            self.assertTrue(1 + v == Vec3d(112, 223, 334))
-            self.assertTrue(2 - v == [-109, -220, -331])
-            self.assertTrue(3 * v == (333, 666, 999))
-            self.assertTrue([222, 999, 666] / v == [2, 4, 2])
-            self.assertTrue(
+            self.assert_(1 + v == Vec3d(112, 223, 334))
+            self.assert_(2 - v == [-109, -220, -331])
+            self.assert_(3 * v == (333, 666, 999))
+            self.assert_([222, 999, 666] / v == [2, 4, 2])
+            self.assert_(
                 [111, 222, 333] ** Vec3d(2, 3, 2) == [12321, 10941048, 110889])
-            self.assertTrue([-11, 78, 67] + v == Vec3d(100, 300, 400))
+            self.assert_([-11, 78, 67] + v == Vec3d(100, 300, 400))
 
         def testUnary(self):
             v = Vec3d(111, 222, 333)
             v = -v
-            self.assertTrue(v == [-111, -222, -333])
+            self.assert_(v == [-111, -222, -333])
             v = abs(v)
-            self.assertTrue(v == [111, 222, 333])
+            self.assert_(v == [111, 222, 333])
 
         def testLength(self):
             v = Vec3d(1, 4, 8)
-            self.assertTrue(v.length == 9)
-            self.assertTrue(v.get_length_sqrd() == 81)
-            self.assertTrue(v.normalize_return_length() == 9)
-            self.assertTrue(v.length == 1)
+            self.assert_(v.length == 9)
+            self.assert_(v.get_length_sqrd() == 81)
+            self.assert_(v.normalize_return_length() == 9)
+            self.assert_(v.length == 1)
             v.length = 9
-            self.assertTrue(v == Vec3d(1, 4, 8))
+            self.assert_(v == Vec3d(1, 4, 8))
             v2 = Vec3d(10, -2, 12)
-            self.assertTrue(v.get_distance(v2) == (v - v2).get_length())
+            self.assert_(v.get_distance(v2) == (v - v2).get_length())
 
         def testAngles(self):
             v = Vec3d(0, 3, -3)
-            self.assertEqual(v.angle_around_y, 180)
-            self.assertEqual(v.angle_around_x, -45)
-            self.assertEqual(v.angle_around_z, 90)
+            self.assertEquals(v.angle_around_y, 180)
+            self.assertEquals(v.angle_around_x, -45)
+            self.assertEquals(v.angle_around_z, 90)
 
             v2 = Vec3d(v)
             v.rotate_around_x(-90)
@@ -507,43 +506,43 @@ if __name__ == "__main__":
 
             v2.angle_around_z -= 90
             self.assertEqual(v.length, v2.length)
-            self.assertEqual(v2.angle_around_z, 0)
+            self.assertEquals(v2.angle_around_z, 0)
             self.assertEqual(v2, [3, 0, -3])
-            self.assertTrue((v - v2).length < .00001)
+            self.assert_((v - v2).length < .00001)
             self.assertEqual(v.length, v2.length)
             v2.rotate_around_y(300)
-            self.assertAlmostEqual(v.get_angle_between(v2), 60)
+            self.assertAlmostEquals(v.get_angle_between(v2), 60)
             v2.rotate_around_y(v2.get_angle_between(v))
             angle = v.get_angle_between(v2)
-            self.assertAlmostEqual(v.get_angle_between(v2), 0)
+            self.assertAlmostEquals(v.get_angle_between(v2), 0)
 
         def testHighLevel(self):
             basis0 = Vec3d(5.0, 0, 0)
             basis1 = Vec3d(0, .5, 0)
             basis2 = Vec3d(0, 0, 3)
             v = Vec3d(10, 1, 6)
-            self.assertTrue(
+            self.assert_(
                 v.convert_to_basis(basis0, basis1, basis2) == [2, 2, 2])
-            self.assertTrue(v.projection(basis0) == (10, 0, 0))
-            self.assertTrue(basis0.dot(basis1) == 0)
+            self.assert_(v.projection(basis0) == (10, 0, 0))
+            self.assert_(basis0.dot(basis1) == 0)
 
         def testCross(self):
             lhs = Vec3d(1, .5, 3)
             rhs = Vec3d(4, 6, 1)
-            self.assertTrue(lhs.cross(rhs) == [-17.5, 11, 4])
+            self.assert_(lhs.cross(rhs) == [-17.5, 11, 4])
 
         def testComparison(self):
             int_vec = Vec3d(3, -2, 4)
             flt_vec = Vec3d(3.0, -2.0, 4.0)
             zero_vec = Vec3d(0, 0, 0)
-            self.assertTrue(int_vec == flt_vec)
-            self.assertTrue(int_vec != zero_vec)
-            self.assertTrue(not (flt_vec == zero_vec))
-            self.assertTrue(not (flt_vec != int_vec))
-            self.assertTrue(int_vec == (3, -2, 4))
-            self.assertTrue(int_vec != [0, 0, 0])
-            self.assertTrue(int_vec != 5)
-            self.assertTrue(int_vec != [3, -2, 4, 15])
+            self.assert_(int_vec == flt_vec)
+            self.assert_(int_vec != zero_vec)
+            self.assert_(not (flt_vec == zero_vec))
+            self.assert_(not (flt_vec != int_vec))
+            self.assert_(int_vec == (3, -2, 4))
+            self.assert_(int_vec != [0, 0, 0])
+            self.assert_(int_vec != 5)
+            self.assert_(int_vec != [3, -2, 4, 15])
 
         def testInplace(self):
             inplace_vec = Vec3d(5, 13, 17)
@@ -554,14 +553,14 @@ if __name__ == "__main__":
             inplace_vec /= (3, 6, 9)
             inplace_vec += Vec3d(-1, -1, -1)
             alternate = (inplace_src * .5 + .5) / Vec3d(3, 6, 9) + [-1, -1, -1]
-            self.assertEqual(inplace_vec, inplace_ref)
-            self.assertEqual(inplace_vec, alternate)
+            self.assertEquals(inplace_vec, inplace_ref)
+            self.assertEquals(inplace_vec, alternate)
 
         def testPickle(self):
             testvec = Vec3d(5, .3, 8.6)
             testvec_str = pickle.dumps(testvec)
             loaded_vec = pickle.loads(testvec_str)
-            self.assertEqual(testvec, loaded_vec)
+            self.assertEquals(testvec, loaded_vec)
 
     ####################################################################
     unittest.main()

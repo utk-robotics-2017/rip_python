@@ -1,6 +1,6 @@
 [submodule "torso/ArduinoGen"]
 	path = torso/ArduinoGen
-	url = https://github.com/utk-robotics-2016/ArduinoGen.git
+	url = https://github.com/utk-robotics-2017/ArduinoGen.git
 [submodule "head/navigation/Pathfinder-Python"]
 	path = head/navigation/Pathfinder-Python
 	url = https://github.com/utk-robotics-2017/Pathfinder-Python.git

@@ -6,11 +6,11 @@ class linesensor:
         self.index = index
         self.analog = analog
 
-    def read(self):
+    def read(self):        
         if self.analog:
-            return self.spine.send(self.devname, "rals %d" % self.index)
+            return self.spine.send(self.devname, "rals {}".format(self.index))
         else:
-            return self.spine.send(self.devname, "rdls %d" % self.index)
+            return self.spine.send(self.devname, "rdls {}".format(self.index))
 
     def test(self):
         print("\nLine sensor\n")

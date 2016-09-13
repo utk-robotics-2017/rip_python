@@ -12,7 +12,7 @@ class ultrasonic:
         Reads the ultrasonics
         :return: distance in specified unit
         '''
-        response = self.spine.send(self.devname, "rus %d" % self.index)
+        response = self.spine.send(self.devname, "rus {}".format(self.index))
         assert unit in ['inch', 'cm']
         if unit == 'inch':
             response = float(response) / 2.0 / 73.746
