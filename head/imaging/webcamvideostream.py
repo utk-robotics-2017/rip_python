@@ -1,6 +1,5 @@
 # import the necessary packages
-#from threading import Thread
-from multiprocessing import Process
+from threading import Thread
 import cv2
 
 
@@ -21,17 +20,13 @@ class WebcamVideoStream:
 
     def start(self):
         # start the process to read frames from the video stream
-        p = Process(target=self.update, args=())
-        p.start()
+        t = Thread(target=self.update, name="Webcam")
+        t.start()
         return self
 
     def update(self):
         # keep looping infinitely until the thread is stopped
-        while True:
-            # if the thread indicator variable is set, stop the thread
-            if self.stopped:
-                return
-
+        while not self.stopped:
             # otherwise, read the next frame from the stream
             (self.grabbed, self.frame) = self.stream.read()
 
