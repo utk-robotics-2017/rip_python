@@ -1,5 +1,4 @@
 class pid:
-
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
@@ -25,5 +24,5 @@ class pid:
         # TODO: break response up into parts
         return response
 
-    def test(self):
-        # idk my bff jill
+    #def test(self):
+        # idk how do you test a pid?

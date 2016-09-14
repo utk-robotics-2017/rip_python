@@ -17,7 +17,7 @@ from ourlogging import setup_logging
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
-CURRENT_ARDUINO_CODE_DIR = "/currentArduinoCode"
+CURRENT_ARDUINO_CODE_DIR = "/Robot/CurrentArduinoCode"
 
 class DelayedKeyboardInterrupt(object):
     def __enter__(self):
@@ -252,7 +252,7 @@ class Spine:
                 module = importlib.import_module("head.spine.appendages.{}".format(appendage['type']))
                 class_ = getattr(module, appendage['type'])
 
-                self.appendages[appendage['label']] = class_(self, devname, appendage['label'], indices[devname][appendage['label'])
+                self.appendages[appendage['label']] = class_(self, devname, appendage['label'], indices[devname][appendage['label']])
     
     def get_appendage(self, label):
         return self.appendages[label]

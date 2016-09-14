@@ -30,3 +30,5 @@ class i2cencoder:
             return self.position()
         elif self.pidSource == 'velocity':
             return self.velocity()
+    def test(self):
+       print

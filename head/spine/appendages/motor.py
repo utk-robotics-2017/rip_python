@@ -36,7 +36,7 @@ class motor:
                 break
 
         #second test
-        print("The motor should not be moving.  The motor will turn the opposite direction for five seconds.")
+        print "The motor should not be moving.  The motor will turn the opposite direction for five seconds."
         self.drive(-420) # unblaze it
         time.sleep(5)
         self.stop()

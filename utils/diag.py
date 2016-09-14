@@ -40,15 +40,15 @@ setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
 #set up command line arguemnts
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input", required=True, help="Path to json config file for what is connected to the Arduino.")
-args = vars(ap.parse_args())
+#ap = argparse.ArgumentParser()
+#ap.add_argument("-i", "--input", required=True, help="Path to json config file for what is connected to the Arduino.")
+#args = vars(ap.parse_args())
 
 #open input file for reading
-try:
-    fi = open(args["input"], "r")
-except IOError:
-    print "Fool! Your config file does not exist. Please enter a valid path to the file."
+#try:
+#    fi = open(args["input"], "r")
+#except IOError:
+#    print "Fool! Your config file does not exist. Please enter a valid path to the file."
 
 #read in config file given on command line
 #Jokes on you, turns out core handles this
@@ -77,7 +77,7 @@ json_data = json.loads(file_text)'''
 
 with get_spine() as s:
     s.print_appendages()
-    def test(f, prompt):
+    def test(self, f, prompt):
         while True:
             print ''
             print '----------------------------'
@@ -100,5 +100,7 @@ with get_spine() as s:
                 return False
             if ans == 'n':
                 return False
-    for label, appendage in s.appendages.iteritems():
-        test(appendage, label)
+    #test(s.appendages["motor"], "motor")
+    #for label, appendage in s.appendages.iteritems():
+    #    test(appendage, label)
+

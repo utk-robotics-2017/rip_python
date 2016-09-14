@@ -22,3 +22,9 @@ class servo:
     def detach(self):
         response = self.spine.send(self.devname, "sd {}".format(self.index))
         assert response == 'ok'
+    def test(self):
+        #TEST SOME SHIT I DON'T KNOW
+        print("\nservo\n")
+        
+        #First test
+        print("RE
