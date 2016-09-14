@@ -8,19 +8,19 @@ class pid:
 
     def modify_constants(self, kp, ki, kd):
         response = self.spine.send(
-            self.devname, "pc %d %f %f %f", (self.index, kp, ki, kd))
+            self.devname, "pc {} {} {} {}".format(self.index, kp, ki, kd))
         assert response == 'ok'
 
     def set(self, setpoint):
         response = self.spine.send(
-            self.devname, "ps %d %f", (self.index, setpoint))
+            self.devname, "ps {} {}".format(self.index, setpoint))
         assert response == 'ok'
 
     def off(self):
-        response = self.spine.send(self.devname, "poff %d", (self.index))
+        response = self.spine.send(self.devname, "poff {}".format(self.index))
         assert response == 'ok'
 
     def display(self):
-        response = self.spine.send(self.devname, "pd %d", (self.index))
+        response = self.spine.send(self.devname, "pd {}".format(self.index))
         # TODO: break response up into parts
         return response

@@ -23,7 +23,7 @@ class arm:
         assert len(rot) == 5
         for r in rot:
             assert 0 <= r <= 180
-        self.spine.send(self.devname, "sa %d %d %d %d %d %d" % (self.index, tuple(rot)))
+        self.spine.send(self.devname, "sa {} {} {} {} {} {}".format(self.index, tuple(rot)))
 
     def detach(self):
-        self.spine.send(self.devname, "das %d" % self.index)
+        self.spine.send(self.devname, "das {}".format(self.index))
