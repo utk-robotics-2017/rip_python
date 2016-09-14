@@ -22,3 +22,30 @@ class servo:
     def detach(self):
         response = self.spine.send(self.devname, "sd %d" % self.index)
         assert response == 'ok'
+
+    def test(self):
+        
+        fail0 = 0
+        print ("\nTesting servo\n")
+        self.set(self, 0)
+        query0 = raw_input("\nDid the servo set to 0? y/n\n")
+        if query0 != 'y':
+            print("Test 1 failed\n")
+        fail0 = 1
+        
+        self.set(self, 255)
+        query0 = raw_input("\nDid the servo set to 255? y/n\n")
+        if query0 != 'y':
+            print("Test 2 failed\n")
+        fail0 = 1
+
+        self.set(self, 90)
+        query0 = raw_input("\nDid the servo set to 90? y/n\n")
+        if query0 != 'y':
+            print("Test 3 failed\n")
+        fail0 = 1
+        
+        if fail0 == 1:
+            return False
+        else:
+            return True
