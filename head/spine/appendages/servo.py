@@ -1,4 +1,4 @@
-class servo:
+class Servo:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
@@ -16,9 +16,9 @@ class servo:
         :type value: ``int``
         '''
         assert 0 <= value <= 255
-        response = self.spine.send(self.devname, "ss {} {}".format(self.index, value))
+        response = self.spine.send(self.devname, "ss {0:d} {0:d}".format(self.index, value))
         assert response == 'ok'
 
     def detach(self):
-        response = self.spine.send(self.devname, "sd {}".format(self.index))
+        response = self.spine.send(self.devname, "sd {0:d}".format(self.index))
         assert response == 'ok'

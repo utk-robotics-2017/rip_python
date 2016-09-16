@@ -1,4 +1,4 @@
-class arm:
+class Arm:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
@@ -26,4 +26,4 @@ class arm:
         self.spine.send(self.devname, "sa {} {} {} {} {} {}".format(self.index, tuple(rot)))
 
     def detach(self):
-        self.spine.send(self.devname, "das {}".format(self.index))
+        self.spine.send(self.devname, "das {0:d}".format(self.index))

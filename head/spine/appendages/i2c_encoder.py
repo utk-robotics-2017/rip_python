@@ -1,4 +1,4 @@
-class i2cencoder:
+class I2CEncoder:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname

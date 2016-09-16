@@ -1,4 +1,4 @@
-class ultrasonic:
+class Ultrasonic:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
@@ -10,7 +10,7 @@ class ultrasonic:
         Reads the ultrasonics
         :return: distance in specified unit
         '''
-        response = self.spine.send(self.devname, "rus {}".format(self.index))
+        response = self.spine.send(self.devname, "rus {0:d}".format(self.index))
         assert unit in ['inch', 'cm']
         if unit == 'inch':
             response = float(response) / 2.0 / 73.746

@@ -1,4 +1,3 @@
-# Global
 import time
 import os
 import signal
@@ -18,6 +17,7 @@ setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
 CURRENT_ARDUINO_CODE_DIR = "/currentArduinoCode"
+
 
 class DelayedKeyboardInterrupt(object):
     def __enter__(self):
@@ -64,7 +64,7 @@ class get_spine:
             self.s = Spine()
         else:
             self.s = Spine(devices=devices)
-        #self.s.startup()
+        # self.s.startup()
         return self.s
 
     def __exit__(self, type, value, traceback):
@@ -120,35 +120,41 @@ class Spine:
                 lockfn = '{}{}.lck'.format(self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
-                    print("Lockfile {} exists. It's possible that someone is using this serial port. If not, remove this lock file. Closing and raising error.".format(lockfn))
+                    print(("Lockfile {0:s} exists. It's possible that someone is using this " +
+                           "serial port. If not, remove this lock file. Closing and raising " +
+                           "error.").format(lockfn))
                     sys.exit()
 
-            logger.info('Connecting to /dev/{}.'.format(device))
-            self.ser[device] = serial.Serial("/dev/{}".format(device), 115200, timeout=t_out)
+            logger.info('Connecting to /dev/{0:s}.'.format(device))
+            self.ser[device] = serial.Serial("/dev/{0:s}".format(device), 115200, timeout=t_out)
             if self.use_lock:
                 with open(lockfn, 'w') as f:
                     f.write('-1')
-                logger.info('Created lock at {}.'.format(lockfn))
+                logger.info('Created lock at {0:s}.'.format(lockfn))
             if first:
                 first = False
             else:
                 logger.info('Waiting for connection to stabilize.')
                 time.sleep(1)
-            config_file = open("{}/{}/{}.json".format(CURRENT_ARDUINO_CODE_DIR, device, device))
+            config_file = open("{0:s}/{1:s}/{1:s}.json".format(CURRENT_ARDUINO_CODE_DIR, device))
             config[device] = json.loads(config_file.read())
 
-            indices_file = open("{}/{}/{}_indices.json".format(CURRENT_ARDUINO_CODE_DIR, device, device))
+            indices_file = open("{0:s}/{1:s}/{1:s}_indices.json".format(CURRENT_ARDUINO_CODE_DIR,
+                                                                        device))
             indices[device] = json.loads(indices_file.read())
         self.configure_arduino(config, indices)
         self.delim = delim
         self.sendMutex = Lock()
 
     def grab_connected_devices(self):
-        deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR) if os.path.isdir("{}/{}".format(CURRENT_ARDUINO_CODE_DIR, d)) and not d == ".git" and os.path.exists("{}/{}/{}.json".format(CURRENT_ARDUINO_CODE_DIR, d, d))]
+        deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
+                         if os.path.isdir("{0:d}/{1:d}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
+                         not d == ".git" and os.path.exists("{0:d}/{1:d}/{1:d}.json"
+                                                            .format(CURRENT_ARDUINO_CODE_DIR, d))]
 
-        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{}".format(d))]
+        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:d}".format(d))]
         return connectedDeviceOptions
-    
+
     def stop(self):
         ''' Stop all motors '''
         pass
@@ -156,7 +162,7 @@ class Spine:
     def close(self):
         '''Close all serial connections and remove locks.
 
-        Failing to call this when you are done with the Spine object will force 
+        Failing to call this when you are done with the Spine object will force
         others to manually remove the locks that you created.
 
         :note:
@@ -171,7 +177,6 @@ class Spine:
             if self.use_lock:
                 os.remove(lockfn)
                 logger.info('Removed lock at {}.'.format(lockfn))
-
 
     def send(self, devname, command):
         '''Send a command to a device and return the result.
@@ -238,24 +243,26 @@ class Spine:
 
         for devname, arduino in config.iteritems():
             for appendage in arduino:
-                
                 if appendage['type'].lower() == 'limit_switch' or appendage['type'].lower() == 'button':
                     appendage['type'] = 'switch'
-        
+
                 if appendage['type'].lower() == 'monstermotomotor':
                     appendage['type'] = 'motor'
                 elif appendage['type'].lower() == 'roverfivemotor':
                     appendage['type'] = 'motor'
 
-                # Magic voodoo that imports a class from the appendages folder with the specific type and instantiates it
+                # Magic voodoo that imports a class from the appendages folder with the specific
+                # type and instantiates it
                 # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
-                module = importlib.import_module("head.spine.appendages.{}".format(appendage['type']))
-                class_ = getattr(module, appendage['type'])
+                module = importlib.import_module("head.spine.appendages.{0:d}"
+                                                 .format(appendage['type']).lower().replace(' ', '_'))
+                class_ = getattr(module, appendage['type'].title().replace(' ', ''))
 
-                self.appendages[appendage['label']] = class_(self, devname, appendage['label'], indices[devname][appendage['label'])
-    
+                self.appendages[appendage['label']] = class_(self, devname, appendage['label'],
+                                                             indices[devname][appendage['label'])
+
     def get_appendage(self, label):
         return self.appendages[label]
-    
+
     def print_appendages(self):
         print(self.appendages)

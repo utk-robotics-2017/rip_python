@@ -1,4 +1,4 @@
-class motor:
+class Motor:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
@@ -9,11 +9,11 @@ class motor:
         if value == 0:
             self.stop()
             return
-        response = self.spine.send(self.devname, "mod {} {}".format(self.index, value))
+        response = self.spine.send(self.devname, "mod {0:d} {1:d}".format(self.index, value))
         assert response == 'ok'
 
     def stop(self):
-        response = self.spine.send(self.devname, "mod {}".format(self.index))
+        response = self.spine.send(self.devname, "mod {0:d}".format(self.index))
         assert response == 'ok'
 
     def pidSet(self, value):

@@ -1,4 +1,4 @@
-class encoder:
+class Encoder:
     def __init__(self, spine, devname, label, index):
         self.spine = spine
         self.devname = devname
@@ -9,10 +9,10 @@ class encoder:
         '''
         Read the encoder.
         '''
-        return float(self.spine.send(self.devname, "re {}".format(self.index)))
+        return float(self.spine.send(self.devname, "re {0:d}".format(self.index)))
 
     def zero(self):
-        response = self.spine.send(self.devname, "ze {}".format(self.index))
+        response = self.spine.send(self.devname, "ze {0:d}".format(self.index))
         assert response == 'ok'
 
     def pidGet(self):
