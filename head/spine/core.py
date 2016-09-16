@@ -11,12 +11,12 @@ import importlib
 # Third-party
 import serial
 
-from ourlogging import setup_logging
+from RIP.head.spine.ourlogging import setup_logging
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
-CURRENT_ARDUINO_CODE_DIR = "/currentArduinoCode"
+CURRENT_ARDUINO_CODE_DIR = "/Robot/CurrentArduinoCode"
 
 
 class DelayedKeyboardInterrupt(object):
@@ -120,9 +120,9 @@ class Spine:
                 lockfn = '{}{}.lck'.format(self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
-                    print(("Lockfile {0:s} exists. It's possible that someone is using this " +
+                    print((("Lockfile {0:s} exists. It's possible that someone is using this " +
                            "serial port. If not, remove this lock file. Closing and raising " +
-                           "error.").format(lockfn))
+                           "error.").format(lockfn)))
                     sys.exit()
 
             logger.info('Connecting to /dev/{0:s}.'.format(device))
@@ -130,6 +130,7 @@ class Spine:
             if self.use_lock:
                 with open(lockfn, 'w') as f:
                     f.write('-1')
+                os.chmod(lockfn, 0o777)
                 logger.info('Created lock at {0:s}.'.format(lockfn))
             if first:
                 first = False
@@ -148,11 +149,11 @@ class Spine:
 
     def grab_connected_devices(self):
         deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
-                         if os.path.isdir("{0:d}/{1:d}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
-                         not d == ".git" and os.path.exists("{0:d}/{1:d}/{1:d}.json"
+                         if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
+                         not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
                                                             .format(CURRENT_ARDUINO_CODE_DIR, d))]
 
-        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:d}".format(d))]
+        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
         return connectedDeviceOptions
 
     def stop(self):
@@ -169,14 +170,14 @@ class Spine:
             If you are using a :func:`get_spine` environment, this method will
             get called automatically during cleanup.
         '''
-        for devname in self.ser.keys():
+        for devname in list(self.ser.keys()):
             if self.use_lock:
-                lockfn = '{}{}.lck'.format(self.lock_dir, devname)
+                lockfn = '{0:s}{1:s}.lck'.format(self.lock_dir, devname)
             self.ser[devname].close()
-            logger.info('Closed serial connection {}.'.format(self.ser[devname].port))
+            logger.info('Closed serial connection {0:s}.'.format(self.ser[devname].port))
             if self.use_lock:
                 os.remove(lockfn)
-                logger.info('Removed lock at {}.'.format(lockfn))
+                logger.info('Removed lock at {0:s}.'.format(lockfn))
 
     def send(self, devname, command):
         '''Send a command to a device and return the result.
@@ -196,19 +197,19 @@ class Spine:
         :return: The string response of the command, without the newline.
         '''
         self.sendMutex.acquire()
-        logger.debug("Sending {} to '{}'".format(repr(command), devname))
+        logger.debug("Sending {0:s} to '{0:s}'".format(repr(command), devname))
         with DelayedKeyboardInterrupt():
-            self.ser[devname].write(command + self.delim)
-            echo = self.ser[devname].readline()
-            response = self.ser[devname].readline()
+            self.ser[devname].write((command + self.delim).encode())
+            echo = self.ser[devname].readline().decode()
+            response = self.ser[devname].readline().decode()
         try:
             assert echo == '> ' + command + '\r\n'
         except AssertionError:
-            logger.warning('Echo error to {}.'.format(repr(devname)))
-            logger.warning('Actual echo was {}.'.format(repr(echo)))
-            logger.warning('Command was {}.'.format(repr(command)))
+            logger.warning('Echo error to {0}.'.format(repr(devname)))
+            logger.warning('Actual echo was {0}.'.format(repr(echo)))
+            logger.warning('Command was {0}.'.format(repr(command)))
             raise
-        logger.debug("Response: {}".format(repr(response[:-2])))
+        logger.debug("Response: {0}".format(repr(response[:-2])))
         # Be sure to chop off newline. We don't need it.
         self.sendMutex.release()
         return response[:-2]
@@ -217,7 +218,7 @@ class Spine:
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
-        for devname in self.ser.keys():
+        for devname in list(self.ser.keys()):
             response = self.send(devname, 'ping')
             assert response == 'ok'
 
@@ -241,25 +242,27 @@ class Spine:
         '''
         self.appendages = dict()
 
-        for devname, arduino in config.iteritems():
+        for devname, arduino in config.items():
             for appendage in arduino:
-                if appendage['type'].lower() == 'limit_switch' or appendage['type'].lower() == 'button':
-                    appendage['type'] = 'switch'
-
-                if appendage['type'].lower() == 'monstermotomotor':
-                    appendage['type'] = 'motor'
-                elif appendage['type'].lower() == 'roverfivemotor':
-                    appendage['type'] = 'motor'
-
                 # Magic voodoo that imports a class from the appendages folder with the specific
                 # type and instantiates it
                 # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
-                module = importlib.import_module("head.spine.appendages.{0:d}"
-                                                 .format(appendage['type']).lower().replace(' ', '_'))
-                class_ = getattr(module, appendage['type'].title().replace(' ', ''))
+
+                if appendage['type'].lower() in ["limit switch","button"]:
+                    appendage['type'] = "switch"
+                elif appendage['type'].lower() in ["monster moto motor", "rover five motor"]:
+                    appendage['type'] = "motor"
+
+                module_name = appendage['type'].lower().replace(' ', '_')
+                print("Module: RIP.head.spine.appendages.{0:s}".format(module_name))
+                module = importlib.import_module("RIP.head.spine.appendages.{0:s}".format(module_name))
+
+                class_name = appendage['type'].title().replace(' ','')
+                print("Class: {0:s}".format(class_name))
+                class_ = getattr(module, class_name)
 
                 self.appendages[appendage['label']] = class_(self, devname, appendage['label'],
-                                                             indices[devname][appendage['label'])
+                                                             indices[devname][appendage['label']])
 
     def get_appendage(self, label):
         return self.appendages[label]
