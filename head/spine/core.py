@@ -11,12 +11,12 @@ import importlib
 # Third-party
 import serial
 
-from ourlogging import setup_logging
+from RIP.head.spine.ourlogging import setup_logging
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
-CURRENT_ARDUINO_CODE_DIR = "/currentArduinoCode"
+CURRENT_ARDUINO_CODE_DIR = "/Robot/CurrentArduinoCode"
 
 
 class DelayedKeyboardInterrupt(object):
@@ -148,11 +148,11 @@ class Spine:
 
     def grab_connected_devices(self):
         deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
-                         if os.path.isdir("{0:d}/{1:d}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
-                         not d == ".git" and os.path.exists("{0:d}/{1:d}/{1:d}.json"
+                         if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
+                         not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
                                                             .format(CURRENT_ARDUINO_CODE_DIR, d))]
 
-        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:d}".format(d))]
+        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
         return connectedDeviceOptions
 
     def stop(self):
@@ -259,7 +259,7 @@ class Spine:
                 class_ = getattr(module, appendage['type'].title().replace(' ', ''))
 
                 self.appendages[appendage['label']] = class_(self, devname, appendage['label'],
-                                                             indices[devname][appendage['label'])
+                                                             indices[devname][appendage['label']])
 
     def get_appendage(self, label):
         return self.appendages[label]
