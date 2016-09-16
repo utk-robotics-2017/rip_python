@@ -13,7 +13,7 @@ class Motor:
         assert response == 'ok'
 
     def stop(self):
-        response = self.spine.send(self.devname, "mod {0:d}".format(self.index))
+        response = self.spine.send(self.devname, "mos {0:d}".format(self.index))
         assert response == 'ok'
 
     def pidSet(self, value):
