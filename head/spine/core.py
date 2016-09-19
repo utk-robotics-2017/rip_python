@@ -62,7 +62,7 @@ class get_spine:
             self.s = Spine()
         else:
             self.s = Spine(devices=devices)
-        # self.s.startup()
+        self.s.startup()
         return self.s
 
     def __exit__(self, type, value, traceback):
@@ -114,7 +114,7 @@ class Spine:
         config = {}
         for device in devices:
             if self.use_lock:
-                lockfn = '{}{}.lck'.format(self.lock_dir, device)
+                lockfn = "0:s}{1:s}.lck".format(self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
                     print(("Lockfile {0:s} exists. It's possible that someone is using this " +
@@ -122,7 +122,7 @@ class Spine:
                            "error.").format(lockfn))
                     sys.exit()
 
-            logger.info('Connecting to /dev/{0:s}.'.format(device))
+            logger.info("Connecting to /dev/{0:s}.".format(device))
 
             self.arduinos[device] = ArduinoBoard("/dev/{0:s}".format(device), baud_rate=115200,
                                                  timeout=t_out)
@@ -145,9 +145,23 @@ class Spine:
         connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
         return connectedDeviceOptions
 
+    def startup(self):
+        '''
+        Ping Arduino boards and turn on their LEDs.
+        This command is useful to run at the beginning of scripts to test each
+        Arduino board all at once. Since we have multiple microcontroller
+        boards, it is possible for them to encounter their own problems. This
+        command will cause the script to fail early.
+        '''
+        self.ping()
+
+        for devname in self.messengers.keys():
+            self.set_led(devname, True)
+
     def stop(self):
-        ''' Stop all motors '''
-        pass
+        for appendage in self.appendage_dict.values():
+            if hasattr(appendage, 'stop'):
+                appendage.stop()
 
     def close(self):
         '''Close all serial connections and remove locks.
@@ -161,12 +175,12 @@ class Spine:
         '''
         for devname in self.ser.keys():
             if self.use_lock:
-                lockfn = '{}{}.lck'.format(self.lock_dir, devname)
+                lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, devname)
             self.arduinos[devname].close()
-            logger.info('Closed serial connection to {0:s}.'.format(devname))
+            logger.info("Closed serial connection to {0:s}.".format(devname))
             if self.use_lock:
                 os.remove(lockfn)
-                logger.info('Removed lock at {0:s}.'.format(lockfn))
+                logger.info("Removed lock at {0:s}.".format(lockfn))
 
     def send(self, devname, has_response, command, *args):
         '''Send a command to a device and return the result.
@@ -186,35 +200,39 @@ class Spine:
         :return: The string response of the command, without the newline.
         '''
         self.sendMutex.acquire()
-        logger.debug("Sending {} to '{}'".format(repr(command), devname))
+        logger.debug("Sending {0:s} to '{1:s}'".format(command, devname))
         with DelayedKeyboardInterrupt():
             self.messengers[devname].send(command, *args)
             acknowledgement = self.messengers[devname].receive()
             if has_response:
                 response = self.messengers[devname].receive()
         try:
-            assert acknowledgement[0] == "kAcknowledgement" and acknowledgement[1][0] == command
+            assert (acknowledgement[0] == "kAcknowledgement" and
+                    self.command_map[devname][acknowledgement[1][0]] == command)
         except AssertionError:
-            logger.warning('Acknowledgement error to {}.'.format(repr(devname)))
-            logger.warning('Actual response was {}.'.format(repr(acknowledgement)))
-            logger.warning('Command was {}.'.format(repr(command)))
+            logger.warning("Acknowledgement error to {0:s}.".format(devname))
+            logger.warning("Actual response was {}.".format(repr(acknowledgement)))
+            logger.warning("Command was {0:s}.".format(command))
             raise
-        try:
-            assert response[0] == "kResult"
-        except AssertionError:
-            logger.warning('Response error to {}.'.format(repr(devname)))
-            logger.warning('Actual response command was {}/'.format(repr(response)))
-            logger.warning('Command was {}.'.format(repr(command)))
+        if has_response:
+            try:
+                assert (self.command_map[devname][response[0]][:-6] == command and
+                        self.command_map[devname][response[0]][-6:] == "Result")
+            except AssertionError:
+                logger.warning("Response error to {0:s}.".format(devname))
+                logger.warning("Actual response command was {}".format(repr(response)))
+                logger.warning("Command was {0:s}.".format(command))
         self.sendMutex.release()
-        return response[1]
+        if has_response:
+            return response[1]
 
     def ping(self):
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
         for devname in self.ser.keys():
-            response = self.send(devname, False, 'kPing')
-            assert response[0] == 'kPong'
+            response = self.send(devname, True, "kPing")
+            assert self.command_map[devname][response[0]] == "kPong"
 
     def set_led(self, devname, status):
         '''Turns the debug LED on or off for certain devices.
@@ -227,9 +245,7 @@ class Spine:
             True for on, False for off.
         :type status: ``bool``
         '''
-        command = 'le ' + ('on' if status else 'off')
-        response = self.send(devname, command)
-        assert response == 'ok'
+        self.send(devname, False, "kSetLed", "status")
 
     def configure_arduino(self, config):
         '''
@@ -247,6 +263,7 @@ class Spine:
             commands[3] = ["kUnknown"]
             commands[4] = ["kSetLed", "?"]
             commands[5] = ["kPing", "i"]
+            commands[6] = ["kPong"]
 
             self.command_map[devname] = {}
             self.command_map[devname][0] = "kAcknowledge"
@@ -255,6 +272,7 @@ class Spine:
             self.command_map[devname][3] = "kUnknown"
             self.command_map[devname][4] = "kSetLed"
             self.command_map[devname][5] = "kPing"
+            self.command_map[devname][6] = "kPong"
 
             for appendage in appendages:
                 # Magic voodoo that imports a class from the appendages folder with the specific
