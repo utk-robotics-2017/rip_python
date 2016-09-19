@@ -37,9 +37,8 @@ class PiVideoStream:
 
     def start(self):
         # start the process to read frames from the video stream
-        t = Thread(target=self.update, name="PiCam")
-        t.start()
-        return self
+        self.t = Thread(target=self.update, name="PiCam")
+        self.t.start()
 
     def update(self):
         # keep looping infinitely until the thread is stopped
@@ -60,6 +59,14 @@ class PiVideoStream:
     def read(self):
         # return the frame most recently read
         return self.frame
+
+    def free(self):
+        self.stop()
+
+        self.t.join(5)
+
+        if self.t.is_alive():
+            self.t.terminate()
 
     def stop(self):
         # indicate that the thread should be stopped
