@@ -128,7 +128,8 @@ class Spine:
                                                  timeout=t_out)
             if self.use_lock:
                 with open(lockfn, 'w') as f:
-                    f.write('-1')
+                    f.write('RIP Core')
+                os.chmod(lockfn, 0o777)
                 logger.info('Created lock at {0:s}.'.format(lockfn))
             config_file = open("{0:s}/{1:s}/{1:s}_core.json".format(CURRENT_ARDUINO_CODE_DIR, device))
             config[device] = json.loads(config_file.read())
@@ -178,7 +179,8 @@ class Spine:
             If you are using a :func:`get_spine` environment, this method will
             get called automatically during cleanup.
         '''
-        for devname in self.ser.keys():
+        for devname in self.messengers.keys():
+            self.set_led(devname, False)
             if self.use_lock:
                 lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, devname)
             self.arduinos[devname].close()
