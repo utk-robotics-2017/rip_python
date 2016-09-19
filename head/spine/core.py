@@ -153,6 +153,11 @@ class Spine:
         boards, it is possible for them to encounter their own problems. This
         command will cause the script to fail early.
         '''
+        for devname, messenger in self.messengers:
+            start_ack = messenger.receive()
+            assert (start_ack[0] == "kAcknowledge" and
+                    self.command_map[devname][start_ack[1][0]] == "kStart")
+
         self.ping()
 
         for devname in self.messengers.keys():
@@ -245,7 +250,7 @@ class Spine:
             True for on, False for off.
         :type status: ``bool``
         '''
-        self.send(devname, False, "kSetLed", "status")
+        self.send(devname, False, "kSetLed", status)
 
     def configure_arduino(self, config):
         '''
@@ -263,7 +268,8 @@ class Spine:
             commands[3] = ["kUnknown"]
             commands[4] = ["kSetLed", "?"]
             commands[5] = ["kPing", "i"]
-            commands[6] = ["kPong"]
+            commands[6] = ["kPingResult"]
+            commands[7] = ["kPong"]
 
             self.command_map[devname] = {}
             self.command_map[devname][0] = "kAcknowledge"
@@ -272,7 +278,8 @@ class Spine:
             self.command_map[devname][3] = "kUnknown"
             self.command_map[devname][4] = "kSetLed"
             self.command_map[devname][5] = "kPing"
-            self.command_map[devname][6] = "kPong"
+            self.command_map[devname][6] = "kPingResult"
+            self.command_map[devname][7] = "kPong"
 
             for appendage in appendages:
                 # Magic voodoo that imports a class from the appendages folder with the specific
