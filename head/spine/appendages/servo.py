@@ -1,9 +1,19 @@
 class Servo:
-    def __init__(self, spine, devname, label, index):
+    SET = "kSetServo"
+    DETACH = "kDetachServo"
+
+    def __init__(self, spine, devname, config, commands):
         self.spine = spine
         self.devname = devname
-        self.label = label
-        self.index = index
+        self.label = config['label']
+        self.index = config['index']
+
+        self.setIndex = commands[self.SET]
+        self.detachIndex = commands[self.DETACh]
+
+    def get_command_parameters(self):
+        yield self.setIndex, [self.SET, "i", "i"]
+        yield self.detachIndex, [self.DETACH, "i"]
 
     def set(self, value):
         '''
@@ -16,9 +26,7 @@ class Servo:
         :type value: ``int``
         '''
         assert 0 <= value <= 255
-        response = self.spine.send(self.devname, "ss {0:d} {0:d}".format(self.index, value))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.SET, self.index, value)
 
     def detach(self):
-        response = self.spine.send(self.devname, "sd {0:d}".format(self.index))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.DETACH, self.index)

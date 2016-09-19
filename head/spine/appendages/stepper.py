@@ -1,9 +1,19 @@
 class Stepper:
-    def __init__(self, spine, devname, label, index):
+    SET_SPEED = "kSetStepperSpeed"
+    STEP = "kStepStepper"
+
+    def __init__(self, spine, devname, config, commands):
         self.spine = spine
         self.devname = devname
-        self.label = label
-        self.index = index
+        self.label = config['label']
+        self.index = config['index']
+
+        self.setSpeedIndex = commands[self.SET_SPEED]
+        self.stepIndex = commands[self.STEP]
+
+    def get_command_parameters(self):
+        yield self.setSpeedIndex, [self.SET_SPEED, "i", "i"]
+        yield self.stepIndex, [self.STEP, "i", "i"]
 
     def setSpeed(self, value):
         '''
@@ -12,8 +22,7 @@ class Stepper:
             Speed for the stepper to turn at
         :type value: ``int``
         '''
-        response = self.spine.send(self.devname, "sssp {0:d} {1:d}".format(self.index, value))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.SET_SPEED, self.index, value)
 
     def step(self, value):
         '''
@@ -23,5 +32,4 @@ class Stepper:
             Number of steps the motor will turn
         :type value: ``int``
         '''
-        response = self.spine.send(self.devname, "sss {0:d} {1:d}".format(self.index, value))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.STEP, self.index, value)

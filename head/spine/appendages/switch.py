@@ -1,10 +1,20 @@
 class Switch:
-    def __init__(self, spine, devname, label, index):
+    READ = "kReadSwitch"
+    READ_RESULT = "kReadSwitchResult"
+
+    def __init__(self, spine, devname, config, commands):
         self.spine = spine
         self.devname = devname
-        self.label = label
-        self.index = index
+        self.label = config['label']
+        self.index = config['index']
+
+        self.readIndex = commands[self.READ]
+        self.readResultIndex = commands[self.READ_RESULT]
+
+    def get_command_parameters(self):
+        yield self.readIndex, [self.READ, "i"]
+        yield self.readResultIndex, [self.READ_RESULT, "?"]
 
     def read(self):
-        response = self.spine.send(self.devname, "rs {0:d}".format(self.index))
-        return {'1': True, '0': False}[response]
+        response = self.spine.send(self.devname, True, self.READ, self.index)
+        return response

@@ -5,13 +5,11 @@ import logging
 import json
 import sys
 from multiprocessing import Lock
-from subprocess import Popen, PIPE
 import importlib
 
 # Third-party
-import serial
-
-from RIP.head.spine.ourlogging import setup_logging
+from ourlogging import setup_logging
+from PyCmdMessenger.PyCmdMessenger import CmdMessenger, ArduinoBoard
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -106,15 +104,14 @@ class Spine:
     '''
 
     def __init__(self, t_out=1, delim='\n', **kwargs):
-        self.ser = {}
+        self.arduinos = {}
+        self.messengers = {}
         self.use_lock = kwargs.get('use_lock', True)
         self.lock_dir = kwargs.get('lock_dir', '/var/lock/')
 
         self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
 
-        first = True
         config = {}
-        indices = {}
         for device in devices:
             if self.use_lock:
                 lockfn = '{}{}.lck'.format(self.lock_dir, device)
@@ -126,23 +123,16 @@ class Spine:
                     sys.exit()
 
             logger.info('Connecting to /dev/{0:s}.'.format(device))
-            self.ser[device] = serial.Serial("/dev/{0:s}".format(device), 115200, timeout=t_out)
+
+            self.arduinos[device] = ArduinoBoard("/dev/{0:s}".format(device), baud_rate=115200,
+                                                 timeout=t_out)
             if self.use_lock:
                 with open(lockfn, 'w') as f:
                     f.write('-1')
                 logger.info('Created lock at {0:s}.'.format(lockfn))
-            if first:
-                first = False
-            else:
-                logger.info('Waiting for connection to stabilize.')
-                time.sleep(1)
-            config_file = open("{0:s}/{1:s}/{1:s}.json".format(CURRENT_ARDUINO_CODE_DIR, device))
+            config_file = open("{0:s}/{1:s}/{1:s}_core.json".format(CURRENT_ARDUINO_CODE_DIR, device))
             config[device] = json.loads(config_file.read())
-
-            indices_file = open("{0:s}/{1:s}/{1:s}_indices.json".format(CURRENT_ARDUINO_CODE_DIR,
-                                                                        device))
-            indices[device] = json.loads(indices_file.read())
-        self.configure_arduino(config, indices)
+        self.configure_arduino(config)
         self.delim = delim
         self.sendMutex = Lock()
 
@@ -172,13 +162,13 @@ class Spine:
         for devname in self.ser.keys():
             if self.use_lock:
                 lockfn = '{}{}.lck'.format(self.lock_dir, devname)
-            self.ser[devname].close()
-            logger.info('Closed serial connection {}.'.format(self.ser[devname].port))
+            self.arduinos[devname].close()
+            logger.info('Closed serial connection to {0:s}.'.format(devname))
             if self.use_lock:
                 os.remove(lockfn)
-                logger.info('Removed lock at {}.'.format(lockfn))
+                logger.info('Removed lock at {0:s}.'.format(lockfn))
 
-    def send(self, devname, command):
+    def send(self, devname, has_response, command, *args):
         '''Send a command to a device and return the result.
         This is an internal method and should not be used directly. This is
         only for testing new commands that do not yet have specific Spine
@@ -198,28 +188,33 @@ class Spine:
         self.sendMutex.acquire()
         logger.debug("Sending {} to '{}'".format(repr(command), devname))
         with DelayedKeyboardInterrupt():
-            self.ser[devname].write(command + self.delim)
-            echo = self.ser[devname].readline()
-            response = self.ser[devname].readline()
+            self.messengers[devname].send(command, *args)
+            acknowledgement = self.messengers[devname].receive()
+            if has_response:
+                response = self.messengers[devname].receive()
         try:
-            assert echo == '> ' + command + '\r\n'
+            assert acknowledgement[0] == "kAcknowledgement" and acknowledgement[1][0] == command
         except AssertionError:
-            logger.warning('Echo error to {}.'.format(repr(devname)))
-            logger.warning('Actual echo was {}.'.format(repr(echo)))
+            logger.warning('Acknowledgement error to {}.'.format(repr(devname)))
+            logger.warning('Actual response was {}.'.format(repr(acknowledgement)))
             logger.warning('Command was {}.'.format(repr(command)))
             raise
-        logger.debug("Response: {}".format(repr(response[:-2])))
-        # Be sure to chop off newline. We don't need it.
+        try:
+            assert response[0] == "kResult"
+        except AssertionError:
+            logger.warning('Response error to {}.'.format(repr(devname)))
+            logger.warning('Actual response command was {}/'.format(repr(response)))
+            logger.warning('Command was {}.'.format(repr(command)))
         self.sendMutex.release()
-        return response[:-2]
+        return response[1]
 
     def ping(self):
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
         for devname in self.ser.keys():
-            response = self.send(devname, 'ping')
-            assert response == 'ok'
+            response = self.send(devname, False, 'kPing')
+            assert response[0] == 'kPong'
 
     def set_led(self, devname, status):
         '''Turns the debug LED on or off for certain devices.
@@ -236,30 +231,45 @@ class Spine:
         response = self.send(devname, command)
         assert response == 'ok'
 
-    def configure_arduino(self, config, indices):
+    def configure_arduino(self, config):
         '''
         '''
         self.appendages = dict()
-
+        self.command_map = dict()
         for devname, arduino in config.iteritems():
-            for appendage in arduino:
-                if appendage['type'].lower() == 'limit_switch' or appendage['type'].lower() == 'button':
-                    appendage['type'] = 'switch'
+            appendages = arduino['appendages']
+            commands_config = arduino['commands']
 
-                if appendage['type'].lower() == 'monstermotomotor':
-                    appendage['type'] = 'motor'
-                elif appendage['type'].lower() == 'roverfivemotor':
-                    appendage['type'] = 'motor'
+            commands = [None * len(commands_config)]
+            commands[0] = ["kAcknowledge", "i"]
+            commands[1] = ["kStart"]
+            commands[2] = ["kError", "i"]
+            commands[3] = ["kUnknown"]
+            commands[4] = ["kSetLed", "?"]
+            commands[5] = ["kPing", "i"]
 
+            self.command_map[devname] = {}
+            self.command_map[devname][0] = "kAcknowledge"
+            self.command_map[devname][1] = "kStart"
+            self.command_map[devname][2] = "kError"
+            self.command_map[devname][3] = "kUnknown"
+            self.command_map[devname][4] = "kSetLed"
+            self.command_map[devname][5] = "kPing"
+
+            for appendage in appendages:
                 # Magic voodoo that imports a class from the appendages folder with the specific
                 # type and instantiates it
                 # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
-                module = importlib.import_module("head.spine.appendages.{0:d}"
+                module = importlib.import_module("appendages.{0:d}"
                                                  .format(appendage['type']).lower().replace(' ', '_'))
                 class_ = getattr(module, appendage['type'].title().replace(' ', ''))
 
-                self.appendages[appendage['label']] = class_(self, devname, appendage['label'],
-                                                             indices[devname][appendage['label']])
+                self.appendages[appendage['label']] = class_(self, devname, appendage, commands_config[devname])
+                for i, command in self.appendages[appendage['label']].get_command_parameters():
+                    if commands[i] is None:
+                        commands[i] = commands
+                        self.command_map[devname][i] = commands[0]
+            self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
 
     def get_appendage(self, label):
         return self.appendages[label]
