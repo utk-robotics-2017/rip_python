@@ -1,4 +1,4 @@
-from component import Component
+from .component import Component
 
 
 class Stepper(Component):
@@ -15,8 +15,8 @@ class Stepper(Component):
         self.stepIndex = commands[self.STEP]
 
     def get_command_parameters(self):
-        yield self.setSpeedIndex, [self.SET_SPEED, "i", "i"]
-        yield self.stepIndex, [self.STEP, "i", "i"]
+        yield self.setSpeedIndex, [self.SET_SPEED, "ii"]
+        yield self.stepIndex, [self.STEP, "ii"]
 
     def setSpeed(self, value):
         '''

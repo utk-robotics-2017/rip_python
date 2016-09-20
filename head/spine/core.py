@@ -9,7 +9,8 @@ import importlib
 
 # Third-party
 from .ourlogging import setup_logging
-from .PyCmdMessenger.PyCmdMessenger import CmdMessenger, ArduinoBoard
+from .PyCmdMessenger.PyCmdMessenger.PyCmdMessenger import CmdMessenger
+from .PyCmdMessenger.PyCmdMessenger.arduino import ArduinoBoard
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -57,20 +58,19 @@ class get_spine:
     `this article <http://effbot.org/zone/python-with-statement.htm>`_.
     '''
 
-    def __enter__(self, devices=""):
-        if devices == "":
-            self.s = Spine()
+    def __init__(self, devices=None):
+        if devices is not None:
+            self.devices = devices
+
+    def __enter__(self):
+        if hasattr(self, 'devices'):
+            self.s = Spine(devices=self.devices)
         else:
-            self.s = Spine(devices=devices)
+            self.s = Spine()
         self.s.startup()
         return self.s
 
     def __exit__(self, type, value, traceback):
-        for i in range(2):
-            for device in self.s.devices:
-                self.s.ser[device].flushOutput()
-                self.s.ser[device].flushInput()
-            time.sleep(0.1)
         self.s.stop()
         self.s.close()
 
@@ -114,7 +114,7 @@ class Spine:
         config = {}
         for device in devices:
             if self.use_lock:
-                lockfn = "0:s}{1:s}.lck".format(self.lock_dir, device)
+                lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
                     print(("Lockfile {0:s} exists. It's possible that someone is using this " +
@@ -154,10 +154,7 @@ class Spine:
         boards, it is possible for them to encounter their own problems. This
         command will cause the script to fail early.
         '''
-        for devname, messenger in self.messengers:
-            start_ack = messenger.receive()
-            assert (start_ack[0] == "kAcknowledge" and
-                    self.command_map[devname][start_ack[1][0]] == "kStart")
+        time.sleep(2)
 
         self.ping()
 
@@ -165,7 +162,7 @@ class Spine:
             self.set_led(devname, True)
 
     def stop(self):
-        for appendage in self.appendage_dict.values():
+        for appendage in self.appendages.values():
             if hasattr(appendage, 'stop'):
                 appendage.stop()
 
@@ -214,17 +211,18 @@ class Spine:
             if has_response:
                 response = self.messengers[devname].receive()
         try:
-            assert (acknowledgement[0] == "kAcknowledgement" and
+            assert (acknowledgement[0] == "kAcknowledge" and
                     self.command_map[devname][acknowledgement[1][0]] == command)
         except AssertionError:
             logger.warning("Acknowledgement error to {0:s}.".format(devname))
             logger.warning("Actual response was {}.".format(repr(acknowledgement)))
+            logger.warning("Acknowledged Command was {0:s}.".format(self.command_map[devname][acknowledgement[1][0]]))
             logger.warning("Command was {0:s}.".format(command))
             raise
         if has_response:
             try:
-                assert (self.command_map[devname][response[0]][:-6] == command and
-                        self.command_map[devname][response[0]][-6:] == "Result")
+                assert (response[0][:-6] == command and
+                        response[0][-6:] == "Result")
             except AssertionError:
                 logger.warning("Response error to {0:s}.".format(devname))
                 logger.warning("Actual response command was {}".format(repr(response)))
@@ -259,19 +257,19 @@ class Spine:
         '''
         self.appendages = dict()
         self.command_map = dict()
-        for devname, arduino in config.iteritems():
+        for devname, arduino in iter(config.items()):
             appendages = arduino['appendages']
             commands_config = arduino['commands']
 
-            commands = [None * len(commands_config)]
+            commands = [None] * len(commands_config)
             commands[0] = ["kAcknowledge", "i"]
-            commands[1] = ["kStart"]
+            commands[1] = ["kStart", ""]
             commands[2] = ["kError", "i"]
-            commands[3] = ["kUnknown"]
+            commands[3] = ["kUnknown", ""]
             commands[4] = ["kSetLed", "?"]
-            commands[5] = ["kPing"]
+            commands[5] = ["kPing", ""]
             commands[6] = ["kPingResult", "i"]
-            commands[7] = ["kPong"]
+            commands[7] = ["kPong", ""]
 
             self.command_map[devname] = {}
             self.command_map[devname][0] = "kAcknowledge"
@@ -283,19 +281,20 @@ class Spine:
             self.command_map[devname][6] = "kPingResult"
             self.command_map[devname][7] = "kPong"
 
+            m = self.__module__[:-4]
             for appendage in appendages:
                 # Magic voodoo that imports a class from the appendages folder with the specific
                 # type and instantiates it
                 # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
-                module = importlib.import_module("appendages.{0:d}"
-                                                 .format(appendage['type']).lower().replace(' ', '_'))
+                module = importlib.import_module("{0:s}appendages.{1:s}"
+                                                 .format(m, appendage['type']).lower().replace(' ', '_'))
                 class_ = getattr(module, appendage['type'].title().replace(' ', ''))
 
-                self.appendages[appendage['label']] = class_(self, devname, appendage, commands_config[devname])
+                self.appendages[appendage['label']] = class_(self, devname, appendage, commands_config)
                 for i, command in self.appendages[appendage['label']].get_command_parameters():
                     if commands[i] is None:
-                        commands[i] = commands
-                        self.command_map[devname][i] = commands[0]
+                        commands[i] = command
+                        self.command_map[devname][i] = commands[i][0]
             self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
 
     def get_appendage(self, label):

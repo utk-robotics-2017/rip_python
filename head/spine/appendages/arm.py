@@ -1,4 +1,4 @@
-from component import Component
+from .component import Component
 
 
 class Arm(Component):
@@ -15,7 +15,7 @@ class Arm(Component):
         self.detachIndex = commands[self.DETACH]
 
     def get_command_parameters(self):
-        yield self.setIndex, [self.SET, "i", "i", "i", "i", "i", "i"]
+        yield self.setIndex, [self.SET, "iiiiii"]
         yield self.detachIndex, [self.DETACH, "i"]
 
     def set(self, rot):

@@ -1,4 +1,4 @@
-from component import Component
+from .component import Component
 
 
 class Pid(Component):
@@ -47,11 +47,11 @@ class Pid(Component):
             self.DISPLAY_RESULT = self.VPID_DISPLAY_RESULT
 
     def get_command_parameters(self):
-        yield self.modifyConstantsIndex, [self.MODIFY_CONSTANTS, "i", "d", "d", "d"]
-        yield self.setIndex, [self.SET, "i", "d"]
+        yield self.modifyConstantsIndex, [self.MODIFY_CONSTANTS, "iddd"]
+        yield self.setIndex, [self.SET, "id"]
         yield self.offIndex, [self.OFF, "i"]
         yield self.displayIndex, [self.DISPLAY, "i"]
-        yield self.displayResultIndex, [self.DISPLAY_RESULT, "i", "d", "d", "d"]
+        yield self.displayResultIndex, [self.DISPLAY_RESULT, "iddd"]
 
     def modify_constants(self, kp, ki, kd):
         self.spine.send(self.devname, False, self.MODIFY_CONSTANTS, self.index, kp, ki, kd)

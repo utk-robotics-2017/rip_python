@@ -1,4 +1,4 @@
-from component import Component
+from .component import Component
 
 
 class Servo(Component):
@@ -15,7 +15,7 @@ class Servo(Component):
         self.detachIndex = commands[self.DETACh]
 
     def get_command_parameters(self):
-        yield self.setIndex, [self.SET, "i", "i"]
+        yield self.setIndex, [self.SET, "ii"]
         yield self.detachIndex, [self.DETACH, "i"]
 
     def set(self, value):

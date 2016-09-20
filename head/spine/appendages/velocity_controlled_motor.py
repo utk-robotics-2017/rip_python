@@ -1,4 +1,4 @@
-from component import Component
+from .component import Component
 
 
 class VelocityControlledMotor(Component):
@@ -25,8 +25,8 @@ class VelocityControlledMotor(Component):
         self.positionResultIndex = commands[self.POSITION_RESULT]
 
     def get_command_parameters(self):
-        yield self.driveIndex, [self.DRIVE, "i", "i"]
-        yield self.setIndex, [self.SET, "i", "d"]
+        yield self.driveIndex, [self.DRIVE, "ii"]
+        yield self.setIndex, [self.SET, "id"]
         yield self.stopIndex, [self.STOP, "i"]
         yield self.velocityIndex, [self.VELOCITY, "i"]
         yield self.velocityResultIndex, [self.VELOCITY_RESULT, "d"]
