@@ -8,8 +8,8 @@ from multiprocessing import Lock
 import importlib
 
 # Third-party
-from ourlogging import setup_logging
-from PyCmdMessenger.PyCmdMessenger import CmdMessenger, ArduinoBoard
+from .ourlogging import setup_logging
+from .PyCmdMessenger.PyCmdMessenger import CmdMessenger, ArduinoBoard
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -237,7 +237,7 @@ class Spine:
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
-        for devname in self.ser.keys():
+        for devname in self.messengers.keys():
             response = self.send(devname, True, "kPing")
             assert self.command_map[devname][response[0]] == "kPong"
 
@@ -269,8 +269,8 @@ class Spine:
             commands[2] = ["kError", "i"]
             commands[3] = ["kUnknown"]
             commands[4] = ["kSetLed", "?"]
-            commands[5] = ["kPing", "i"]
-            commands[6] = ["kPingResult"]
+            commands[5] = ["kPing"]
+            commands[6] = ["kPingResult", "i"]
             commands[7] = ["kPong"]
 
             self.command_map[devname] = {}

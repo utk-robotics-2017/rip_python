@@ -1,4 +1,7 @@
-class VelocityControlledMotor:
+from component import Component
+
+
+class VelocityControlledMotor(Component):
     DRIVE = "kSetVCMVoltage"
     SET = "kSetVCMVelocity"
     STOP = "kStopVCM"

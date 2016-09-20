@@ -1,4 +1,7 @@
-class Encoder:
+from component import Component
+
+
+class Encoder(Component):
     READ = "kReadEncoder"
     READ_RESULT = "kReadEncoderResult"
     ZERO = "kZeroEncoder"

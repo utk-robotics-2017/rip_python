@@ -1,4 +1,7 @@
-class I2CEncoderEncoder:
+from component import Component
+
+
+class I2CEncoderEncoder(Component):
     POSITION = "kI2CEncoderPosition"
     POSITION_RESULT = "kI2CEncoderPositionResult"
     RAW_POSITION = "kI2CEncoderRawPosition"

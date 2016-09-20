@@ -1,4 +1,7 @@
-class LineSensor:
+from component import Component
+
+
+class LineSensor(Component):
     READ_DIGITAL = "kReadDigitalLineSensor"
     READ_DIGITAL_RESULT = "kReadDigitalLineSensorResult"
     READ_ANALOG = "kReadAnalogLineSensor"

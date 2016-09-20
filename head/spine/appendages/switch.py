@@ -1,4 +1,7 @@
-class Switch:
+from component import Component
+
+
+class Switch(Component):
     READ = "kReadSwitch"
     READ_RESULT = "kReadSwitchResult"
 

@@ -1,4 +1,7 @@
-class Ultrasonic:
+from component import Component
+
+
+class Ultrasonic(Component):
     READ = "kReadUltrasonic"
     READ_RESULT = "kReadUltrasonic"
 

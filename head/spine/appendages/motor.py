@@ -1,4 +1,7 @@
-class Motor:
+from component import Component
+
+
+class Motor(Component):
     DRIVE = "kDriveMotor"
     STOP = "kStopMotor"
 

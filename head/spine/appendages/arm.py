@@ -1,4 +1,7 @@
-class Arm:
+from component import Component
+
+
+class Arm(Component):
     SET = "kSetArm"
     DETACH = "kDetachArm"
 

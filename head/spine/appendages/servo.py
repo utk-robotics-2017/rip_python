@@ -1,4 +1,7 @@
-class Servo:
+from component import Component
+
+
+class Servo(Component):
     SET = "kSetServo"
     DETACH = "kDetachServo"
 

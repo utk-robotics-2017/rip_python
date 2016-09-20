@@ -1,4 +1,7 @@
-class Pid:
+from component import Component
+
+
+class Pid(Component):
     PID_MODIFY_CONSTANT = "kModifyPidConstants"
     PID_SET = "kSetPidSetpoint"
     PID_OFF = "kPidOff"

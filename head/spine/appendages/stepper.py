@@ -1,4 +1,7 @@
-class Stepper:
+from component import Component
+
+
+class Stepper(Component):
     SET_SPEED = "kSetStepperSpeed"
     STEP = "kStepStepper"
 
