@@ -263,23 +263,21 @@ class Spine:
 
             commands = [None] * len(commands_config)
             commands[0] = ["kAcknowledge", "i"]
-            commands[1] = ["kStart", ""]
-            commands[2] = ["kError", "i"]
-            commands[3] = ["kUnknown", ""]
-            commands[4] = ["kSetLed", "?"]
-            commands[5] = ["kPing", ""]
-            commands[6] = ["kPingResult", "i"]
-            commands[7] = ["kPong", ""]
+            commands[1] = ["kError", "i"]
+            commands[2] = ["kUnknown", ""]
+            commands[3] = ["kSetLed", "?"]
+            commands[4] = ["kPing", ""]
+            commands[5] = ["kPingResult", "i"]
+            commands[6] = ["kPong", ""]
 
             self.command_map[devname] = {}
             self.command_map[devname][0] = "kAcknowledge"
-            self.command_map[devname][1] = "kStart"
-            self.command_map[devname][2] = "kError"
-            self.command_map[devname][3] = "kUnknown"
-            self.command_map[devname][4] = "kSetLed"
-            self.command_map[devname][5] = "kPing"
-            self.command_map[devname][6] = "kPingResult"
-            self.command_map[devname][7] = "kPong"
+            self.command_map[devname][1] = "kError"
+            self.command_map[devname][2] = "kUnknown"
+            self.command_map[devname][3] = "kSetLed"
+            self.command_map[devname][4] = "kPing"
+            self.command_map[devname][5] = "kPingResult"
+            self.command_map[devname][6] = "kPong"
 
             m = self.__module__[:-4]
             for appendage in appendages:
