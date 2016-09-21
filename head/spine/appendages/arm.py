@@ -1,9 +1,22 @@
-class Arm:
-    def __init__(self, spine, devname, label, index):
+from .component import Component
+
+
+class Arm(Component):
+    SET = "kSetArm"
+    DETACH = "kDetachArm"
+
+    def __init__(self, spine, devname, config, commands):
         self.spine = spine
         self.devname = devname
-        self.label = label
-        self.index = index
+        self.label = config['label']
+        self.index = config['index']
+
+        self.setIndex = commands[self.SET]
+        self.detachIndex = commands[self.DETACH]
+
+    def get_command_parameters(self):
+        yield self.setIndex, [self.SET, "iiiiii"]
+        yield self.detachIndex, [self.DETACH, "i"]
 
     def set(self, rot):
         '''
@@ -23,7 +36,7 @@ class Arm:
         assert len(rot) == 5
         for r in rot:
             assert 0 <= r <= 180
-        self.spine.send(self.devname, "sa {} {} {} {} {} {}".format(self.index, tuple(rot)))
+        self.spine.send(self.devname, False, self.SET, self.index, tuple(rot))
 
     def detach(self):
-        self.spine.send(self.devname, "das {0:d}".format(self.index))
+        self.spine.send(self.devname, False, self.DETACH, self.index)

@@ -1,20 +1,31 @@
-class Motor:
-    def __init__(self, spine, devname, label, index):
+from .component import Component
+
+
+class Motor(Component):
+    DRIVE = "kDriveMotor"
+    STOP = "kStopMotor"
+
+    def __init__(self, spine, devname, config, commands):
         self.spine = spine
         self.devname = devname
-        self.label = label
-        self.index = index
+        self.label = config['label']
+        self.index = config['index']
+
+        self.driveIndex = commands[self.DRIVE]
+        self.stopIndex = commands[self.STOP]
+
+    def get_command_parameters(self):
+        yield self.driveIndex, [self.DRIVE, "ii"]
+        yield self.stopIndex, [self.STOP, "i"]
 
     def drive(self, value):
         if value == 0:
             self.stop()
             return
-        response = self.spine.send(self.devname, "mod {0:d} {1:d}".format(self.index, value))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.DRIVE, self.index, value)
 
     def stop(self):
-        response = self.spine.send(self.devname, "mos {0:d}".format(self.index))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.STOP, self.index)
 
-    def pidSet(self, value):
+    def pid_set(self, value):
         self.drive(value)

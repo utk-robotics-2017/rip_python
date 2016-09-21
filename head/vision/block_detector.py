@@ -4,8 +4,9 @@ import math
 from datetime import datetime
 
 from convience import resize
-from videostream import VideoStream
+from video_stream import VideoStream
 
+import logging
 from ..spine.ourlogging import setup_logging
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -21,7 +22,8 @@ class Block:
         self.cy = cy
 
 
-DEF_COLORS = [{'name': 'red', 'lowerRange': (0, 100, 0), 'upperRange': (5, 255, 255), 'lowerRange2': (165, 100, 0), 'upperRange2': (180, 255, 255), 'display': (0, 0, 255)},
+DEF_COLORS = [{'name': 'red', 'lowerRange': (0, 100, 0), 'upperRange': (5, 255, 255),
+               'lowerRange2': (165, 100, 0), 'upperRange2': (180, 255, 255), 'display': (0, 0, 255)},
               {'name': 'orange', 'lowerRange': (5, 100, 0), 'upperRange': (
                   15, 255, 255), 'display': (0, 127, 255)},
               {'name': 'blue', 'lowerRange': (105, 100, 0), 'upperRange': (

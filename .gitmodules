@@ -1,12 +1,16 @@
 [submodule "torso/ArduinoGen"]
 	path = torso/ArduinoGen
 	url = https://github.com/utk-robotics-2017/ArduinoGen.git
+	branch = master
 [submodule "head/navigation/Pathfinder-Python"]
 	path = head/navigation/Pathfinder-Python
 	url = https://github.com/utk-robotics-2017/Pathfinder-Python.git
+	branch = master
 [submodule "head/navigation/navX-Python"]
 	path = head/navigation/navX-Python
 	url = https://github.com/utk-robotics-2017/navX-Python.git
-[submodule "head/Adafruit_GPIO"]
-	path = head/Adafruit_GPIO
-	url = https://github.com/utk-robotics-2017/Adafruit_Python_GPIO.git
+	branch = master
+[submodule "head/spine/PyCmdMessenger"]
+	path = head/spine/PyCmdMessenger
+	url = git@github.com:utk-robotics-2017/PyCmdMessenger.git
+	branch = master

@@ -2,9 +2,6 @@
 import time
 import logging
 import argparse
-import json
-import os
-import sys
 
 # Local modules
 from head.spine.core import get_spine
@@ -14,14 +11,23 @@ setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
 
+class get_robot:
+    def __enter__(self):
+        self.gs = get_spine()
+        self.r = Robot(self.gs.__enter__())
+        return self.r
 
-with get_spine() as s:
-    class Robot:
-        def __init__(self):
-            return
+    def __exit__(self, type, value, traceback):
+        self.gs.__exit__(type, value, traceback)
 
-        def start(self):
-            return
 
-    bot = Robot()
-    bot.start()
+class Robot:
+    def __init__(self, s):
+        self.s = s
+
+    def start(self):
+        pass
+
+if __name__ == "__main__":
+    with get_robot() as bot:
+        bot.start()
