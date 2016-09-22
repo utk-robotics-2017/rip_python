@@ -1,4 +1,7 @@
 class Component:
+    PASSED_TEST = 0
+    FAILED_TEST = 1
+
     def __init__(self):
         pass
 
