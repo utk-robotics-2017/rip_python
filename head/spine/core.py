@@ -117,9 +117,9 @@ class Spine:
                 lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
-                    print((("Lockfile {0:s} exists. It's possible that someone is using this " +
+                    print(("Lockfile {0:s} exists. It's possible that someone is using this " +
                            "serial port. If not, remove this lock file. Closing and raising " +
-                           "error.").format(lockfn)))
+                           "error.").format(lockfn))
                     sys.exit()
 
             logger.info("Connecting to /dev/{0:s}.".format(device))

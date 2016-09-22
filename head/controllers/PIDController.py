@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 class PIDController:
 
-    def __init__(self, type='position', P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0, inputSources=None, outputSources=None, reverse=None, tolerance=1):
+    def __init__(self, type='position', P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0,
+                 inputSources=None, outputSources=None, reverse=None, tolerance=1):
         if(type == 'position'):
             self.PID = PID(P, I, D, outputMax, outputMin)
         else:
@@ -58,7 +59,7 @@ class PIDController:
         if self.outputSources is not None:
             # outputSources is a list if multiple outputs are set to follow one input
             if isinstance(self.outputSources, list):
-                if not self.reverse is None:
+                if self.reverse is not None:
                     for outputSource, reverse in self.outputSources, self.reverse:
                         if reverse:
                             self.outputSources.pidSet(-self.output_)
