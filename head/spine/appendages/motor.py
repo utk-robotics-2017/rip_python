@@ -82,3 +82,7 @@ class Motor(Component):
                 else:
                     print("Invalid response")
         return self.PASSED_TEST
+
+    def show_suggestions(self):
+        print("If the motor drove in the wrong way then update your config")
+        print("If the motor did not run at all then check your wiring")
