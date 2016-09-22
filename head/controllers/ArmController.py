@@ -5,7 +5,7 @@ import time
 import operator
 import logging
 
-from ArmKinematics import revkin
+from ArmKinematics import ArmKinematics
 from Vec3d import Vec3d
 from ..spine.ourlogging import setup_logging
 
@@ -54,7 +54,8 @@ PARKED = [180, 170, 180, 60, 180]
 
 def to_servos(cuppos, wrist, wristrotate):
     wristpos = cuppos + Vec3d(0, 0, wristToCup)
-    rot = revkin(wristpos)
+    ak = ArmKinematics()
+    rot = ak.revkin(wristpos)
     wrist += -pi / 2
     # If positive wrist flexes up, positive shoulder and elbow rotations will
     # add directly to wrist
