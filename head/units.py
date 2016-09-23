@@ -5,6 +5,7 @@ class Unit:
     def to(self, unit):
         return self.base_value * unit
 
+
 class Length(Unit):
     m = 1
     mm = m * .001
@@ -14,11 +15,13 @@ class Length(Unit):
     inch = 39.3701
     ft = inch * 12
 
+
 class Time(Unit):
     s = 1
     ms = s * .001
     minute = s * 60
     hr = minute * 60
+
 
 class Velocity(Unit):
     m_s = Length.m / Time.s
@@ -29,12 +32,13 @@ class Velocity(Unit):
 
     cm_s = Length.cm / Time.s
     cm_minute = Length.cm / Time.minute
-    
+
     inch_s = Length.inch / Time.s
     inch_minute = Length.inch / Time.minute
 
     ft_s = Length.ft / Time.s
     ft_minute = Length.ft / Time.minute
+
 
 class Acceleration(Unit):
     m_s2 = Length.m / Time.s**2
@@ -51,5 +55,3 @@ class Acceleration(Unit):
 
     ft_s2 = Length.ft / Time.s**2
     ft_minute2 = Length.ft / Time.minute**2
-
-
