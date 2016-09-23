@@ -5,14 +5,16 @@ class Servo(Component):
     SET = "kSetServo"
     DETACH = "kDetachServo"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.sim = sim
 
-        self.setIndex = commands[self.SET]
-        self.detachIndex = commands[self.DETACh]
+        if not sim:
+            self.setIndex = commands[self.SET]
+            self.detachIndex = commands[self.DETACh]
 
     def get_command_parameters(self):
         yield self.setIndex, [self.SET, "ii"]
@@ -28,8 +30,14 @@ class Servo(Component):
             Position from 0 to 255 of the servo.
         :type value: ``int``
         '''
+        if self.sim:
+            return
+
         assert 0 <= value <= 255
         self.spine.send(self.devname, False, self.SET, self.index, value)
 
     def detach(self):
+        if self.sim:
+            return
+
         self.spine.send(self.devname, False, self.DETACH, self.index)

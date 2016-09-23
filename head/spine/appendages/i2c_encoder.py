@@ -12,22 +12,24 @@ class I2CEncoderEncoder(Component):
     VELOCITY_RESULT = "kI2CEncoderVelocityResult"
     ZERO = "kI2CEncoderZero"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
         self.pidSource = 'position'
+        self.sim = sim
 
-        self.positionIndex = commands[self.POSITION]
-        self.positionResultIndex = commands[self.POSITION_RESULT]
-        self.rawPositionIndex = commands[self.RAW_POSITION]
-        self.rawPositionResultIndex = commands[self.RAW_POSITION_RESULT]
-        self.speedIndex = commands[self.SPEED]
-        self.speedResultIndex = commands[self.SPEED_RESULT]
-        self.velocityIndex = commands[self.VELOCITY]
-        self.velocityResultIndex = commands[self.VELOCITY_RESULT]
-        self.zeroIndex = commands[self.ZERO]
+        if not self.sim:
+            self.positionIndex = commands[self.POSITION]
+            self.positionResultIndex = commands[self.POSITION_RESULT]
+            self.rawPositionIndex = commands[self.RAW_POSITION]
+            self.rawPositionResultIndex = commands[self.RAW_POSITION_RESULT]
+            self.speedIndex = commands[self.SPEED]
+            self.speedResultIndex = commands[self.SPEED_RESULT]
+            self.velocityIndex = commands[self.VELOCITY]
+            self.velocityResultIndex = commands[self.VELOCITY_RESULT]
+            self.zeroIndex = commands[self.ZERO]
 
     def get_commands_parameters(self):
         yield self.positionIndex, [self.POSITION, "i"]
@@ -44,18 +46,33 @@ class I2CEncoderEncoder(Component):
         self.pidSource = source
 
     def position(self):
+        if self.sim:
+            return 0
+
         return float(self.spine.send(self.devname, True, self.POSITION, self.index))
 
     def raw_position(self):
+        if self.sim:
+            return 0
+
         return float(self.spine.send(self.devname, True, self.RAW_POSITION, self.index))
 
     def speed(self):
+        if self.sim:
+            return 0
+
         return float(self.spine.send(self.devname, True, self.SPEED, self.index))
 
     def velocity(self):
+        if self.sim:
+            return 0
+
         return float(self.spine.send(self.devname, True, self.VELOCITY, self.index))
 
     def zero(self):
+        if self.sim:
+            return
+
         self.spine.send(self.devname, False, self.ZERO, self.index)
 
     def pid_get(self):

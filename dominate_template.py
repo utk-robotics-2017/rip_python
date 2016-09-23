@@ -12,8 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class get_robot:
+    def __init__(self, sim=False):
+        self.sim = sim
+
     def __enter__(self):
-        self.gs = get_spine()
+        self.gs = get_spine(sim=self.sim)
         self.r = Robot(self.gs.__enter__())
         return self.r
 
@@ -29,5 +32,5 @@ class Robot:
         pass
 
 if __name__ == "__main__":
-    with get_robot() as bot:
+    with get_robot(True) as bot:
         bot.start()

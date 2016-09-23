@@ -151,3 +151,4 @@ class PhysicsInterface:
             :returns: The sum of all movement vectors, not very useful
                       except for getting the difference of them
         '''
+        return self.vx, self.vy, self.angle

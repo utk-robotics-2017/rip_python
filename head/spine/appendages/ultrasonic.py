@@ -5,14 +5,16 @@ class Ultrasonic(Component):
     READ = "kReadUltrasonic"
     READ_RESULT = "kReadUltrasonic"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.sim = sim
 
-        self.readIndex = commands[self.READ]
-        self.readResultIndex = commands[self.READ_RESULT]
+        if not self.sim:
+            self.readIndex = commands[self.READ]
+            self.readResultIndex = commands[self.READ_RESULT]
 
     def get_command_parameters(self):
         yield self.readIndex, [self.READ, "i"]
@@ -23,6 +25,9 @@ class Ultrasonic(Component):
         Reads the ultrasonics
         :return: distance in specified unit
         '''
+        if self.sim:
+            return 0
+
         response = self.spine.send(self.devname, True, self.READ, self.index)
         assert unit in ['inch', 'cm']
         if unit == 'inch':

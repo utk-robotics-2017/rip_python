@@ -6,15 +6,17 @@ class Encoder(Component):
     READ_RESULT = "kReadEncoderResult"
     ZERO = "kZeroEncoder"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.sim = sim
 
-        self.readIndex = commands[self.READ]
-        self.readResultIndex = commands[self.READ_RESULT]
-        self.zeroIndex = commands[self.ZERO]
+        if not self.sim:
+            self.readIndex = commands[self.READ]
+            self.readResultIndex = commands[self.READ_RESULT]
+            self.zeroIndex = commands[self.ZERO]
 
     def get_command_parameters(self):
         yield self.readIndex, [self.READ, "i"]
@@ -25,9 +27,17 @@ class Encoder(Component):
         '''
         Read the encoder.
         '''
+        # TODO: figure out...
+        if self.sim:
+            return 0
+
         return float(self.spine.send(self.devname, True, self.READ, self.index))
 
     def zero(self):
+        # TODO: figure out...
+        if self.sim:
+            return
+
         self.spine.send(self.devname, False, self.ZERO, self.index)
 
     def pidGet(self):

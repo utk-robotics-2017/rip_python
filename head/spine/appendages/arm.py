@@ -5,14 +5,16 @@ class Arm(Component):
     SET = "kSetArm"
     DETACH = "kDetachArm"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
 
-        self.setIndex = commands[self.SET]
-        self.detachIndex = commands[self.DETACH]
+        self.sim = sim
+        if not sim:
+            self.setIndex = commands[self.SET]
+            self.detachIndex = commands[self.DETACH]
 
     def get_command_parameters(self):
         yield self.setIndex, [self.SET, "iiiiii"]
@@ -33,10 +35,16 @@ class Arm(Component):
             (base, shoulder, elbow, wrist, wristrotate).
         :type rot: ``tuple``
         '''
+        if self.sim:
+            return
+
         assert len(rot) == 5
         for r in rot:
             assert 0 <= r <= 180
         self.spine.send(self.devname, False, self.SET, self.index, tuple(rot))
 
     def detach(self):
+        if self.sim:
+            return
+
         self.spine.send(self.devname, False, self.DETACH, self.index)
