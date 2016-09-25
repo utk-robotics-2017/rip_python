@@ -34,7 +34,7 @@ class MecanumDrive:
 
         fl, fr, bl, br = MecanumDrive.normalize(
             fl, fr, bl, br)
-        self.fourWheelDrive.drive(fl, fr, bl, br)
+        self.fwd.drive(fl, fr, bl, br)
 
     def drive_voltage_polar(self, magnitude, direction, rotation):
         """Drive method for Mecanum wheeled robots.
@@ -63,7 +63,7 @@ class MecanumDrive:
 
         fl, fr, bl, br = MecanumDrive.normalize(
             fl, fr, bl, br)
-        self.fourWheelDrive.drive(fl, fr, bl, br)
+        self.fwd.drive(fl, fr, bl, br)
 
     def drive_velocity_cartesian(self, x, y, rotation, fieldCentric):
         """Drive method for Mecanum wheeled robots.
@@ -93,7 +93,7 @@ class MecanumDrive:
         if self.maxVelocity is not None:
             fl, fr, bl, br = MecanumDrive.normalizeVelocity(
                 fl, fr, bl, br, self.maxVelocity)
-        self.fourWheelDrive.driveVelocity(fl, fr, bl, br)
+        self.fwd.drive_velocity(fl, fr, bl, br)
 
     def drive_velocity_polar(self, magnitude, direction, rotation):
         """Drive method for Mecanum wheeled robots.
@@ -124,7 +124,7 @@ class MecanumDrive:
         if self.maxVelocity is not None:
             fl, fr, bl, br = MecanumDrive.normalizeVelocity(
                 fl, fr, bl, br, self.maxVelocity)
-        self.fourWheelDrive.driveVelocity(fl, fr, bl, br)
+        self.fwd.drive_velocity(fl, fr, bl, br)
 
     @staticmethod
     def normalize(fl, fr, bl, br):
