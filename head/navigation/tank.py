@@ -1,78 +1,111 @@
 import time
+import math
+import logging
+
+from ..controller.pid_controller import PIDController
+from pathfinder_python.distance_follower import DistanceFollower
+from ..spine.ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class TankDrive:
 
-    def __init__(self, **kwargs):
-        self.fourWheelDrive = kwargs.get('tankDrive', None)
-        self.gyro = kwargs.get('gyro', None)
-        self.wheelbase_width = kwargs.get('wheelbase_width', 0)
+    def __init__(self, tank, wb_width, gyro=None):
+        self.tank = tank
+        self.gyro = gyro
+        self.wb_width = wb_width
 
-    def driveStraightVoltage(self, value):
+    def drive_straight_voltage(self, value):
         if value == 0:
-            self.fourWheelDrive.stop()
+            self.tank.stop()
         else:
-            self.fourWheelDrive.drive(value)
+            self.tank.drive(value)
 
-    def driveArcVoltage(self, value, radius):
-        self.fourWheelDrive.drive(value + arc, value - arc)
+    def drive_arc_voltage(self, value, arc):
+        self.tank.drive(value + arc, value - arc)
 
-    def driveStraightVelocity(self, velocity):
-        if(value == 0):
-            self.fourWheelDrive.stop()
+    def drive_voltage(self, left, right):
+        self.tank.drive(left, right)
+
+    def drive_straight_velocity(self, velocity):
+        if(velocity == 0):
+            self.tank.stop()
         else:
-            self.fourWheelDrive.driveVelocity(velocity)
+            self.tank.driveVelocity(velocity)
 
-    def driveArcVelocity(self, velocity, arc):
-        self.fourWheelDrive.driveVelocity(velocity + arc, velocity - arc)
+    def drive_arc_velocity(self, velocity, arc):
+        self.drive_velocity(velocity + arc, velocity - arc)
 
-    def driveStraightVelocityForTime(self, velocity, delay):
-        driveStraightVelocity(velocity)
+    def drive_velocity(self, left, right):
+        self.tank.drive_velocity(left, right)
+
+    def drive_straight_velocity_for_time(self, velocity, delay):
+        self.drive_straight_velocity(velocity)
         time.sleep(delay)
 
-    def driveArcVelocityForTime(self, velocity, arc, delay):
-        driveArcVelocity(velocity, arc)
+    def drive_arc_velocity_for_time(self, velocity, arc, delay):
+        self.drive_arc_velocity(velocity, arc)
         time.sleep(delay)
 
-    def driveStraightDistance(self, distance):
+    def drive_straight_distance(self, distance, p, i, d):
         if distance == 0:
-            self.fourWheelDrive.stop()
+            self.tank.stop()
         else:
-            self.fourWheelDrive.driveDistance(distance)
+            self.tank.set_pid_type("distance")
+            distance_controller = PIDController(kp=p, ki=i, kd=d,
+                                                input_sources=self.tank,
+                                                output_sources=self.tank)
+            while not distance_controller.is_finnished():
+                distance_controller.calculate()
 
-    def rotateToAngle(self, angle, sensor='gyro', fieldCentric=False):
-        # useGyro must be true to be field centric
-        if useGyro:
-            initial_angle = 0
-            if(fieldCentric):
-                initial_angle = gyro.getYaw()
-            angleController.setPoint(initial_angle + angle)
-            angleController.start()
-            while not angleController.isFinished():
-                time.sleep(10)
-            angleController.stop()
-        elif useEncoders:
-            pass
+    def rotateToAngle(self, angle, p, i, d):
+        if self.gyro is not None:
+            self.tank.set_pid_type("angle")
+            angle_controller = PIDController(kp=p, ki=i, kd=d,
+                                             input_sources=self.gyro,
+                                             output_sources=self.tank)
+            while not angle_controller.is_finished():
+                angle_controller.calculate()
+        elif self.tank.is_velocity_controlled():
+            self.tank.set_pid_type("angle")
+            angle_controller = PIDController(kp=p, ki=i, kd=d,
+                                             input_sources=self.tank,
+                                             output_sources=self.tank)
+            while not angle_controller.is_finished():
+                angle_controller.calculate()
+        else:
+            raise Exception("Can't run rotate_to_angle without sensors")
+            logger.error("Can't run rotate_to_angle without sensors")
 
-    def followTrajectory(self, leftConfig, leftTrajectory, rightConfig, rightTrajectory):
-        leftFollower = DistanceFollower(leftTrajectory)
-        leftFollower.configurePIDVA(kp=leftConfig['kp'], ki=leftConfig['ki'], kd=leftConfig['kd'], kv=leftConfig['kv'], ka=leftConfig['ka'])
+    def followTrajectory(self, left_config, left_trajectory, right_config, right_trajectory):
+        left_follower = DistanceFollower(left_trajectory)
+        left_follower.configurePIDVA(kp=left_config['kp'],
+                                     ki=left_config['ki'],
+                                     kd=left_config['kd'],
+                                     kv=left_config['kv'],
+                                     ka=left_config['ka'])
 
-        rightFollower = DistanceFollower(rightTrajectory)
-        rightFollower.configurePIDVA(kp=rightConfig['kp'], ki=rightConfig['ki'], kd=rightConfig['kd'], kv=rightConfig['kv'], ka=rightConfig['ka'])
+        right_follower = DistanceFollower(right_trajectory)
+        right_follower.configurePIDVA(kp=right_config['kp'],
+                                      ki=right_config['ki'],
+                                      kd=right_config['kd'],
+                                      kv=right_config['kv'],
+                                      ka=right_config['ka'])
 
-        while not leftFollower.isFinished() | | not rightFollower.isFinished():
-            leftInput = fourWheelDrive.getLeftPosiiton()
-            rightInput = fourWheelDrive.getRightPosition()
+        while not left_follower.is_finished() or not right_follower.is_finished():
+            left_input = self.tank.get_left_posiiton()
+            right_input = self.tank.get_right_position()
 
-            leftOutput = leftFollower.calculate(leftInput)
-            rightOutput = rightFollower.calculate(rightInput)
+            left_output = left_follower.calculate(left_input)
+            right_output = right_follower.calculate(right_input)
 
-            actualAngle = gyro.getHeading()
-            desiredAngle = degrees(leftFollower.getHeading())
-            angleDifference = desiredAngle - actualAngle
+            actual_angle = self.gyro.get_heading()
+            desired_angle = math.degrees(left_follower.get_heading())
+            angle_difference = desired_angle - actual_angle
             # TODO: figure out reason behind constant
-            turn = 0.8 * (-1.0 / 80.0) * angleDifference
+            turn = 0.8 * (-1.0 / 80.0) * angle_difference
 
-            self.fourWheelDrive.drive(leftOutput + turn, rightOutput - turn)
-        self.fourWheelDrive.stop()
+            self.tank.drive(left_output + turn, right_output - turn)
+        self.tank.stop()

@@ -11,17 +11,17 @@ class PID:
     Discrete PID control
     """
 
-    def __init__(self, P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0):
+    def __init__(self, P=0.0, I=0.0, D=0.0, output_max=0.0, output_min=0.0):
 
         self.kP = P
         self.kI = I
         self.kD = D
-        self.outputMax = outputMax
-        self.outputMin = outputMin
+        self.output_max = output_max
+        self.output_min = output_min
 
         self.integrator = 0.0
 
-        self.set_point = 0.0
+        self.setpoint = 0.0
         self.last_error = 0.0
 
     def update(self, current_value):
@@ -29,15 +29,15 @@ class PID:
         Calculate PID output value for given reference input and feedback
         """
 
-        error = self.set_point - current_value
+        error = self.setpoint - current_value
 
         p = self.kP * error
 
         self.integrator += error
-        if self.integrator > self.outputMax:
-            self.integrator = self.outputMax
-        elif self.integrator < self.outputMin:
-            self.integrator = self.outputMin
+        if self.integrator > self.output_max:
+            self.integrator = self.output_max
+        elif self.integrator < self.output_min:
+            self.integrator = self.output_min
         i = self.integrator * self.kI
 
         d = self.kD * (error - self.last_error)
@@ -45,18 +45,18 @@ class PID:
 
         output = p + i + d
 
-        if output > self.outputMax:
-            output = self.outputMax
-        elif self.integrator < self.outputMin:
-            output = self.outputMin
+        if output > self.output_max:
+            output = self.output_max
+        elif self.integrator < self.output_min:
+            output = self.output_min
 
         return output
 
-    def setPoint(self, set_point):
+    def set_setpoint(self, setpoint):
         """
         Initilize the setpoint of PID
         """
-        self.set_point = set_point
+        self.setpoint = setpoint
         self.integrator = 0
         self.last_error = 0
 
@@ -69,8 +69,8 @@ class PID:
     def setKd(self, D):
         self.kD = D
 
-    def getPoint(self):
-        return self.set_point
+    def get_setpoint(self):
+        return self.setpoint
 
     def reset(self):
         self.last_error = 0

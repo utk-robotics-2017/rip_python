@@ -1,14 +1,13 @@
 import math
 
 
-class Mecanum:
+class MecanumDrive:
 
-    def __init__(self, **kwargs):
-        self.fourWheelDrive = kwargs.get('mecanumDrive', None)
-        self.gyro = kwargs.get('gyro', None)
-        self.maxVelocity = kwargs.get('maxVelocity', None)
+    def __init__(self, fwd, gyro=None):
+        self.fwd = fwd
+        self.gyro = gyro
 
-    def driveVoltage_Cartesian(self, x, y, rotation, fieldCentric):
+    def drive_voltage_cartesian(self, x, y, rotation, fieldCentric):
         """Drive method for Mecanum wheeled robots.
         A method for driving with Mecanum wheeled robots. There are 4 wheels
         on the robot, arranged so that the front and back wheels are toed in
@@ -26,18 +25,18 @@ class Mecanum:
         yIn = y
         if fieldCentric and self.gyro is not None:
             # Compenstate for gyro angle.
-            xIn, yIn = Mecanum.rotateVector(xIn, yIn, self.gyro.getYaw())
+            xIn, yIn = MecanumDrive.rotateVector(xIn, yIn, self.gyro.getYaw())
 
-        frontLeft = xIn + yIn + rotation
-        frontRight = -xIn + yIn - rotation
-        backLeft = -xIn + yIn + rotation
-        backRight = xIn + yIn - rotation
+        fl = xIn + yIn + rotation
+        fr = -xIn + yIn - rotation
+        bl = -xIn + yIn + rotation
+        br = xIn + yIn - rotation
 
-        frontLeft, frontRight, backLeft, backRight = Mecanum.normalize(
-            frontLeft, frontRight, backLeft, backRight)
-        self.fourWheelDrive.drive(frontLeft, frontRight, backLeft, backRight)
+        fl, fr, bl, br = MecanumDrive.normalize(
+            fl, fr, bl, br)
+        self.fourWheelDrive.drive(fl, fr, bl, br)
 
-    def driveVoltage_Polar(self, magnitude, direction, rotation):
+    def drive_voltage_polar(self, magnitude, direction, rotation):
         """Drive method for Mecanum wheeled robots.
         A method for driving with Mecanum wheeled robots. There are 4 wheels
         on the robot, arranged so that the front and back wheels are toed in
@@ -57,16 +56,16 @@ class Mecanum:
         cosD = math.cos(dirInRad)
         sinD = math.sin(dirInRad)
 
-        frontLeft = sinD * magnitude + rotation
-        frontRight = cosD * magnitude - rotation
-        backLeft = cosD * magnitude + rotation
-        backRight = sinD * magnitude - rotation
+        fl = sinD * magnitude + rotation
+        fr = cosD * magnitude - rotation
+        bl = cosD * magnitude + rotation
+        br = sinD * magnitude - rotation
 
-        frontLeft, frontRight, backLeft, backRight = Mecanum.normalize(
-            frontLeft, frontRight, backLeft, backRight)
-        self.fourWheelDrive.drive(frontLeft, frontRight, backLeft, backRight)
+        fl, fr, bl, br = MecanumDrive.normalize(
+            fl, fr, bl, br)
+        self.fourWheelDrive.drive(fl, fr, bl, br)
 
-    def driveVelocity_Cartesian(self, x, y, rotation, fieldCentric):
+    def drive_velocity_cartesian(self, x, y, rotation, fieldCentric):
         """Drive method for Mecanum wheeled robots.
         A method for driving with Mecanum wheeled robots. There are 4 wheels
         on the robot, arranged so that the front and back wheels are toed in
@@ -84,19 +83,19 @@ class Mecanum:
         yIn = y
         if fieldCentric and self.gyro is not None:
             # Compenstate for gyro angle.
-            xIn, yIn = Mecanum.rotateVector(xIn, yIn, self.gyro.getYaw())
+            xIn, yIn = MecanumDrive.rotateVector(xIn, yIn, self.gyro.getYaw())
 
-        frontLeft = xIn + yIn + rotation
-        frontRight = -xIn + yIn - rotation
-        backLeft = -xIn + yIn + rotation
-        backRight = xIn + yIn - rotation
+        fl = xIn + yIn + rotation
+        fr = -xIn + yIn - rotation
+        bl = -xIn + yIn + rotation
+        br = xIn + yIn - rotation
 
         if self.maxVelocity is not None:
-            frontLeft, frontRight, backLeft, backRight = Mecanum.normalizeVelocity(
-                frontLeft, frontRight, backLeft, backRight, self.maxVelocity)
-        self.fourWheelDrive.driveVelocity(frontLeft, frontRight, backLeft, backRight)
+            fl, fr, bl, br = MecanumDrive.normalizeVelocity(
+                fl, fr, bl, br, self.maxVelocity)
+        self.fourWheelDrive.driveVelocity(fl, fr, bl, br)
 
-    def driveVelocity_Polar(self, magnitude, direction, rotation):
+    def drive_velocity_polar(self, magnitude, direction, rotation):
         """Drive method for Mecanum wheeled robots.
         A method for driving with Mecanum wheeled robots. There are 4 wheels
         on the robot, arranged so that the front and back wheels are toed in
@@ -117,39 +116,39 @@ class Mecanum:
         cosD = math.cos(dirInRad)
         sinD = math.sin(dirInRad)
 
-        frontLeft = sinD * magnitude + rotation
-        frontRight = cosD * magnitude - rotation
-        backLeft = cosD * magnitude + rotation
-        backRight = sinD * magnitude - rotation
+        fl = sinD * magnitude + rotation
+        fr = cosD * magnitude - rotation
+        bl = cosD * magnitude + rotation
+        br = sinD * magnitude - rotation
 
         if self.maxVelocity is not None:
-            frontLeft, frontRight, backLeft, backRight = Mecanum.normalizeVelocity(
-                frontLeft, frontRight, backLeft, backRight, self.maxVelocity)
-        self.fourWheelDrive.driveVelocity(frontLeft, frontRight, backLeft, backRight)
+            fl, fr, bl, br = MecanumDrive.normalizeVelocity(
+                fl, fr, bl, br, self.maxVelocity)
+        self.fourWheelDrive.driveVelocity(fl, fr, bl, br)
 
     @staticmethod
-    def normalize(frontLeft, frontRight, backLeft, backRight):
+    def normalize(fl, fr, bl, br):
         """Normalize all wheel speeds if the magnitude of any wheel is greater
         than 1023.
         """
-        wheelSpeeds = [frontLeft, frontRight, backLeft, backRight]
-        maxMagnitude = max(abs(x) for x in wheelSpeeds)
+        wheel_speeds = [fl, fr, bl, br]
+        maxMagnitude = max(abs(x) for x in wheel_speeds)
         if maxMagnitude > 1023:
-            for i in range(len(wheelSpeeds)):
-                wheelSpeeds[i] = wheelSpeeds[i] / maxMagnitude
-        return wheelSpeeds[0], wheelSpeeds[1], wheelSpeeds[2], wheelSpeeds[3]
+            for i in range(len(wheel_speeds)):
+                wheel_speeds[i] = wheel_speeds[i] / maxMagnitude
+        return wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]
 
     @staticmethod
-    def normalizeVelocity(frontLeft, frontRight, backLeft, backRight, maxVelocity):
+    def normalize_velocity(fl, fr, bl, br, max_velocity):
         """Normalize all wheel speeds if the magnitude of any wheel is greater
-        than 1023.
+        than `the max_velocity`.
         """
-        wheelSpeeds = [frontLeft, frontRight, backLeft, backRight]
-        maxMagnitude = max(abs(x) for x in wheelSpeeds)
-        if maxMagnitude > maxVelocity:
-            for i in range(len(wheelSpeeds)):
-                wheelSpeeds[i] = wheelSpeeds[i] / maxMagnitude
-        return wheelSpeeds[0], wheelSpeeds[1], wheelSpeeds[2], wheelSpeeds[3]
+        wheel_speeds = [fl, fr, bl, br]
+        max_magnitude = max(abs(x) for x in wheel_speeds)
+        if max_magnitude > max_velocity:
+            for i in range(len(wheel_speeds)):
+                wheel_speeds[i] = wheel_speeds[i] / max_magnitude
+        return wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]
 
     @staticmethod
     def rotateVector(x, y, angle):
