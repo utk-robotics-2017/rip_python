@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from threading import Thread
 import math
 import logging
 
@@ -12,14 +12,16 @@ logger = logging.getLogger(__name__)
 
 class PIDController:
 
-    def __init__(self, type='position', P=0.0, I=0.0, D=0.0, outputMax=0.0, outputMin=0.0, inputSources=None, outputSources=None, reverse=None, tolerance=1):
+    def __init__(self, type='position', kp=0.0, ki=0.0, kd=0.0,
+                 output_max=0.0, output_min=0.0, input_sources=None,
+                 output_sources=None, reverse=None, tolerance=1):
         if(type == 'position'):
-            self.PID = PID(P, I, D, outputMax, outputMin)
+            self.PID = PID(kp, ki, kd, output_max, output_min)
         else:
-            self.PID = VPID(P, I, D, outputMax, outputMin)
+            self.PID = VPID(kp, ki, kd, output_max, output_min)
 
-        self.inputSources = inputSources
-        self.outputSources = outputSources
+        self.input_sources = input_sources
+        self.output_sources = output_sources
         self.reverse = reverse
         self.stopped = False
         self.tolerance = tolerance
@@ -28,55 +30,53 @@ class PIDController:
         # start the process to run the pid
         if self.stopped:
             self.stopped = False
-            p = Process(target=self.update, args=())
-            p.start()
+            t = Thread(target=self.update, args=())
+            t.start()
 
     def update(self):
-        while True:
-            if self.stopped:
-                return
+        while not self.stopped:
             self.calculate()
 
     def stop(self):
         self.stopped = True
 
-    def setPoint(self, value):
-        self.PID.setPoint(value)
+    def set_setpoint(self, value):
+        self.PID.set_setpoint(value)
 
     def calculate(self):
-
-        if isinstance(self.inputSources, list):
+        if isinstance(self.input_sources, list):
             input_ = 0.0
-            for inputSource in self.inputSources:
-                input_ += inputSource.pidGet()
+            for input_source in self.input_sources:
+                input_ += input_source.pid_gGet()
         else:
-            input_ = self.inputSource.pidGet()
+            input_ = self.input_source.pid_get()
 
         self.output_ = self.PID.calculate(input_)
 
         # outputSources is None if this PIDController is chained to another PIDController
-        if self.outputSources is not None:
+        if self.output_sources is not None:
             # outputSources is a list if multiple outputs are set to follow one input
-            if isinstance(self.outputSources, list):
-                if not self.reverse is None:
-                    for outputSource, reverse in self.outputSources, self.reverse:
+            if isinstance(self.output_sources, list):
+                if self.reverse is not None:
+                    for output_source, reverse in self.output_sources, self.reverse:
                         if reverse:
-                            self.outputSources.pidSet(-self.output_)
+                            output_source.pid_set(-self.output_)
                         else:
-                            self.outputSources.pidSet(self.output_)
+                            output_source.pid_set(self.output_)
                 else:
-                    for outputSource in self.outputSources:
-                        self.outputSources.pidSet(-self.output_)
+                    for output_source in self.output_sources:
+                        output_source.pid_set(-self.output_)
             # single input to single output
             else:
                 if reverse is not None or not reverse:
-                    self.outputSources.pidSet(self.output_)
+                    self.outputSources.pid_set(self.output_)
                 else:
-                    self.outputSources.pidSet(-self.output_)
-
-    # used for chaining pid controllers
-    def pidGet(self):
+                    self.outputSources.pid_set(-self.output_)
         return self.output_
 
-    def isFinished(self):
+    # used for chaining pid controllers
+    def pid_get(self):
+        return self.output_
+
+    def is_finished(self):
         return math.abs(self.output_) < self.tolerance
