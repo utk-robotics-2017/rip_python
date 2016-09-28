@@ -1,9 +1,22 @@
-class servo:
-    def __init__(self, spine, devname, label, index):
+from .component import Component
+
+
+class Servo(Component):
+    SET = "kSetServo"
+    DETACH = "kDetachServo"
+
+    def __init__(self, spine, devname, config, commands):
         self.spine = spine
         self.devname = devname
-        self.label = label
-        self.index = index
+        self.label = config['label']
+        self.index = config['index']
+
+        self.setIndex = commands[self.SET]
+        self.detachIndex = commands[self.DETACh]
+
+    def get_command_parameters(self):
+        yield self.setIndex, [self.SET, "ii"]
+        yield self.detachIndex, [self.DETACH, "i"]
 
     def set(self, value):
         '''
@@ -16,15 +29,7 @@ class servo:
         :type value: ``int``
         '''
         assert 0 <= value <= 255
-        response = self.spine.send(self.devname, "ss {} {}".format(self.index, value))
-        assert response == 'ok'
+        self.spine.send(self.devname, False, self.SET, self.index, value)
 
     def detach(self):
-        response = self.spine.send(self.devname, "sd {}".format(self.index))
-        assert response == 'ok'
-    def test(self):
-        #TEST SOME SHIT I DON'T KNOW
-        print("\nservo\n")
-        
-        #First test
-        print("RE
+        self.spine.send(self.devname, False, self.DETACH, self.index)
