@@ -1,3 +1,5 @@
+import time
+
 from .component import Component
 
 
@@ -30,33 +32,57 @@ class Motor(Component):
     def pid_set(self, value):
         self.drive(value)
 
-    def test(self):
-        print("\nMotor\n")
+    def run_tests(self):
+        run_again = True
+        while run_again:
+            print("Test 1: Driving {0:s} forwards".format(self.label))
+            self.drive(500)
+            time.sleep(2)
+            self.stop()
+            while True:
+                ans = input("Would you like to run test 1 again?")
+                if ans.lower() in ['yes', 'y']:
+                    break
+                elif ans.lower() in ['no', 'n']:
+                    run_again = False
+                    break
+                else:
+                    print("Invalid response")
+            while True:
+                ans = input("Did test 1 pass? (y/n)")
+                if ans.lower() in ['yes', 'y']:
+                    break
+                elif ans.lower() in ['no', 'n']:
+                    return self.FAILED_TEST
+                else:
+                    print("Invalid response")
 
-        # first test
-        print("The motor should not be moving.  The motor will turn for five seconds.")
-        self.drive(420) # blaze it
-        time.sleep(5)
-        self.stop()
+        run_again = True
+        while run_again:
+            print("Test 2: Driving {0:s} backwards".format(self.label))
+            self.drive(-500)
+            time.sleep(2)
+            self.stop()
+            while True:
+                ans = input("Would you like to run test 2 again?")
+                if ans.lower() in ['yes', 'y']:
+                    break
+                elif ans.lower() in ['no', 'n']:
+                    run_again = False
+                    break
+                else:
+                    print("Invalid response")
+            while True:
+                ans = input("Did test 1 pass? (y/n)")
+                if ans.lower() in ['yes', 'y']:
+                    break
+                elif ans.lower() in ['no', 'n']:
+                    return self.FAILED_TEST
+                    break
+                else:
+                    print("Invalid response")
+        return self.PASSED_TEST
 
-        while True:
-            f_query = raw_input("Did it turn (y/n): ")
-            if f_query == 'y' or f_query == 'n':
-                break
-
-        #second test
-        print "The motor should not be moving.  The motor will turn the opposite direction for five seconds."
-        self.drive(-420) # unblaze it
-        time.sleep(5)
-        self.stop()
-
-        while True:
-            s_query = raw_input("Did it turn (y/n): ")
-            if s_query == 'y' or s_query == 'n':
-                break
-
-        # pass/fail
-        if f_query == 'n' or s_query == 'n':
-            return False
-        else:
-            return True
+    def show_suggestions(self):
+        print("If the motor drove in the wrong way then update your config")
+        print("If the motor did not run at all then check your wiring")
