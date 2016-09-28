@@ -1,10 +1,13 @@
 # Python modules
 import logging
 from collections import OrderedDict
-
+import os
+import sys
+sys.path.append(('/').join(os.path.abspath(__file__).split('/')[:-2]))
+print(sys.path)
 # Local modules
-from ..head.spine.core import get_spine
-from ..head.spine.ourlogging import setup_logging
+from head.spine.core import get_spine
+from head.spine.ourlogging import setup_logging
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -13,7 +16,7 @@ FAILED_TEST = 1
 
 with get_spine() as s:
     appendages = s.get_appendage_dict()
-    sorted_appendages = OrderedDict(sorted(appendages.items(), key=lambda e: e.__class__))
+    sorted_appendages = OrderedDict(sorted(appendages.items(), key=lambda e: e.__class__.__name__))
     for label, appendage in iter(sorted_appendages.items()):
         while True:
             print("\n--------------------------\n")

@@ -40,7 +40,7 @@ class Motor(Component):
             time.sleep(2)
             self.stop()
             while True:
-                ans = input("Would you like to run test 1 again?")
+                ans = input("Would you like to run test 1 again? (y/n)\n")
                 if ans.lower() in ['yes', 'y']:
                     break
                 elif ans.lower() in ['no', 'n']:
@@ -49,7 +49,7 @@ class Motor(Component):
                 else:
                     print("Invalid response")
             while True:
-                ans = input("Did test 1 pass? (y/n)")
+                ans = input("Did test 1 pass? (y/n)\n")
                 if ans.lower() in ['yes', 'y']:
                     break
                 elif ans.lower() in ['no', 'n']:
@@ -64,7 +64,7 @@ class Motor(Component):
             time.sleep(2)
             self.stop()
             while True:
-                ans = input("Would you like to run test 2 again?")
+                ans = input("Would you like to run test 2 again? (y/n)\n")
                 if ans.lower() in ['yes', 'y']:
                     break
                 elif ans.lower() in ['no', 'n']:
@@ -73,7 +73,7 @@ class Motor(Component):
                 else:
                     print("Invalid response")
             while True:
-                ans = input("Did test 1 pass? (y/n)")
+                ans = input("Did test 2 pass? (y/n)\n")
                 if ans.lower() in ['yes', 'y']:
                     break
                 elif ans.lower() in ['no', 'n']:

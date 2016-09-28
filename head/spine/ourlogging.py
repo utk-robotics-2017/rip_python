@@ -3,7 +3,7 @@ import logging.handlers
 import os
 import sys
 import re
-from colors import color
+from .colors import color
 
 
 class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
