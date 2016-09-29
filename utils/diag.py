@@ -4,7 +4,6 @@ from collections import OrderedDict
 import os
 import sys
 sys.path.append(('/').join(os.path.abspath(__file__).split('/')[:-2]))
-print(sys.path)
 # Local modules
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
@@ -20,7 +19,7 @@ with get_spine() as s:
     for label, appendage in iter(sorted_appendages.items()):
         while True:
             print("\n--------------------------\n")
-            ans = input("Should we run the tests for {0:s}? (y/n)".format(label))
+            ans = input("Should we run the tests for {0:s}? (y/n)\n".format(label))
 
             if ans.lower() in ['yes', 'y']:
                 result = appendage.run_tests()
