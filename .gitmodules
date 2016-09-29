@@ -14,3 +14,6 @@
 	path = head/spine/PyCmdMessenger
 	url = git@github.com:utk-robotics-2017/PyCmdMessenger.git
 	branch = master
+[submodule "utils/PID_Tuner"]
+	path = utils/PID_Tuner
+	url = git@github.com:utk-robotics-2017/PID_Tuner.git

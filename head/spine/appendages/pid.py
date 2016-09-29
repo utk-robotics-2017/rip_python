@@ -64,4 +64,8 @@ class Pid(Component):
 
     def display(self):
         response = self.spine.send(self.devname, True, self.DISPLAY, self.index)
-        return response
+        response_dict = {}
+        response_dict['input'] = response[0]
+        response_dict['setpoint'] = response[1]
+        response_dict['output'] = response[2]
+        return response_dict
