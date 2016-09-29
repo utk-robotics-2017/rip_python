@@ -2,13 +2,17 @@ from .component import Component
 
 
 class Pid(Component):
-    PID_MODIFY_CONSTANT = "kModifyPidConstants"
+    PID_CONSTANTS = "kPidConstants"
+    PID_CONSTANTS_RESULT = "kPidConstantsResult"
+    PID_MODIFY_CONSTANTS = "kModifyPidConstants"
     PID_SET = "kSetPidSetpoint"
     PID_OFF = "kPidOff"
     PID_DISPLAY = "kPidDisplay"
     PID_DISPLAY_RESULT = "kPidDisplayResult"
 
-    VPID_MODIFY_CONSTANT = "kModifyVpidConstants"
+    VPID_CONSTANTS = "kVpidConstants"
+    VPID_CONSTANTS_RESULT = "kVpidConstantsResult"
+    VPID_MODIFY_CONSTANTS = "kModifyVpidConstants"
     VPID_SET = "kSetVpidSetpoint"
     VPID_OFF = "kVpidOff"
     VPID_DISPLAY = "kVpidDisplay"
@@ -22,24 +26,32 @@ class Pid(Component):
         self.vpid = config['vpid']
 
         if not self.vpid:
+            self.constantsIndex = commands[self.PID_CONSTANTS]
+            self.constantsResultIndex = commands[self.PID_CONSTANTS_RESULT]
             self.modifyConstantsIndex = commands[self.PID_MODIFY_CONSTANTS]
             self.setIndex = commands[self.PID_SET]
             self.offIndex = commands[self.PID_OFF]
             self.displayIndex = commands[self.PID_DISPLAY]
             self.displayResultIndex = commands[self.PID_DISPLAY_RESULT]
 
+            self.CONSTANTS = self.PID_CONSTANTS
+            self.CONSTANTS_RESULT = self.PID_CONSTANTS_RESULT
             self.MODIFY_CONSTANTS = self.PID_MODIFY_CONSTANTS
             self.SET = self.PID_SET
             self.OFF = self.PID_OFF
             self.DISPLAY = self.PID_DISPLAY
             self.DISPLAY_RESULT = self.PID_DISPLAY_RESULT
         else:
+            self.constantsIndex = commands[self.VPID_CONSTANTS]
+            self.constantsResultIndex = commands[self.VPID_CONSTANTS_RESULT]
             self.modifyConstantsIndex = commands[self.VPID_MODIFY_CONSTANTS]
             self.setIndex = commands[self.VPID_SET]
             self.offIndex = commands[self.VPID_OFF]
             self.displayIndex = commands[self.VPID_DISPLAY]
             self.displayResultIndex = commands[self.VPID_DISPLAY_RESULT]
 
+            self.CONSTANTS = self.VPID_CONSTANTS
+            self.CONSTANTS_RESULT = self.VPID_CONSTANTS_RESULT
             self.MODIFY_CONSTANTS = self.VPID_MODIFY_CONSTANTS
             self.SET = self.VPID_SET
             self.OFF = self.VPID_OFF
@@ -47,11 +59,21 @@ class Pid(Component):
             self.DISPLAY_RESULT = self.VPID_DISPLAY_RESULT
 
     def get_command_parameters(self):
+        yield self.constantsIndex, [self.CONSTANTS, "i"]
+        yield self.constantsResultIndex, [self.CONSTANTS_RESULT, "iddd"]
         yield self.modifyConstantsIndex, [self.MODIFY_CONSTANTS, "iddd"]
         yield self.setIndex, [self.SET, "id"]
         yield self.offIndex, [self.OFF, "i"]
         yield self.displayIndex, [self.DISPLAY, "i"]
         yield self.displayResultIndex, [self.DISPLAY_RESULT, "iddd"]
+
+    def constants(self):
+        response = self.spine.send(self.devname, True, self.CONSTANTS, self.index)
+        response_dict = {}
+        response_dict['kp'] = response[0]
+        response_dict['ki'] = response[1]
+        response_dict['kd'] = response[2]
+        return response_dict
 
     def modify_constants(self, kp, ki, kd):
         self.spine.send(self.devname, False, self.MODIFY_CONSTANTS, self.index, kp, ki, kd)
