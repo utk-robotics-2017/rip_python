@@ -2,6 +2,8 @@ import logging
 import logging.handlers
 import os
 import sys
+import re
+from .colors import color
 
 
 class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
@@ -12,6 +14,30 @@ class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
         rtv = logging.handlers.RotatingFileHandler._open(self)
         os.umask(prevumask)
         return rtv
+
+re_color_codes = re.compile(r'\033\[(\d;)?\d+m')
+
+
+class AnsiColorFormatter(logging.Formatter):
+    def __init__(self, msgfmt=None, datefmt=None):
+        self.formatter = logging.Formatter(msgfmt)
+
+    def format(self, record):
+
+        s = self.formatter.format(record)
+
+        if record.levelname == 'CRITICAL':
+            s = color(s, fg='red', style='negative')
+        elif record.levelname == 'ERROR':
+            s = color(s, fg='red')
+        elif record.levelname == 'WARNING':
+            s = color(s, fg='yellow')
+        elif record.levelname == 'DEBUG':
+            s = color(s, fg='blue')
+        elif record.levelname == 'INFO':
+            pass
+
+        return s
 
 
 def setup_logging(fn):
@@ -35,7 +61,8 @@ def setup_logging(fn):
 
     # create formatter and add it to the handlers
     formatter = logging.Formatter(fmt)
-    ch.setFormatter(formatter)
+    ch.setFormatter(AnsiColorFormatter(fmt))
+    # ch.setFormatter(formatter)
     fh_.setFormatter(formatter)
 
     # add the handlers to logger
