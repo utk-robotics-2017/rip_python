@@ -12,7 +12,11 @@ class Servo(Component):
         self.index = config['index']
         self.sim = sim
 
-        if not sim:
+        if sim:
+            self.sim_value = 0
+            self.sim_position = 0
+            self.sim_attached = False
+        else:
             self.setIndex = commands[self.SET]
             self.detachIndex = commands[self.DETACh]
 
@@ -31,6 +35,8 @@ class Servo(Component):
         :type value: ``int``
         '''
         if self.sim:
+            self.sim_value = value
+            # TODO: use sim_servo to determine position
             return
 
         assert 0 <= value <= 255

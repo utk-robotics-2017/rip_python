@@ -12,7 +12,9 @@ class Switch(Component):
         self.index = config['index']
         self.sim = sim
 
-        if not self.sim:
+        if self.sim:
+            self.state = False
+        else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
 
@@ -20,9 +22,13 @@ class Switch(Component):
         yield self.readIndex, [self.READ, "i"]
         yield self.readResultIndex, [self.READ_RESULT, "?"]
 
+    def set_state(self, state):
+        if self.sim:
+            self.state = state
+
     def read(self):
         if self.sim:
-            return 0
+            return self.state
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
         return response

@@ -1,7 +1,7 @@
 from .component import Component
 
 
-class I2CEncoderEncoder(Component):
+class I2CEncoder(Component):
     POSITION = "kI2CEncoderPosition"
     POSITION_RESULT = "kI2CEncoderPositionResult"
     RAW_POSITION = "kI2CEncoderRawPosition"
@@ -20,7 +20,10 @@ class I2CEncoderEncoder(Component):
         self.pidSource = 'position'
         self.sim = sim
 
-        if not self.sim:
+        if self.sim:
+            self.sim_position = 0
+            self.sim_velocity = 0
+        else:
             self.positionIndex = commands[self.POSITION]
             self.positionResultIndex = commands[self.POSITION_RESULT]
             self.rawPositionIndex = commands[self.RAW_POSITION]
@@ -45,11 +48,15 @@ class I2CEncoderEncoder(Component):
     def set_pid_source(self, source):
         self.pidSource = source
 
-    def position(self):
+    def get_position(self):
         if self.sim:
-            return 0
+            return self.sim_position
 
         return float(self.spine.send(self.devname, True, self.POSITION, self.index))
+
+    def set_position(self, position):
+        if self.sim:
+            self.sim_position = position
 
     def raw_position(self):
         if self.sim:
@@ -57,20 +64,26 @@ class I2CEncoderEncoder(Component):
 
         return float(self.spine.send(self.devname, True, self.RAW_POSITION, self.index))
 
-    def speed(self):
+    def get_speed(self):
         if self.sim:
-            return 0
+            return abs(self.sim_velocity)
 
         return float(self.spine.send(self.devname, True, self.SPEED, self.index))
 
-    def velocity(self):
+    def set_velocity(self, velocity):
         if self.sim:
-            return 0
+            self.sim_velocity = velocity
+
+    def get_velocity(self):
+        if self.sim:
+            return self.sim_velocity
 
         return float(self.spine.send(self.devname, True, self.VELOCITY, self.index))
 
     def zero(self):
         if self.sim:
+            self.sim_position = 0
+            self.sim_velocity = 0
             return
 
         self.spine.send(self.devname, False, self.ZERO, self.index)

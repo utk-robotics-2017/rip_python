@@ -20,23 +20,30 @@ class FourWheelDrive(Component):
     RIGHT_POSITION = "kGetFWDRightPosition"
     RIGHT_POSITION_RESULT = "kGetFWDRightPositionResult"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
 
-        self.driveIndex = commands[self.DRIVE]
-        self.stopIndex = commands[self.STOP]
-        self.drivePIDIndex = commands[self.DRIVE_PID]
-        self.leftVelocityIndex = commands[self.LEFT_VELOCITY]
-        self.leftVelocityResultIndex = commands[self.LEFT_VELOCITY_RESULT]
-        self.rightVelocityIndex = commands[self.RIGHT_VELOCITY]
-        self.rightVelocityResultIndex = commands[self.RIGHT_VELOCITY_RESULT]
-        self.leftPositionIndex = commands[self.LEFT_POSITION]
-        self.leftPositionResultIndex = commands[self.LEFT_POSITION_RESULT]
-        self.rightPositionIndex = commands[self.RIGHT_POSITION]
-        self.rightPositionResultIndex = commands[self.RIGHT_POSITION_RESULT]
+        self.sim = sim
+        if self.sim:
+            self.sim_left_velocity = 0
+            self.sim_left_position = 0
+            self.sim_right_velocity = 0
+            self.sim_right_position = 0
+        else:
+            self.driveIndex = commands[self.DRIVE]
+            self.stopIndex = commands[self.STOP]
+            self.drivePIDIndex = commands[self.DRIVE_PID]
+            self.leftVelocityIndex = commands[self.LEFT_VELOCITY]
+            self.leftVelocityResultIndex = commands[self.LEFT_VELOCITY_RESULT]
+            self.rightVelocityIndex = commands[self.RIGHT_VELOCITY]
+            self.rightVelocityResultIndex = commands[self.RIGHT_VELOCITY_RESULT]
+            self.leftPositionIndex = commands[self.LEFT_POSITION]
+            self.leftPositionResultIndex = commands[self.LEFT_POSITION_RESULT]
+            self.rightPositionIndex = commands[self.RIGHT_POSITION]
+            self.rightPositionResultIndex = commands[self.RIGHT_POSITION_RESULT]
 
     def get_command_parameters(self):
         yield self.driveIndex, [self.DRIVE, "iiiii"]
@@ -62,10 +69,18 @@ class FourWheelDrive(Component):
             logger.error("Wrong number of arguments in drive")
             raise Exception("Wrong number of arguments in drive")
 
-        self.spine.send(self.devname, False, self.DRIVE, self.index, *values)
+        if self.sim:
+            # TODO: get speed from sim_motor
+            pass
+        else:
+            self.spine.send(self.devname, False, self.DRIVE, self.index, *values)
 
     def stop(self):
-        self.spine.send(self.devname, False, self.STOP, self.index)
+        if self.sim:
+            self.sim_left_velocity = 0
+            self.sim_right_velocity = 0
+        else:
+            self.spine.send(self.devname, False, self.STOP, self.index)
 
     def drive_pid(self, *args):
         if len(args) == 1:
@@ -78,23 +93,43 @@ class FourWheelDrive(Component):
             logger.error("Wrong number of arguments in drive_pid")
             raise Exception("Wrong number of arguments in drive_pid")
 
-        self.spine.send(self.devname, False, self.DRIVE_PID, self.index, *values)
+        if self.sim:
+            self.sim_left_velocity = values[0]
+            self.sim_right_velocity = values[1]
+        else:
+            self.spine.send(self.devname, False, self.DRIVE_PID, self.index, *values)
 
     def get_left_velocity(self):
+        if self.sim:
+            return self.sim_left_velocity
         response = self.spine.send(self.devname, True, self.LEFT_VELOCITY, self.index)
         return response
 
     def get_right_velocity(self):
+        if self.sim:
+            return self.sim_right_velocity
         response = self.spine.send(self.devname, True, self.RIGHT_VELOCITY, self.index)
         return response
 
     def get_left_position(self):
+        if self.sim:
+            return self.sim_left_position
         response = self.spine.send(self.devname, True, self.LEFT_POSITION, self.index)
         return response
 
+    def set_left_position(self, position):
+        if self.sim:
+            self.sim_left_position = position
+
     def get_right_position(self):
+        if self.sim:
+            return self.sim_right_position
         response = self.spine.send(self.devname, True, self.RIGHT_POSITION, self.index)
         return response
+
+    def set_right_position(self, position):
+        if self.sim:
+            self.sim_right_position = position
 
     def set_pid_type(self, type):
         self.pid_type = type

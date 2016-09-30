@@ -5,6 +5,39 @@ class Unit:
     def to(self, unit):
         return self.base_value * unit
 
+    def __add__(self, other):
+        return Unit(self.base_value + other.base_value, 1)
+
+    def __sub__(self, other):
+        return Unit(self.base_value - other.base_value, 1)
+
+    def __mult__(self, other):
+        return Unit(self.base_value * other.base_value, 1)
+
+    def __truediv__(self, other):
+        return Unit(self.base_value / other.base_value, 1)
+
+    def __iadd__(self, other):
+        self.base_value += other.base_value
+
+    def __isub__(self, other):
+        self.base_value -= other.base_value
+
+    def __imult__(self, other):
+        self.base_value *= other.base_value
+
+    def __itruediv__(self, other):
+        self.base_value /= other.base_value
+
+    def __neg__(self):
+        self.base_value *= -1
+
+    def __pos__(self):
+        pass
+
+    def __abs__(self):
+        self.base_value = abs(self.base_value)
+
 
 class Length(Unit):
     m = 1
@@ -14,6 +47,12 @@ class Length(Unit):
 
     inch = 39.3701
     ft = inch * 12
+
+
+class Angular(Unit):
+    degree = 1
+    radian = 0.0174533
+    rev = 1 / 360
 
 
 class Time(Unit):
@@ -40,6 +79,13 @@ class Velocity(Unit):
     ft_minute = Length.ft / Time.minute
 
 
+class AngularVelocity(Unit):
+    rpm = Angular.rev / Time.s
+    rps = Angular.rev / Time.s
+    rad_s = Angular.radian / Time.s
+    deg_s = Angular.degree / Time.s
+
+
 class Acceleration(Unit):
     m_s2 = Length.m / Time.s**2
     m_minute2 = Length.m / Time.minute**2
@@ -55,3 +101,9 @@ class Acceleration(Unit):
 
     ft_s2 = Length.ft / Time.s**2
     ft_minute2 = Length.ft / Time.minute**2
+
+
+class Force(Unit):
+    N = 1
+    oz = 3.59694309
+    lbs = 0.224808942443

@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 
 class TankDrive:
 
-    def __init__(self, tank, wb_width, gyro=None):
+    def __init__(self, tank, wb_width, wheel_diameter, gyro=None):
         self.tank = tank
         self.gyro = gyro
         self.wb_width = wb_width
+        self.wheel_diameter
 
     def drive_straight_voltage(self, value):
         if value == 0:
@@ -61,6 +62,7 @@ class TankDrive:
             distance_controller = PIDController(kp=p, ki=i, kd=d,
                                                 input_sources=self.tank,
                                                 output_sources=self.tank)
+            distance_controller.set_setpoint(distance)
             while not distance_controller.is_finnished():
                 distance_controller.calculate()
 
@@ -70,6 +72,7 @@ class TankDrive:
             angle_controller = PIDController(kp=p, ki=i, kd=d,
                                              input_sources=self.gyro,
                                              output_sources=self.tank)
+            angle_controller.set_setpoint(angle)
             while not angle_controller.is_finished():
                 angle_controller.calculate()
         elif self.tank.is_velocity_controlled():
@@ -77,6 +80,7 @@ class TankDrive:
             angle_controller = PIDController(kp=p, ki=i, kd=d,
                                              input_sources=self.tank,
                                              output_sources=self.tank)
+            angle_controller.set_setpoint(angle)
             while not angle_controller.is_finished():
                 angle_controller.calculate()
         else:

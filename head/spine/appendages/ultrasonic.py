@@ -1,4 +1,5 @@
 from .component import Component
+from ...units import Length
 
 
 class Ultrasonic(Component):
@@ -12,7 +13,9 @@ class Ultrasonic(Component):
         self.index = config['index']
         self.sim = sim
 
-        if not self.sim:
+        if self.sim:
+            self.distance = 0
+        else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
 
@@ -20,22 +23,23 @@ class Ultrasonic(Component):
         yield self.readIndex, [self.READ, "i"]
         yield self.readResult, [self.READ_RESULT, "i"]
 
-    def read(self, unit):
+    def set_distance(self, distance):
+        if self.sim:
+            self.distance = distance
+
+    def read(self):
         '''
         Reads the ultrasonics
         :return: distance in specified unit
         '''
         if self.sim:
-            return 0
+            return self.distance
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
-        assert unit in ['inch', 'cm']
-        if unit == 'inch':
-            response = float(response) / 2.0 / 73.746
-        elif unit == 'cm':
-            response = float(response) / 2.0 / 29.1
 
         if response == 0:
             response = float('inf')
+
+        response = Length(float(response / 2.0 / 29.1), Length.cm)
 
         return response

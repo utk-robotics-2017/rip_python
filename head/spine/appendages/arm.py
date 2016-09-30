@@ -12,7 +12,14 @@ class Arm(Component):
         self.index = config['index']
 
         self.sim = sim
-        if not sim:
+        if sim:
+            self.sim_base = 0
+            self.sim_shoulder = 0
+            self.sim_elbow = 0
+            self.sim_wrist = 0
+            self.sim_wrist_rotate = 0
+            self.sim_attached = False
+        else:
             self.setIndex = commands[self.SET]
             self.detachIndex = commands[self.DETACH]
 
@@ -36,15 +43,22 @@ class Arm(Component):
         :type rot: ``tuple``
         '''
         if self.sim:
+            self.sim_base = rot[0]
+            self.sim_shoulder = rot[1]
+            self.sim_elbow = rot[2]
+            self.sim_wrist = rot[3]
+            self.sim_wrist_rot = rot[4]
+            self.sim_attached = True
             return
 
         assert len(rot) == 5
         for r in rot:
             assert 0 <= r <= 180
-        self.spine.send(self.devname, False, self.SET, self.index, tuple(rot))
+        self.spine.send(self.devname, False, self.SET, self.index, *rot)
 
     def detach(self):
         if self.sim:
+            self.sim_attached = False
             return
 
         self.spine.send(self.devname, False, self.DETACH, self.index)

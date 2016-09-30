@@ -45,11 +45,11 @@ class DrivetrainPhysics:
         # [fl bl br fr]
 
         # Calculate K
-        k = abs(self.wheelbase_width/2) + abs(self.wheelbase_length/2)
+        k = abs(self.wheelbase_width / 2) + abs(self.wheelbase_length / 2)
 
         # Calculate resulting motion
         Vy = .25 * (fl + bl + br + fr)
         Vx = .25 * (fl + -bl + br + -fr)
-        Vw = (.25/k) * (fl + bl + -br + -fr)
+        Vw = (.25 / k) * (fl + bl + -br + -fr)
 
         return Vx, Vy, Vw

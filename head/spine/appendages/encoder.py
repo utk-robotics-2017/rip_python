@@ -13,7 +13,10 @@ class Encoder(Component):
         self.index = config['index']
         self.sim = sim
 
-        if not self.sim:
+        if self.sim:
+            self.sim_velocity = 0
+            self.sim_position = 0
+        else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
             self.zeroIndex = commands[self.ZERO]
@@ -29,13 +32,22 @@ class Encoder(Component):
         '''
         # TODO: figure out...
         if self.sim:
-            return 0
+            return self.sim_position
 
         return float(self.spine.send(self.devname, True, self.READ, self.index))
 
-    def zero(self):
-        # TODO: figure out...
+    def set_position(self, position):
         if self.sim:
+            self.sim_position = position
+
+    def set_velocity(self, velocity):
+        if self.sim:
+            self.sim_velocity = velocity
+
+    def zero(self):
+        if self.sim:
+            self.sim_position = 0
+            self.sim_velocity = 0
             return
 
         self.spine.send(self.devname, False, self.ZERO, self.index)

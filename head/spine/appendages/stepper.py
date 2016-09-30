@@ -12,7 +12,9 @@ class Stepper(Component):
         self.index = config['index']
         self.sim = sim
 
-        if not self.sim:
+        if self.sim:
+            self.sim_position = 0
+        else:
             self.setSpeedIndex = commands[self.SET_SPEED]
             self.stepIndex = commands[self.STEP]
 
@@ -28,9 +30,15 @@ class Stepper(Component):
         :type value: ``int``
         '''
         if self.sim:
+            # Current sim assumption is instant move
+            # TODO: add speed to simulation
             return
 
         self.spine.send(self.devname, False, self.SET_SPEED, self.index, value)
+
+    def set_position(self, position):
+        if self.sim:
+            self.sim_position = position
 
     def step(self, value):
         '''
@@ -41,6 +49,9 @@ class Stepper(Component):
         :type value: ``int``
         '''
         if self.sim:
+            # Current sim assumption is instant move
+            # TODO: add speed to simulation
+            self.sim_position += value
             return
 
         self.spine.send(self.devname, False, self.STEP, self.index, value)

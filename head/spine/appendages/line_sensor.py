@@ -15,7 +15,9 @@ class LineSensor(Component):
         self.digital = config['digital']
         self.sim = sim
 
-        if not self.sim:
+        if self.sim:
+            self.value = 0
+        else:
             if self.READ_DIGITAL in commands:
                 self.readDigitalIndex = commands[self.READ_DIGITAL]
                 self.readDigitalResultIndex = commands[self.READ_DIGITAL_RESULT]
@@ -33,9 +35,13 @@ class LineSensor(Component):
             yield self.readAnalogIndex, [self.READ_ANALOG, "i"]
             yield self.readAnalogResultIndex, [self.READ_ANALOG_RESULT, "i"]
 
+    def set_value(self, value):
+        if self.sim:
+            self.value = value
+
     def read(self):
         if self.sim:
-            return 0
+            return self.value
 
         if self.digital:
             return self.spine.send(self.devname, True, self.READ_DIGITAL, self.index)

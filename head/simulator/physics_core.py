@@ -92,8 +92,8 @@ class PhysicsInterface:
         distance = speed * tm_diff
         angle = rotation_speed * tm_diff
 
-        x = distance*math.cos(angle)
-        y = distance*math.sin(angle)
+        x = distance * math.cos(angle)
+        y = distance * math.sin(angle)
 
         self._move(x, y, angle)
 
@@ -115,8 +115,8 @@ class PhysicsInterface:
         vx = (vx * tm_diff)
         vy = (vy * tm_diff)
 
-        x = vx*math.sin(angle) + vy*math.cos(angle)
-        y = vx*math.cos(angle) + vy*math.sin(angle)
+        x = vx * math.sin(angle) + vy * math.cos(angle)
+        y = vx * math.cos(angle) + vy * math.sin(angle)
 
         self._move(x, y, angle)
 
@@ -130,8 +130,8 @@ class PhysicsInterface:
             c = math.cos(self.angle)
             s = math.sin(self.angle)
 
-            self.x += (x*c - y*s)
-            self.y += (x*s + y*c)
+            self.x += (x * c - y * s)
+            self.y += (x * s + y * c)
 
             self._update_gyros(angle)
 

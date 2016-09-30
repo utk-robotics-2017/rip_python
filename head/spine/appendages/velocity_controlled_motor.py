@@ -40,33 +40,39 @@ class VelocityControlledMotor(Component):
 
     def drive(self, value):
         if self.sim:
+            # TODO: update sim_velocity based on sim_motor
             return
 
         self.spine.send(self.devname, False, self.DRIVE, self.index, value)
 
-    def set(self, value):
+    def set(self, velocity):
         if self.sim:
-            self.sim_velocity = value
+            self.sim_velocity = velocity
             return
 
-        self.spine.send(self.devname, False, self.SET, self.index, value)
+        self.spine.send(self.devname, False, self.SET, self.index, velocity)
 
-    def getVelocity(self):
+    def get_velocity(self):
         if self.sim:
             return self.sim_velocity
 
         response = self.spine.send(self.devname, True, self.VELOCITY, self.index)
         return response
 
-    def getPosition(self):
+    def get_position(self):
         if self.sim:
-            return 0
+            return self.sim_position
 
         response = self.spine.send(self.devname, True, self.POSITION, self.index)
         return response
 
+    def set_position(self, position):
+        if self.sim:
+            self.sim_position = position
+
     def stop(self):
         if self.sim:
+            self.sim_velocity = 0
             return
 
         self.spine.send(self.devname, False, self.STOP, self.index)

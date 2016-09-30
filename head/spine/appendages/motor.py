@@ -14,7 +14,10 @@ class Motor(Component):
         self.index = config['index']
         self.sim = sim
 
-        if not sim:
+        if sim:
+            self.sim_value = 0
+            self.sim_velocity = 0
+        else:
             self.driveIndex = commands[self.DRIVE]
             self.stopIndex = commands[self.STOP]
 
@@ -24,6 +27,8 @@ class Motor(Component):
 
     def drive(self, value):
         if self.sim:
+            self.sim_value = value
+            # TODO: use sim_motor to figure out velocity
             return
 
         if value == 0:
@@ -33,6 +38,8 @@ class Motor(Component):
 
     def stop(self):
         if self.sim:
+            self.sim_value = 0
+            self.sim_velocity = 0
             return
 
         self.spine.send(self.devname, False, self.STOP, self.index)
