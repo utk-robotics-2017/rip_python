@@ -1,5 +1,8 @@
-
 # UTK IEEE Robotics Integrated Platform (RIP)
+
+Master: [![Build Status](https://travis-ci.com/utk-robotics-2017/RIP.svg?token=ZbU2mzJqy2bwdxUCNR2d&branch=master)](https://travis-ci.com/utk-robotics-2017/RIP)
+
+Dev: [![Build Status](https://travis-ci.com/utk-robotics-2017/RIP.svg?token=ZbU2mzJqy2bwdxUCNR2d&branch=dev)](https://travis-ci.com/utk-robotics-2017/RIP)
 
 Welcome to the Robotics Integrated Platform for the University of Tennessee IEEE Robotics Team. This will provide a framework for small (typically < 1 cubic foot) autonomous robots based primarily off of standard off the shelf parts. The framework will be organized, extendable, flexible, and well documented.
 
