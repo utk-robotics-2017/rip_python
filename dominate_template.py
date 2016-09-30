@@ -26,7 +26,11 @@ class Robot:
         self.s = s
 
     def start(self):
-        pass
+        logger.info("info")
+        logger.debug("debug")
+        logger.warning("warning")
+        logger.error("error")
+        logger.critical("critical")
 
 if __name__ == "__main__":
     with get_robot() as bot:
