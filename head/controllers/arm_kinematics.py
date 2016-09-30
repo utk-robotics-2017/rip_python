@@ -3,7 +3,7 @@ from math import atan2, pi, degrees, sqrt
 
 
 class ArmKinematics:
-    def __init__(self, s2e=4.75 * 2.54, e2w=5*2.54, s_pos=Vec3d(0, -4.6, 7)):
+    def __init__(self, s2e=4.75 * 2.54, e2w=5 * 2.54, s_pos=Vec3d(0, -4.6, 7)):
         # Shoulder to Elbow
         self.s2e = s2e
 
