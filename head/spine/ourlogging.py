@@ -60,7 +60,7 @@ def setup_logging(fn):
     fh_.setFormatter(formatter)
     root.addHandler(fh)
 
-    if previous_handler:
+    if not previous_handler:
         # create console handler with a higher log level
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
