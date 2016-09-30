@@ -4,7 +4,6 @@
 # import the necessary packages
 import numpy as np
 import cv2
-import sys
 
 from urllib.request import urlopen
 

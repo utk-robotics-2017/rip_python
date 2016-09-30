@@ -327,5 +327,8 @@ class Spine:
     def get_appendage(self, label):
         return self.appendages[label]
 
+    def get_appendage_dict(self):
+        return self.appendages
+
     def print_appendages(self):
         print(self.appendages)
