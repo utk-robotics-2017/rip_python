@@ -43,11 +43,13 @@ class PhysicsEngine:
             :type  tm_diff: float
         '''
 
-        sim = DrivetrainPhysics(Unit(42, Length.cm), Unit(42, Length.cm))
+        # setup
+        left = hal_data['fwd']['right_velocity']
+        right = hal_data['fwd']['left_velocity']
 
-        f_vel, a_vel = sim.tank_drive(left, right) # need actual left and right variables from hal_data
+        # drive simulator
+        f_vel, a_vel = self.drivetrain_physics.tank_drive(left, right)
         self.drive(f_vel, a_vel, tm_diff)
-        
 
         pass
 
