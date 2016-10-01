@@ -1,8 +1,9 @@
 import math
+from threading import Lock
 
 from .drivetrain_physics import DrivetrainPhysics
 from ..spine.appendages.four_wheel_drive import FourWheelDrive
-from ..units import Unit
+from ..units import Unit, Length, Angular, Time
 
 
 class PhysicsEngine:
@@ -16,15 +17,18 @@ class PhysicsEngine:
         self.vx = 0
         self.vy = 0
 
-        self.x = config['simulation']['starting_x']
-        self.y = config['simulation']['starting_y']
-        self.angle = config['simulation']['starting_angle']
+        self.x = Unit(config['simulation']['starting_x'], Length.inch)
+        self.y = Unit(config['simulation']['starting_y'], Length.inch)
+        self.angle = Unit(config['simulation']['starting_angle'], Angular.degree)
 
         self.config = config
         self.drivetrain_type = config['drivetrain']['type']
-        wheelbase_width = config['drivetrain']['wheelbase_width']
-        wheelbase_length = config['drivetrain']['wheelbase_length']
+        wheelbase_width = Unit(config['drivetrain']['wheelbase_width'], Length.inch)
+        wheelbase_length = Unit(config['drivetrain']['wheelbase_length'], Length.inch)
         self.drivetrain_physics = DrivetrainPhysics(wheelbase_width, wheelbase_length)
+
+        self.last_tm = None
+        self._lock = Lock()
 
     def _on_increment_time(self, now):
         last_tm = self.last_tm
@@ -36,11 +40,9 @@ class PhysicsEngine:
             # not always be called at a constant rate
             tm_diff = now - last_tm
 
-            self.engine._collect_hal()
-
             # Don't run physics calculations more than 100hz
-            if tm_diff > 0.010:
-                self.engine.update_sim(self.hal_data, now, tm_diff)
+            if tm_diff > Unit(0.010, Time.s):
+                self.update_sim(now, tm_diff)
 
     def update_sim(self, now, tm_diff):
         '''

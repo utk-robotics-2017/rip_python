@@ -71,7 +71,7 @@ class Robot:
         self.sim_stopped = False
         while(True):
             self.physics_interface._on_increment_time(self.timer.get())
-            x, y, angle = self.physics_interface.get_postion()
+            x, y, angle = self.physics_interface.get_position()
             print("X: {0:f} Y: {1:f} angle: {2:f}".format(x.to(Length.inch), y.to(Length.inch),
                                                           angle.to(Angular.degree)))
             time.sleep(0.01)

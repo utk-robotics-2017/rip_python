@@ -42,19 +42,19 @@ class Unit:
         return self.base_value < other.base_value
 
     def __le__(self, other):
-        return self.base_unit <= other.base_value
+        return self.base_value <= other.base_value
 
     def __eq__(self, other):
-        return self.base_unit == other.base_value
+        return self.base_value == other.base_value
 
     def __ne__(self, other):
-        return self.base_unit != other.base_value
+        return self.base_value != other.base_value
 
     def __gt__(self, other):
-        return self.base_unit > other.base_value
+        return self.base_value > other.base_value
 
     def __ge__(self, other):
-        return self.base_unit >= other.base_value
+        return self.base_value >= other.base_value
 
 
 class Length(Unit):
