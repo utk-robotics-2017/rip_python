@@ -1,9 +1,9 @@
 class Unit:
-    def __init_(self, value, unit):
-        self.base_value = value / unit
+    def __init__(self, value, unit):
+        self.base_value = value * unit
 
     def to(self, unit):
-        return self.base_value * unit
+        return self.base_value / unit
 
     def __add__(self, other):
         return Unit(self.base_value + other.base_value, 1)
@@ -45,14 +45,14 @@ class Length(Unit):
     cm = m * .01
     km = 1000 * m
 
-    inch = 39.3701
+    inch = 0.0254
     ft = inch * 12
 
 
 class Angular(Unit):
     degree = 1
-    radian = 0.0174533
-    rev = 1 / 360
+    radian = degree * 0.0174533
+    rev = degree / 360
 
 
 class Time(Unit):
