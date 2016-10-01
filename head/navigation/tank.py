@@ -2,7 +2,7 @@ import time
 import math
 import logging
 
-from ..controller.pid_controller import PIDController
+from ..controllers.pid_controller import PIDController
 from pathfinder_python.distance_follower import DistanceFollower
 from ..spine.ourlogging import setup_logging
 

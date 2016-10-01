@@ -22,8 +22,8 @@ class I2CEncoder(Component):
         self.sim = sim
 
         if self.sim:
-            self.sim_position = 0
-            self.sim_velocity = 0
+            self.sim_position = Unit(0, 1)
+            self.sim_velocity = Unit(0, 1)
         else:
             self.positionIndex = commands[self.POSITION]
             self.positionResultIndex = commands[self.POSITION_RESULT]
@@ -100,3 +100,6 @@ class I2CEncoder(Component):
             return self.position()
         elif self.pidSource == 'velocity':
             return self.velocity()
+
+    def sim_update(self, tm_diff):
+        self.sim_position += self.sim_velocity * tm_diff

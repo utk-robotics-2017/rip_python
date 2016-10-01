@@ -13,7 +13,8 @@ from head.spine.ourlogging import setup_logging
 from head.simulator.physics_core import PhysicsEngine
 from head.timer import Timer
 # from head.navigation.navx_python.navx import get_navx
-from head.units import Length, Angular
+from head.units import Unit, Length, Angular, Time
+from head.navigation.tank import TankDrive
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class get_robot:
         self.sim = sim
 
     def __enter__(self):
-        self.gs = get_spine(sim=self.sim)
+        self.gs = get_spine(devices=["fakearduino"], sim=self.sim)
         self.r = Robot(self.gs.__enter__(), self.sim)
         return self.r
 
@@ -65,11 +66,13 @@ class Robot:
         self.sim_thread.start()
 
     def start(self):
-        pass
+        fwd = self.s.get_appendage("fwd")
+        tank = TankDrive(fwd)
+        tank.drive_straight_velocity_for_time(Unit(5, Time.s))
 
     def simulate(self):
         self.sim_stopped = False
-        while(True):
+        while(not self.sim_stopped):
             self.physics_interface._on_increment_time(self.timer.get())
             x, y, angle = self.physics_interface.get_position()
             print("X: {0:f} Y: {1:f} angle: {2:f}".format(x.to(Length.inch), y.to(Length.inch),
@@ -83,8 +86,6 @@ class Robot:
         if self.sim:
             self.sim_stop()
             self.sim_thread.join(5)
-            if self.sim_thread.is_alive():
-                self.sim_thread.terminate()
 
 if __name__ == "__main__":
     with get_robot(True) as bot:

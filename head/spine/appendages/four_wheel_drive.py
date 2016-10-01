@@ -217,3 +217,11 @@ class FourWheelDrive(Component):
             self.drive_PID(value)
         elif self.pid_type == "angle":
             self.drive_PID(value, -value)
+
+    def sim_update(self, tm_diff):
+        self.sim_left_position += self.sim_left_velocity * tm_diff
+        self.sim_right_position += self.sim_right_velocity * tm_diff
+        self.sim_left_front_position += self.sim_left_front_velocity * tm_diff
+        self.sim_left_back_position += self.sim_left_back_velocity * tm_diff
+        self.sim_right_front_position += self.sim_right_front_velocity * tm_diff
+        self.sim_right_back_position += self.sim_right_back_velocity * tm_diff
