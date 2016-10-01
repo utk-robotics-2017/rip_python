@@ -1,6 +1,7 @@
 import logging
 
 from .component import Component
+from ...units import Length, Velocity
 from ..our_logging import setup_logger
 
 setup_logger(__file__)
@@ -25,6 +26,7 @@ class FourWheelDrive(Component):
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.wheel_diameter = config['wheel_diameter']
 
         self.sim = sim
         if self.sim:
@@ -92,6 +94,9 @@ class FourWheelDrive(Component):
         else:
             logger.error("Wrong number of arguments in drive_pid")
             raise Exception("Wrong number of arguments in drive_pid")
+
+        for i in range(len(values)):
+            values[i] = values[i].to(Velocity.in_s) / self.wheel_diameter.to(Length.inch)
 
         if self.sim:
             self.sim_left_velocity = values[0]

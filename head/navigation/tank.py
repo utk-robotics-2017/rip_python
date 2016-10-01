@@ -12,11 +12,9 @@ logger = logging.getLogger(__name__)
 
 class TankDrive:
 
-    def __init__(self, tank, wb_width, wheel_diameter, gyro=None):
+    def __init__(self, tank, gyro=None):
         self.tank = tank
         self.gyro = gyro
-        self.wb_width = wb_width
-        self.wheel_diameter
 
     def drive_straight_voltage(self, value):
         if value == 0:
