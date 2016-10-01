@@ -1,9 +1,15 @@
 import math
+import logging
 from threading import Lock
 
 from .drivetrain_physics import DrivetrainPhysics
 from ..spine.appendages.four_wheel_drive import FourWheelDrive
 from ..units import Unit, Length, Angular, Time
+
+from ..spine.ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class PhysicsEngine:
@@ -14,8 +20,8 @@ class PhysicsEngine:
         field displayed to the user.
     '''
     def __init__(self, config):
-        self.vx = 0
-        self.vy = 0
+        self.vx = Unit(0, 1)
+        self.vy = Unit(0, 1)
 
         self.x = Unit(config['simulation']['starting_x'], Length.inch)
         self.y = Unit(config['simulation']['starting_y'], Length.inch)
@@ -26,6 +32,8 @@ class PhysicsEngine:
         wheelbase_width = Unit(config['drivetrain']['wheelbase_width'], Length.inch)
         wheelbase_length = Unit(config['drivetrain']['wheelbase_length'], Length.inch)
         self.drivetrain_physics = DrivetrainPhysics(wheelbase_width, wheelbase_length)
+
+        self.navx = None
 
         self.last_tm = None
         self._lock = Lock()
@@ -43,6 +51,7 @@ class PhysicsEngine:
             # Don't run physics calculations more than 100hz
             if tm_diff > Unit(0.010, Time.s):
                 self.update_sim(now, tm_diff)
+                self.last_tm = now
 
     def update_sim(self, now, tm_diff):
         '''
@@ -60,8 +69,8 @@ class PhysicsEngine:
             appendage.sim_update(tm_diff)
             if isinstance(appendage, FourWheelDrive):
                 if self.drivetrain_type.lower() == "tank":
-                    fwd, rcw = self.drivetrain_physics.tank_drive(appendage.getLeftVelocity(),
-                                                                  appendage.getRightVelocity())
+                    fwd, rcw = self.drivetrain_physics.tank_drive(appendage.get_left_velocity(),
+                                                                  appendage.get_right_velocity())
                     self.drive(fwd, rcw, tm_diff)
                 elif self.drivetrain_type.lower() == "mecanum":
                     pass
@@ -94,9 +103,8 @@ class PhysicsEngine:
         '''
         distance = speed * tm_diff
         angle = rotation_speed * tm_diff
-
-        x = distance * math.cos(angle)
-        y = distance * math.sin(angle)
+        x = distance * Unit(math.cos(angle.to(Angular.radian)), 1)
+        y = distance * Unit(math.sin(angle.to(Angular.radian)), 1)
 
         self._move(x, y, angle)
 
@@ -132,9 +140,8 @@ class PhysicsEngine:
             self.vx += x
             self.vy += y
             self.angle += angle
-
-            c = math.cos(self.angle)
-            s = math.sin(self.angle)
+            c = Unit(math.cos(self.angle.to(Angular.radian)), 1)
+            s = Unit(math.sin(self.angle.to(Angular.radian)), 1)
 
             self.x += (x * c - y * s)
             self.y += (x * s + y * c)

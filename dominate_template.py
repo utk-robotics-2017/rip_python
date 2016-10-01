@@ -5,7 +5,7 @@ import logging
 import json
 import time
 from threading import Thread
-from smbus import SMBus
+# from smbus import SMBus
 
 # Local modules
 from head.spine.core import get_spine
@@ -13,7 +13,7 @@ from head.spine.ourlogging import setup_logging
 from head.simulator.physics_core import PhysicsEngine
 from head.timer import Timer
 # from head.navigation.navx_python.navx import get_navx
-from head.units import Unit, Length, Angular, Time
+from head.units import Unit, Velocity, Length, Angular, Time
 from head.navigation.tank import TankDrive
 
 setup_logging(__file__)
@@ -68,7 +68,7 @@ class Robot:
     def start(self):
         fwd = self.s.get_appendage("fwd")
         tank = TankDrive(fwd)
-        tank.drive_straight_velocity_for_time(Unit(5, Time.s))
+        tank.drive_straight_velocity_for_time(Unit(2, Velocity.inch_s), Unit(5, Time.s))
 
     def simulate(self):
         self.sim_stopped = False

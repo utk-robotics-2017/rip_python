@@ -1,10 +1,11 @@
-import time
 import math
 import logging
 
 from ..controllers.pid_controller import PIDController
-from pathfinder_python.distance_follower import DistanceFollower
+from .pathfinder_python.DistanceFollower import DistanceFollower
 from ..spine.ourlogging import setup_logging
+from ..units import Unit
+from ..timer import Timer
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -15,9 +16,10 @@ class TankDrive:
     def __init__(self, tank, gyro=None):
         self.tank = tank
         self.gyro = gyro
+        self.timer = Timer()
 
     def drive_straight_voltage(self, value):
-        if value == 0:
+        if value == Unit(0, 1):
             self.tank.stop()
         else:
             self.tank.drive(value)
@@ -29,31 +31,31 @@ class TankDrive:
         self.tank.drive(left, right)
 
     def drive_straight_velocity(self, velocity):
-        if(velocity == 0):
+        if(velocity == Unit(0, 1)):
             self.tank.stop()
         else:
-            self.tank.driveVelocity(velocity)
+            self.tank.drive_pid(velocity)
 
     def drive_arc_velocity(self, velocity, arc):
         self.drive_velocity(velocity + arc, velocity - arc)
 
     def drive_velocity(self, left, right):
-        self.tank.drive_velocity(left, right)
+        self.tank.drive_pid(left, right)
 
     def drive_straight_velocity_for_time(self, velocity, delay, stop=True):
         self.drive_straight_velocity(velocity)
-        time.sleep(delay)
+        self.timer.sleep(delay)
         if stop:
-            self.drivebase.stop()
+            self.tank.stop()
 
     def drive_arc_velocity_for_time(self, velocity, arc, delay, stop=True):
         self.drive_arc_velocity(velocity, arc)
-        time.sleep(delay)
+        self.timer.sleep(delay)
         if stop:
-            self.drivebase.stop()
+            self.tank.stop()
 
     def drive_straight_distance(self, distance, p, i, d):
-        if distance == 0:
+        if distance == Unit(0, 1):
             self.tank.stop()
         else:
             self.tank.set_pid_type("distance")

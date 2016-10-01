@@ -1,3 +1,5 @@
+from ..units import Unit
+
 
 class DrivetrainPhysics:
     def __init__(sefl, wheelbase_width, wheelbase_length):
@@ -21,7 +23,7 @@ class DrivetrainPhysics:
             :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
         '''
 
-        fwd = (l + r) * 0.5
+        fwd = (l + r) * Unit(0.5, 1)
         rcw = (l - r) / self.wheelbase_width
 
         return fwd, rcw

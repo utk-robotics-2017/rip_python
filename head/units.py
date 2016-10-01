@@ -11,32 +11,32 @@ class Unit:
     def __sub__(self, other):
         return Unit(self.base_value - other.base_value, 1)
 
-    def __mult__(self, other):
+    def __mul__(self, other):
         return Unit(self.base_value * other.base_value, 1)
 
     def __truediv__(self, other):
         return Unit(self.base_value / other.base_value, 1)
 
     def __iadd__(self, other):
-        self.base_value += other.base_value
+        return Unit(self.base_value + other.base_value, 1)
 
     def __isub__(self, other):
-        self.base_value -= other.base_value
+        return Unit(self.base_value - other.base_value, 1)
 
-    def __imult__(self, other):
-        self.base_value *= other.base_value
+    def __imul__(self, other):
+        return Unit(self.base_value * other.base_value, 1)
 
     def __itruediv__(self, other):
-        self.base_value /= other.base_value
+        return Unit(self.base_value / other.base_value)
 
     def __neg__(self):
-        self.base_value *= -1
+        return Unit(-1 * self.base_value, 1)
 
     def __pos__(self):
-        pass
+        return Unit(self.base_value, 1)
 
     def __abs__(self):
-        self.base_value = abs(self.base_value)
+        return Unit(abs(self.base_value), 1)
 
     def __lt__(self, other):
         return self.base_value < other.base_value
