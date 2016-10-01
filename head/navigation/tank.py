@@ -36,8 +36,18 @@ class TankDrive:
         else:
             self.tank.drive_pid(velocity)
 
-    def drive_arc_velocity(self, velocity, arc):
-        self.drive_velocity(velocity + arc, velocity - arc)
+    def drive_arc_velocity(self, velocity, radius, cw):
+
+        angular_velocity = velocity / radius
+
+        if cw:
+            right = angular_velocity * (radius - (self.tank.wheelbase_width / 2))
+            left = angular_velocity * (radius - (self.tank.wheelbase / 2))
+        else:
+            left = angular_velocity * (radius - (self.tank.wheelbase_width / 2))
+            right = angular_velocity * (radius - (self.tank.wheelbase_width / 2))
+
+        self.drive_velocity(left, right)
 
     def drive_velocity(self, left, right):
         self.tank.drive_pid(left, right)
@@ -48,8 +58,8 @@ class TankDrive:
         if stop:
             self.tank.stop()
 
-    def drive_arc_velocity_for_time(self, velocity, arc, delay, stop=True):
-        self.drive_arc_velocity(velocity, arc)
+    def drive_arc_velocity_for_time(self, velocity, radius, cw, delay, stop=True):
+        self.drive_arc_velocity(velocity, radius, cw)
         self.timer.sleep(delay)
         if stop:
             self.tank.stop()
