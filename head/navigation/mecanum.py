@@ -1,10 +1,11 @@
 import math
 import logging
 from ..spine.ourlogging import setup_logging
-from ..units import Unit, Angular, Velocity, AngularVelocity
+from ..units import *
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
+
 
 class MecanumDrive:
 
@@ -91,6 +92,8 @@ class MecanumDrive:
         if fieldCentric and self.gyro is not None:
             # Compenstate for gyro angle.
             xIn, yIn = MecanumDrive.rotate_vector(xIn, yIn, self.gyro.getYaw())
+
+        rotation *= self.fwd.wheelbase_width
 
         lf = xIn + yIn + rotation
         rf = -xIn + yIn - rotation
