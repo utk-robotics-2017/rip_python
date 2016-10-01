@@ -5,6 +5,7 @@ import logging
 import json
 import time
 from threading import Thread
+from smbus import SMBus
 
 # Local modules
 from head.spine.core import get_spine
@@ -37,15 +38,14 @@ class Robot:
         self.sim = sim
         self.timer = Timer()
 
-
+        # Check if navx is connected and create object if it exists
         bus = SMBus(1)
-        has_navx = True
+        self.navx = None
         try:
             bus.write_quick(0x32)
-        except
-            has_navx = False
-
-        self.navx = get_navx()
+            self.navx = get_navx()
+        except:
+            pass
 
         if sim:
             self.sim_init()
