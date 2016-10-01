@@ -13,8 +13,9 @@ from head.spine.ourlogging import setup_logging
 from head.simulator.physics_core import PhysicsEngine
 from head.timer import Timer
 # from head.navigation.navx_python.navx import get_navx
-from head.units import Unit, Velocity, Length, Angular, Time
+from head.units import Unit, Velocity, Length, Angular, AngularVelocity, Time
 from head.navigation.tank import TankDrive
+from head.navigation.mecanum import MecanumDrive
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -40,6 +41,9 @@ class Robot:
         self.sim = sim
         self.timer = Timer()
 
+        with open("/Robot/robot.json") as robot_json:
+            self.robot_config = json.loads(robot_json.read())
+
         # Check if navx is connected and create object if it exists
         # bus = SMBus(1)
 
@@ -55,9 +59,7 @@ class Robot:
             self.sim_init()
 
     def sim_init(self):
-        with open("/Robot/robot.json") as robot_json:
-            robot_sim_config = json.loads(robot_json.read())
-        self.physics_interface = PhysicsEngine(robot_sim_config)
+        self.physics_interface = PhysicsEngine(self.robot_config)
         appendage_dict = self.s.get_appendage_dict()
         self.physics_interface._set_starting_hal(appendage_dict)
         if self.navx is not None:
@@ -67,8 +69,9 @@ class Robot:
 
     def start(self):
         fwd = self.s.get_appendage("fwd")
-        tank = TankDrive(fwd)
-        tank.drive_straight_velocity_for_time(Unit(2, Velocity.inch_s), Unit(5, Time.s))
+        mecanum = MecanumDrive(fwd, Unit(self.robot_config['dynamics']['max_velocity'], Velocity.inch_s))
+        mecanum.drive_velocity_cartesian(Unit(2, Velocity.inch_s), Unit(0, Velocity.inch_s), Unit(0, AngularVelocity.rps))
+        self.timer.sleep(Unit(4, Time.s))
 
     def simulate(self):
         self.sim_stopped = False

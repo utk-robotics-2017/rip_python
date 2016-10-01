@@ -95,7 +95,7 @@ class FourWheelDrive(Component):
         elif len(args) == 2:
             values = [args[0], args[1], args[0], args[1]]
         elif len(args) == 4:
-            values = args
+            values = list(args)
         else:
             logger.error("Wrong number of arguments in drive")
             raise Exception("Wrong number of arguments in drive")
@@ -124,7 +124,7 @@ class FourWheelDrive(Component):
         elif len(args) == 2:
             values = [args[0], args[1], args[0], args[1]]
         elif len(args) == 4:
-            values = args
+            values = list(args)
         else:
             logger.error("Wrong number of arguments in drive_pid")
             raise Exception("Wrong number of arguments in drive_pid")
