@@ -16,6 +16,14 @@ class FourWheelDrive(Component):
     LEFT_VELOCITY_RESULT = "kGetFWDLeftVelocityResult"
     RIGHT_VELOCITY = "kGetFWDRightVelocity"
     RIGHT_VELOCITY_RESULT = "kGetFWDRightVelocityResult"
+    RIGHT_FRONT_VELOCITY = "kGetFWDRightFrontVelocity"
+    RIGHT_FRONT_VELOCITY_RESULT = "kGetFWDRightFrontVelocityResult"
+    LEFT_FRONT_VELOCITY = "kGetFWDLeftFrontVelocity"
+    LEFT_FRONT_VELOCITY_RESULT = "kGetFWDLeftFrontVelocityResult"
+    RIGHT_BACK_VELOCITY = "kGetFWDRightBackVelocity"
+    RIGHT_BACK_VELOCITY_RESULT = "kGetFWRightBackVelocityResult"
+    LEFT_BACK_VELOCITY = "kGetFWDLeftBackVelocity"
+    LEFT_BACK_VELOCITY_RESULT = "kGetFWDLeftBackVelocityResult"
     LEFT_POSTIION = "kGetFWDLeftPosition"
     LEFT_POSITION_RESULT = "kGetFWDLeftPositionResult"
     RIGHT_POSITION = "kGetFWDRightPosition"
@@ -34,6 +42,10 @@ class FourWheelDrive(Component):
             self.sim_left_position = 0
             self.sim_right_velocity = 0
             self.sim_right_position = 0
+            self.sim_left_front_velocity = 0
+            self.sim_left_back_velocity = 0
+            self.sim_right_front_velocity = 0
+            self.sim_right_back_velocity = 0
         else:
             self.driveIndex = commands[self.DRIVE]
             self.stopIndex = commands[self.STOP]
@@ -42,6 +54,14 @@ class FourWheelDrive(Component):
             self.leftVelocityResultIndex = commands[self.LEFT_VELOCITY_RESULT]
             self.rightVelocityIndex = commands[self.RIGHT_VELOCITY]
             self.rightVelocityResultIndex = commands[self.RIGHT_VELOCITY_RESULT]
+            self.rightFrontVelocityIndex = commands[self.RIGHT_FRONT_VELOCITY]
+            self.rightFrontVelocityResultIndex = commands[self.RIGHT_FRONT_VELOCITY_RESULT]
+            self.rightBackVelocityIndex = commands[self.RIGHT_BACK_VELOCITY]
+            self.rightBackVelocityResultIndex = commands[self.RIGHT_BACK_VELOCITY_RESULT]
+            self.leftFrontVelocityIndex = commands[self.LEFT_FRONT_VELOCITY]
+            self.leftFrontVelocityResultIndex = commands[self.LEFT_FRONT_VELOCITY_RESULT]
+            self.leftBackVelocityIndex = commands[self.LEFT_BACK_VELOCITY]
+            self.leftBackVelocityResultIndex = commands[self.LEFT_BACK_VELOCITY_RESULT]
             self.leftPositionIndex = commands[self.LEFT_POSITION]
             self.leftPositionResultIndex = commands[self.LEFT_POSITION_RESULT]
             self.rightPositionIndex = commands[self.RIGHT_POSITION]
@@ -55,16 +75,25 @@ class FourWheelDrive(Component):
         yield self.leftVelocityResultIndex, [self.LEFT_VELOCITY_RESULT, "f"]
         yield self.rightVelocityIndex, [self.RIGHT_VELOCITY, "i"]
         yield self.rightVelocityResultIndex, [self.RIGHT_VELOCITY_RESULT, "f"]
+        yield self.rightFrontVelocityIndex, [self.RIGHT_FRONT_VELOCITY, "i"]
+        yield self.rightFrontVelocityResultIndex, [self.RIGHT_FRONT_VELOCITY_RESULT, "f"]
+        yield self.rightBackVelocityIndex, [self.RIGHT_BACK_VELOCITY, "i"]
+        yield self.rightBackVelocityResultIndex, [self.RIGHT_BACK_VELOCITY_RESULT, "f"]
+        yield self.leftFrontVelocityIndex, [self.LEFT_FRONT_VELOCITY, "i"]
+        yield self.leftFrontVelocityResultIndex, [self.LEFT_FRONT_VELOCITY_RESULT, "f"]
+        yield self.leftBackVelocityIndex, [self.LEFT_BACK_VELOCITY, "i"]
+        yield self.leftBackVelocityResultIndex, [self.LEFT_BACK_VELOCITY_RESULT, "f"]
         yield self.leftPositionIndex, [self.LEFT_POSITION, "i"]
         yield self.leftPositionResultIndex, [self.LEFT_POSITION_RESULT, "f"]
         yield self.rightPositionIndex, [self.RIGHT_POSITION, "i"]
         yield self.rightPositionResultIndex, [self.RIGHT_POSITION_RESULT, "f"]
 
     def drive(self, *args):
+        # Parameter order: lf_value, rf_value, lb_value, rb_value
         if len(args) == 1:
             values = [args[0]] * 4
         elif len(args) == 2:
-            values = [args[0]] * 2 + [args[1]] * 2
+            values = [args[0], args[1], args[0], args[1]]
         elif len(args) == 4:
             values = args
         else:
@@ -81,14 +110,19 @@ class FourWheelDrive(Component):
         if self.sim:
             self.sim_left_velocity = 0
             self.sim_right_velocity = 0
+            self.sim_left_front_velocity = 0
+            self.sim_left_back_velocity = 0
+            self.sim_right_front_velocity = 0
+            self.sim_right_back_velocity = 0
         else:
             self.spine.send(self.devname, False, self.STOP, self.index)
 
     def drive_pid(self, *args):
+        # Parameter order: lf_value, rf_value, lb_value, rb_value
         if len(args) == 1:
             values = [args[0]] * 4
         elif len(args) == 2:
-            values = [args[0]] * 2 + [args[1]] * 2
+            values = [args[0], args[1], args[0], args[1]]
         elif len(args) == 4:
             values = args
         else:
@@ -99,8 +133,13 @@ class FourWheelDrive(Component):
             values[i] = values[i].to(Velocity.in_s) / self.wheel_diameter.to(Length.inch)
 
         if self.sim:
-            self.sim_left_velocity = values[0]
-            self.sim_right_velocity = values[1]
+            self.sim_left_front_velocity = values[0]
+            self.sim_left_back_velocity = values[2]
+            self.sim_right_front_velocity = values[1]
+            self.sim_right_back_velocity = values[3]
+
+            self.sim_left_velocity = (values[0] + values[2]) / 2.0
+            self.sim_right_velocity = (values[1] + values[3]) / 2.0
         else:
             self.spine.send(self.devname, False, self.DRIVE_PID, self.index, *values)
 
@@ -116,6 +155,30 @@ class FourWheelDrive(Component):
             return self.sim_right_velocity
         response = self.spine.send(self.devname, True, self.RIGHT_VELOCITY, self.index)
         response = Unit(response[0], AngularVelocity.rpm)
+        return response
+
+    def get_left_front_velocity(self):
+        if self.sim:
+            return self.sim_left_front_velocity
+        response = self.spine.send(self.devname, True, self.LEFT_FRONT_VELOCITY, self.index)
+        return response
+
+    def get_left_back_velocity(self):
+        if self.sim:
+            return self.sim_left_back_velocity
+        response = self.spine.send(self.devname, True, self.LEFT_BACK_VELOCITY, self.index)
+        return response
+
+    def get_right_front_velocity(self):
+        if self.sim:
+            return self.sim_right_front_velocity
+        response = self.spine.send(self.devname, True, self.RIGHT_FRONT_VELOCITY, self.index)
+        return response
+
+    def get_right_back_velocity(self):
+        if self.sim:
+            return self.sim_right_back_velocity
+        response = self.spine.send(self.devname, True, self.RIGHT_BACK_VELOCITY, self.index)
         return response
 
     def get_left_position(self):
