@@ -37,13 +37,16 @@ class Robot:
         self.timer = Timer()
 
         if sim:
-            with open("/Robot/robot.json") as robot_json:
-                robot_sim_config = json.loads(robot_json)
-            self.physics_interface = PhysicsInterface(robot_sim_config)
-            appendage_dict = self.s.get_appendages()
-            self.physics_interface._set_starting_hal(appendage_dict)
-            self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
-            self.sim_thread.start()
+            self.sim_init()
+
+    def sim_init(self):
+        with open("/Robot/robot.json") as robot_json:
+            robot_sim_config = json.loads(robot_json)
+        self.physics_interface = PhysicsInterface(robot_sim_config)
+        appendage_dict = self.s.get_appendages()
+        self.physics_interface._set_starting_hal(appendage_dict)
+        self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
+        self.sim_thread.start()
 
     def start(self):
         pass

@@ -54,7 +54,13 @@ class PhysicsEngine:
                             time that this function was called
             :type  tm_diff: float
         '''
-        pass
+        for appendage in self.appendages.values():
+            appendage.sim_update(tm_diff)
+            if isinstance(appendage, FourWheelDrive):
+                if self.drivetrain_type.lower() == "tank":
+                    fwd, rcw = self.drivetrain_physics.tank_drive(appendage.getLeftVelocity(),
+                                                                  appendage.getRightVelocity())
+                    self.drive(fwd, rcw, tm_diff)
 
     def _set_starting_hal(self, appendages):
         self.appendages = appendages
