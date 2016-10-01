@@ -1,7 +1,7 @@
 import logging
 
 from .component import Component
-from ...units import Length, Velocity
+from ...units import Unit, Length, Angular, Velocity, AngularVelocity
 from ..our_logging import setup_logger
 
 setup_logger(__file__)
@@ -108,18 +108,21 @@ class FourWheelDrive(Component):
         if self.sim:
             return self.sim_left_velocity
         response = self.spine.send(self.devname, True, self.LEFT_VELOCITY, self.index)
+        response = Unit(response[0], AngularVelocity.rpm)
         return response
 
     def get_right_velocity(self):
         if self.sim:
             return self.sim_right_velocity
         response = self.spine.send(self.devname, True, self.RIGHT_VELOCITY, self.index)
+        response = Unit(response[0], AngularVelocity.rpm)
         return response
 
     def get_left_position(self):
         if self.sim:
             return self.sim_left_position
         response = self.spine.send(self.devname, True, self.LEFT_POSITION, self.index)
+        response = Unit(response[0], Angular.rev)
         return response
 
     def set_left_position(self, position):
@@ -130,6 +133,7 @@ class FourWheelDrive(Component):
         if self.sim:
             return self.sim_right_position
         response = self.spine.send(self.devname, True, self.RIGHT_POSITION, self.index)
+        response = Unit(response[0], Angular.rev)
         return response
 
     def set_right_position(self, position):

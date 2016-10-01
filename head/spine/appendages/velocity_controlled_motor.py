@@ -1,4 +1,5 @@
 from .component import Component
+from ...units import Unit, Angular, AngularVelocity
 
 
 class VelocityControlledMotor(Component):
@@ -50,13 +51,14 @@ class VelocityControlledMotor(Component):
             self.sim_velocity = velocity
             return
 
-        self.spine.send(self.devname, False, self.SET, self.index, velocity)
+        self.spine.send(self.devname, False, self.SET, self.index, velocity.to(AngularVelocity.rpm))
 
     def get_velocity(self):
         if self.sim:
             return self.sim_velocity
 
         response = self.spine.send(self.devname, True, self.VELOCITY, self.index)
+        response = Unit(response[0], AngularVelocity.rpm)
         return response
 
     def get_position(self):
@@ -64,6 +66,7 @@ class VelocityControlledMotor(Component):
             return self.sim_position
 
         response = self.spine.send(self.devname, True, self.POSITION, self.index)
+        response = Unit(response[0], Angular.rev)
         return response
 
     def set_position(self, position):

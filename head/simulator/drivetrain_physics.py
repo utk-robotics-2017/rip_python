@@ -22,7 +22,7 @@ class DrivetrainPhysics:
         '''
 
         fwd = (l + r) * 0.5
-        rcw = (l - r) / sefl.wheelbase_width
+        rcw = (l - r) / self.wheelbase_width
 
         return fwd, rcw
 

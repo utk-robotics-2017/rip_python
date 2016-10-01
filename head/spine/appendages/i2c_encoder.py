@@ -1,4 +1,5 @@
 from .component import Component
+from ...units import Unit, Angular, AngularVelocity
 
 
 class I2CEncoder(Component):
@@ -52,7 +53,9 @@ class I2CEncoder(Component):
         if self.sim:
             return self.sim_position
 
-        return float(self.spine.send(self.devname, True, self.POSITION, self.index))
+        response = self.spine.send(self.devname, True, self.POSITION, self.index)
+        response = Unit(response[0], Angular.rev)
+        return response
 
     def set_position(self, position):
         if self.sim:
@@ -62,13 +65,15 @@ class I2CEncoder(Component):
         if self.sim:
             return 0
 
-        return float(self.spine.send(self.devname, True, self.RAW_POSITION, self.index))
+        return self.spine.send(self.devname, True, self.RAW_POSITION, self.index)[0]
 
     def get_speed(self):
         if self.sim:
             return abs(self.sim_velocity)
 
-        return float(self.spine.send(self.devname, True, self.SPEED, self.index))
+        response = self.spine.send(self.devname, True, self.SPEED, self.index)
+        response = Unit(response[0], AngularVelocity.rpm)
+        return response
 
     def set_velocity(self, velocity):
         if self.sim:
@@ -78,7 +83,9 @@ class I2CEncoder(Component):
         if self.sim:
             return self.sim_velocity
 
-        return float(self.spine.send(self.devname, True, self.VELOCITY, self.index))
+        response = self.spine.send(self.devname, True, self.VELOCITY, self.index)
+        response = Unit(response[0], AngularVelocity.rpm)
+        return response
 
     def zero(self):
         if self.sim:
