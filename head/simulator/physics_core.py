@@ -1,5 +1,9 @@
 import math
-
+import sys
+import os
+from drivetrain_physics import DrivetrainPhysics
+sys.path.append(("/").join(os.path.abspath(__file__).split("/")[:-3]))
+from head.units import Unit, Length, Velocity
 
 class PhysicsInitException(Exception):
     pass
@@ -36,6 +40,13 @@ class PhysicsEngine:
                             time that this function was called
             :type  tm_diff: float
         '''
+
+        sim = DrivetrainPhysics(Unit(42, Length.cm), Unit(42, Length.cm))
+
+        f_vel, a_vel = sim.tank_drive(left, right) # need actual left and right variables from hal_data
+        self.drive(f_vel, a_vel, tm_diff)
+        
+
         pass
 
 
