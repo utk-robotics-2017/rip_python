@@ -1,45 +1,11 @@
 import math
 
-
-class PhysicsInitException(Exception):
-    pass
+from .drivetrain_physics import DrivetrainPhysics
+from ..spine.appendage.four_wheel_drive import FourWheelDrive
+from ..units import Unit
 
 
 class PhysicsEngine:
-    '''
-        Your physics module must contain a class called ``PhysicsEngine``,
-        and it must implement the same functions as this class.
-
-        Alternatively, you can inherit from this object. However, that is
-        not required.
-    '''
-    def __init__(self, physics_controller):
-        '''
-            The constructor must take the following arguments:
-
-            :param physics_controller: The physics controller interface
-            :type  physics_controller: :class:`.PhysicsInterface`
-        '''
-        self.physics_controller = physics_controller
-
-    def update_sim(self, hal_data, now, tm_diff):
-        '''
-            Called when the simulation parameters for the program need to be
-            updated.
-
-            :param hal_data: A giant dictionary that has all data about the robot.
-
-            :param now: The current time
-            :type  now: float
-
-            :param tm_diff: The amount of time that has passed since the last
-                            time that this function was called
-            :type  tm_diff: float
-        '''
-        pass
-
-
-class PhysicsInterface:
     '''
         An instance of this is passed to the constructor of your
         :class:`PhysicsEngine` object. This instance is used to communicate
@@ -50,12 +16,15 @@ class PhysicsInterface:
         self.vx = 0
         self.vy = 0
 
-        self.x = config['robot']['starting_x']
-        self.y = config['robot']['starting_y']
-        self.angle = config['robot']['starting_angle']
+        self.x = config['simulation']['starting_x']
+        self.y = config['simulation']['starting_y']
+        self.angle = config['simulation']['starting_angle']
 
         self.config = config
-        self.engine = None
+        self.drivetrain_type = config['drivetrain']['type']
+        wheelbase_width = config['drivetrain']['wheelbase_width']
+        wheelbase_length = config['drivetrain']['wheelbase_length']
+        self.drivetrain_physics = DrivetrainPhysics(wheelbase_width, wheelbase_length)
 
     def _on_increment_time(self, now):
         last_tm = self.last_tm
@@ -67,12 +36,32 @@ class PhysicsInterface:
             # not always be called at a constant rate
             tm_diff = now - last_tm
 
+            self.engine._collect_hal()
+
             # Don't run physics calculations more than 100hz
             if tm_diff > 0.010:
                 self.engine.update_sim(self.hal_data, now, tm_diff)
 
-    def _has_engine(self):
-        return self.engine is not None
+    def update_sim(self, now, tm_diff):
+        '''
+            Called when the simulation parameters for the program need to be
+            updated.
+
+            :param now: The current time
+            :type  now: float
+
+            :param tm_diff: The amount of time that has passed since the last
+                            time that this function was called
+            :type  tm_diff: float
+        '''
+        pass
+
+    def _set_starting_hal(self, appendages):
+        self.appendages = appendages
+        sim_appendages = self.config['simulation']['appendages']
+        for label, sim_vars in iter(sim_appendages.items()):
+            for sim_var_name, sim_var_start_value in iter(sim_vars.items()):
+                self.appendages[label].__dict__[sim_var_name] = Unit(sim_var_start_value, 1)
 
     def drive(self, speed, rotation_speed, tm_diff):
         '''
@@ -132,11 +121,6 @@ class PhysicsInterface:
 
             self.x += (x * c - y * s)
             self.y += (x * s + y * c)
-
-            self._update_gyros(angle)
-
-    def _update_gyros(self, angle):
-        angle = math.degrees(angle)
 
     def get_position(self):
         '''

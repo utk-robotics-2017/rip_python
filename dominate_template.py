@@ -10,8 +10,7 @@ from threading import Thread
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
 from head.spine.simulation.physics_core import PhysicsInterface
-from head.spine.simulation.physics_core import PhysicsEngine
-from head.spine.simulation.sim_time import SimTime
+from head.timer import Timer
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -35,13 +34,12 @@ class Robot:
     def __init__(self, s, sim):
         self.s = s
         self.sim = sim
-        self.sim_time = SimTime()
+        self.timer = Timer()
 
         if sim:
             with open("/Robot/robot.json") as robot_json:
                 robot_sim_config = json.loads(robot_json)
             self.physics_interface = PhysicsInterface(robot_sim_config)
-            self.physics_engine = PhysicsEngine(self.physics_interface)
             appendage_dict = self.s.get_appendages()
             self.physics_interface._set_starting_hal(appendage_dict)
             self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
@@ -53,7 +51,7 @@ class Robot:
     def simulate(self):
         self.sim_stopped = False
         while(True):
-            self.physics_interface._on_increment_time(self.sim_time.get())
+            self.physics_interface._on_increment_time(self.timer.get())
             time.sleep(0.01)
 
     def sim_stop(self):

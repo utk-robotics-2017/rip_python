@@ -4,7 +4,7 @@ class DrivetrainPhysics:
         sefl.wheelbase_width = wheelbase_width
         sefl.wheelbase_length = wheelbase_length
 
-    def tank_drive(sefl, l, r):
+    def tank_drive(self, l, r):
         '''
             Two center-mounted motors with a simple drivetrain. The
             motion equations are as follows::
@@ -22,7 +22,7 @@ class DrivetrainPhysics:
         '''
 
         fwd = (l + r) * 0.5
-        rcw = (l - r) / sefl.wheelbase_width
+        rcw = (l - r) / self.wheelbase_width
 
         return fwd, rcw
 

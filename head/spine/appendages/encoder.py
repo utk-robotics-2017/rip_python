@@ -1,4 +1,5 @@
 from .component import Component
+from ...units import Unit, Angular
 
 
 class Encoder(Component):
@@ -11,6 +12,7 @@ class Encoder(Component):
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.ticks_per_rev = config['ticks_per_rev']
         self.sim = sim
 
         if self.sim:
@@ -34,7 +36,8 @@ class Encoder(Component):
         if self.sim:
             return self.sim_position
 
-        return float(self.spine.send(self.devname, True, self.READ, self.index))
+        response = self.spine.send(self.devname, True, self.READ, self.index)
+        response = Unit(response[0] / self.ticks_per_rev, Angular.rev)
 
     def set_position(self, position):
         if self.sim:
