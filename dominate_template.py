@@ -13,6 +13,7 @@ from head.spine.ourlogging import setup_logging
 from head.spine.simulation.physics_core import PhysicsInterface
 from head.timer import Timer
 from head.navigation.navx_python.navx import get_navx
+from head.units import Length, Angular
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -68,6 +69,9 @@ class Robot:
         self.sim_stopped = False
         while(True):
             self.physics_interface._on_increment_time(self.timer.get())
+            x, y, angle = self.physics_interface.get_postion()
+            print("X: {0:f} Y: {1:f} angle: {2:f}".format(x.to(Length.inch), y.to(Length.inch),
+                                                          angle.to(Angular.degree)))
             time.sleep(0.01)
 
     def sim_stop(self):

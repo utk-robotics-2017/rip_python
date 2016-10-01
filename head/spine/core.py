@@ -146,9 +146,11 @@ class Spine:
                          if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
                          not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
                                                             .format(CURRENT_ARDUINO_CODE_DIR, d))]
-
-        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
-        return connectedDeviceOptions
+        if self.sim:
+            return deviceOptions
+        else:
+            connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
+            return connectedDeviceOptions
 
     def startup(self):
         '''
