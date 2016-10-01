@@ -38,6 +38,24 @@ class Unit:
     def __abs__(self):
         self.base_value = abs(self.base_value)
 
+    def __lt__(self, other):
+        return self.base_value < other.base_value
+
+    def __le__(self, other):
+        return self.base_unit <= other.base_value
+
+    def __eq__(self, other):
+        return self.base_unit == other.base_value
+
+    def __ne__(self, other):
+        return self.base_unit != other.base_value
+
+    def __gt__(self, other):
+        return self.base_unit > other.base_value
+
+    def __ge__(self, other):
+        return self.base_unit >= other.base_value
+
 
 class Length(Unit):
     m = 1
@@ -87,20 +105,20 @@ class AngularVelocity(Unit):
 
 
 class Acceleration(Unit):
-    m_s2 = Length.m / Time.s**2
-    m_minute2 = Length.m / Time.minute**2
+    m_s2 = Length.m / Time.s ** 2
+    m_minute2 = Length.m / Time.minute ** 2
 
-    mm_s2 = Length.mm / Time.s**2
-    mm_minute = Length.mm / Time.minute**2
+    mm_s2 = Length.mm / Time.s ** 2
+    mm_minute = Length.mm / Time.minute ** 2
 
-    cm_s2 = Length.cm / Time.s**2
-    cm_minute2 = Length.cm / Time.minute**2
+    cm_s2 = Length.cm / Time.s ** 2
+    cm_minute2 = Length.cm / Time.minute ** 2
 
-    inch_s2 = Length.inch / Time.s**2
-    inch_minute2 = Length.inch / Time.minute**2
+    inch_s2 = Length.inch / Time.s ** 2
+    inch_minute2 = Length.inch / Time.minute ** 2
 
-    ft_s2 = Length.ft / Time.s**2
-    ft_minute2 = Length.ft / Time.minute**2
+    ft_s2 = Length.ft / Time.s ** 2
+    ft_minute2 = Length.ft / Time.minute ** 2
 
 
 class Force(Unit):

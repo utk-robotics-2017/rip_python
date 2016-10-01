@@ -56,6 +56,8 @@ class Robot:
         self.physics_interface = PhysicsInterface(robot_sim_config)
         appendage_dict = self.s.get_appendages()
         self.physics_interface._set_starting_hal(appendage_dict)
+        if self.navx is not None:
+            self.physics_interface.add_navx(self.navx)
         self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
         self.sim_thread.start()
 
