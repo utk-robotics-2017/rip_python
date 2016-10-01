@@ -1,7 +1,7 @@
 import logging
 
 from .component import Component
-from ...units import Unit, Length, Angular, AngularVelocity
+from ...units import *
 from ..ourlogging import setup_logging
 
 setup_logging(__file__)
@@ -35,6 +35,8 @@ class FourWheelDrive(Component):
         self.label = config['label']
         self.index = config['index']
         self.wheel_diameter = Unit(config['wheel_diameter'], Length.inch)
+        self.wheelbase_width = Unit(config['wheelbase_width'], Length.inch)
+        self.wheelbase_length = Unit(config['wheelbase_length'], Length.inch)
 
         self.sim = sim
         if self.sim:
@@ -142,6 +144,12 @@ class FourWheelDrive(Component):
             self.sim_right_velocity = (values[1] + values[3]) / Unit(2.0, 1)
         else:
             self.spine.send(self.devname, False, self.DRIVE_PID, self.index, *values)
+
+    def rotate_pid(self, left, right):
+        left *= (self.wheelbase_width / Constant(2))
+        right *= (self.wheelbase_width / Constant(2))
+
+        self.drive_pid(left, right)
 
     def get_left_velocity(self):
         if self.sim:

@@ -69,7 +69,7 @@ class SimTime:
 
         was_paused = False
         with self.lock:
-            self._increment_tm(secs)
+            self._increment_time(secs)
 
             while self.paused and secs > 0:
                 if self.pause_secs is not None:

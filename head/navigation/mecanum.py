@@ -1,6 +1,10 @@
 import math
-from ..units import Unit, Angular
+import logging
+from ..spine.ourlogging import setup_logging
+from ..units import Unit, Angular, Velocity, AngularVelocity
 
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 class MecanumDrive:
 
@@ -83,6 +87,7 @@ class MecanumDrive:
         """
         xIn = x
         yIn = y
+        logger.info("xIn: {0:f} yIn: {1:f} rot {2:f}".format(xIn.to(Velocity.inch_s), yIn.to(Velocity.inch_s), rotation.to(AngularVelocity.rpm)))
         if fieldCentric and self.gyro is not None:
             # Compenstate for gyro angle.
             xIn, yIn = MecanumDrive.rotate_vector(xIn, yIn, self.gyro.getYaw())
@@ -92,9 +97,12 @@ class MecanumDrive:
         lb = -xIn + yIn + rotation
         rb = xIn + yIn - rotation
 
+        logger.info("lf {0:f} rf {1:f} lb {2:f} rb {3:f}".format(lf.to(Velocity.inch_s), rf.to(Velocity.inch_s), lb.to(Velocity.inch_s), rb.to(Velocity.inch_s)))
+
         if self.max_velocity is not None:
             lf, rf, lb, rb = MecanumDrive.normalize_velocity(
                 lf, rf, lb, rb, self.max_velocity)
+        logger.info("lf {0:f} rf {1:f} lb {2:f} rb {3:f}".format(lf.to(Velocity.inch_s), rf.to(Velocity.inch_s), lb.to(Velocity.inch_s), rb.to(Velocity.inch_s)))
         self.fwd.drive_pid(lf, rf, lb, rb)
 
     def drive_velocity_polar(self, magnitude, direction, rotation):

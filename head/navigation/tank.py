@@ -66,7 +66,16 @@ class TankDrive:
             while not distance_controller.is_finnished():
                 distance_controller.calculate()
 
-    def rotateToAngle(self, angle, p, i, d):
+    def rotate_at_angular_velocity(self, angular_velocity):
+        self.tank.rotate_pid(angular_velocity, -angular_velocity)
+
+    def rotate_at_angular_velocity_for_time(self, angular_velocity, delay, stop=True):
+        self.rotate_at_angular_velocity(angular_velocity)
+        self.timer.sleep(delay)
+        if stop:
+            self.tank.stop()
+
+    def rotate_to_angle(self, angle, p, i, d):
         if self.gyro is not None:
             self.tank.set_pid_type("angle")
             angle_controller = PIDController(kp=p, ki=i, kd=d,

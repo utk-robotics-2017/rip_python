@@ -39,7 +39,7 @@ class Robot:
     def __init__(self, s, sim):
         self.s = s
         self.sim = sim
-        self.timer = Timer()
+        self.timer = Timer(sim)
 
         with open("/Robot/robot.json") as robot_json:
             self.robot_config = json.loads(robot_json.read())
@@ -69,9 +69,11 @@ class Robot:
 
     def start(self):
         fwd = self.s.get_appendage("fwd")
-        mecanum = MecanumDrive(fwd, Unit(self.robot_config['dynamics']['max_velocity'], Velocity.inch_s))
-        mecanum.drive_velocity_cartesian(Unit(2, Velocity.inch_s), Unit(0, Velocity.inch_s), Unit(0, AngularVelocity.rps))
-        self.timer.sleep(Unit(4, Time.s))
+        tank = TankDrive(fwd)
+        tank.rotate_at_angular_velocity_for_time(Unit(1, AngularVelocity.rps), Unit(4, Time.s))
+        # mecanum = MecanumDrive(fwd, Unit(self.robot_config['dynamics']['max_velocity'], Velocity.inch_s))
+        # mecanum.drive_velocity_cartesian(Unit(0, Velocity.inch_s), Unit(0, Velocity.inch_s), Unit(1, AngularVelocity.rps))
+        # self.timer.sleep(Unit(4, Time.s))
 
     def simulate(self):
         self.sim_stopped = False
@@ -79,7 +81,7 @@ class Robot:
             self.physics_interface._on_increment_time(self.timer.get())
             x, y, angle = self.physics_interface.get_position()
             print("X: {0:f} Y: {1:f} angle: {2:f}".format(x.to(Length.inch), y.to(Length.inch),
-                                                          angle.to(Angular.degree)))
+                                                          angle.to(Angular.rev)))
             time.sleep(0.01)
 
     def sim_stop(self):

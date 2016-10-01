@@ -57,30 +57,43 @@ class Unit:
         return self.base_value >= other.base_value
 
 
+class Constant(Unit):
+    def __init__(self, value):
+        Unit.__init__(self, value, 1.0)
+
+
 class Length(Unit):
-    m = 1
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
+    m = 1.0
     mm = m * .001
     cm = m * .01
-    km = 1000 * m
+    km = m * 1000.0
 
     inch = 0.0254
-    ft = inch * 12
+    ft = inch * 12.0
 
 
 class Angular(Unit):
-    degree = 1
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
+    degree = 1.0
     radian = degree * 0.0174533
-    rev = degree / 360
+    rev = degree / 360.0
 
 
 class Time(Unit):
-    s = 1
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
+    s = 1.0
     ms = s * .001
-    minute = s * 60
-    hr = minute * 60
+    minute = s * 60.0
+    hr = minute * 60.0
 
 
 class Velocity(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
     m_s = Length.m / Time.s
     m_minute = Length.m / Time.minute
 
@@ -98,6 +111,8 @@ class Velocity(Unit):
 
 
 class AngularVelocity(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
     rpm = Angular.rev / Time.s
     rps = Angular.rev / Time.s
     rad_s = Angular.radian / Time.s
@@ -105,6 +120,8 @@ class AngularVelocity(Unit):
 
 
 class Acceleration(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
     m_s2 = Length.m / Time.s ** 2
     m_minute2 = Length.m / Time.minute ** 2
 
@@ -122,6 +139,8 @@ class Acceleration(Unit):
 
 
 class Force(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
     N = 1
     oz = 3.59694309
     lbs = 0.224808942443

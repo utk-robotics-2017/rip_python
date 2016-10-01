@@ -131,8 +131,8 @@ class PhysicsEngine:
         vx = (vx * tm_diff)
         vy = (vy * tm_diff)
 
-        x = vx * math.sin(angle) + vy * math.cos(angle)
-        y = vx * math.cos(angle) + vy * math.sin(angle)
+        x = vx * Unit(math.sin(angle.to(Angular.radian)), 1) + vy * Unit(math.cos(angle.to(Angular.radian)), 1)
+        y = vx * Unit(math.cos(angle.to(Angular.radian)), 1) + vy * Unit(math.sin(angle.to(Angular.radian)), 1)
 
         self._move(x, y, angle)
 

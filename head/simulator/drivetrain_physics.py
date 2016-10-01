@@ -1,4 +1,9 @@
-from ..units import Unit
+import logging
+from ..units import Unit, Velocity
+from ..spine.ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class DrivetrainPhysics:
@@ -47,11 +52,12 @@ class DrivetrainPhysics:
         # [lf lb rb rf]
 
         # Calculate K
+        logger.info("lf {0:f} rf {1:f} lb {2:f} rb {3:f}".format(lf.to(Velocity.inch_s), rf.to(Velocity.inch_s), lb.to(Velocity.inch_s), rb.to(Velocity.inch_s)))
         k = abs(self.wheelbase_width / Unit(2, 1)) + abs(self.wheelbase_length / Unit(2, 1))
 
         # Calculate resulting motion
-        Vy = Unit(.25, 1) * (lf + lb + rb + rf)
-        Vx = Unit(.25, 1) * (lf + -lb + rb + -rf)
-        Vw = Unit((.25 / k), 1) * (lf + lb + -rb + -rf)
+        Vx = Unit(.25, 1) * (lf + lb + rb + rf)
+        Vy = Unit(.25, 1) * (lf + -lb + rb + -rf)
+        Vw = (Unit(.25, 1) / k) * (lf + lb + -rb + -rf)
 
         return Vx, Vy, Vw
