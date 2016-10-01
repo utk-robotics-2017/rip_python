@@ -11,6 +11,7 @@ from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
 from head.spine.simulation.physics_core import PhysicsInterface
 from head.timer import Timer
+from head.navigation.navx_python.navx import get_navx
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -35,6 +36,16 @@ class Robot:
         self.s = s
         self.sim = sim
         self.timer = Timer()
+
+
+        bus = SMBus(1)
+        has_navx = True
+        try:
+            bus.write_quick(0x32)
+        except
+            has_navx = False
+
+        self.navx = get_navx()
 
         if sim:
             self.sim_init()
