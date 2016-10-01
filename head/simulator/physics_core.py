@@ -81,7 +81,15 @@ class PhysicsEngine:
                             time that this function was called
             :type  tm_diff: float
         '''
-        pass
+        for appendage in self.appendages.values():
+            appendage.sim_update(tm_diff)
+            if isinstance(appendage, FourWheelDrive):
+                if self.drivetrain_type.lower() == "tank":
+                    fwd, rcw = self.drivetrain_physics.tank_drive(appendage.getLeftVelocity(),
+                                                                  appendage.getRightVelocity())
+                    self.drive(fwd, rcw, tm_diff)
+                elif self.drivetrain_type.lower() == "mecanum":
+                    pass
 
     def _set_starting_hal(self, appendages):
         self.appendages = appendages
@@ -89,6 +97,10 @@ class PhysicsEngine:
         for label, sim_vars in iter(sim_appendages.items()):
             for sim_var_name, sim_var_start_value in iter(sim_vars.items()):
                 self.appendages[label].__dict__[sim_var_name] = Unit(sim_var_start_value, 1)
+
+    def add_navx(self, navx):
+        self.navx = navx
+        self.navs.set_yaw(self.angle)
 
     def drive(self, speed, rotation_speed, tm_diff):
         '''
@@ -112,6 +124,7 @@ class PhysicsEngine:
         y = distance * math.sin(angle)
 
         self._move(x, y, angle)
+
 
     def vector_drive(self, vx, vy, vw, tm_diff):
         '''
@@ -137,6 +150,9 @@ class PhysicsEngine:
         self._move(x, y, angle)
 
     def _move(self, x, y, angle):
+        if self.navx is not None:
+            self.navx.set_angle(angle)
+
         # x, y, and angle are all relative to the robot
         with self._lock:
             self.vx += x

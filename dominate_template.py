@@ -5,12 +5,15 @@ import logging
 import json
 import time
 from threading import Thread
+from smbus import SMBus
 
 # Local modules
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
 from head.spine.simulation.physics_core import PhysicsInterface
 from head.timer import Timer
+from head.navigation.navx_python.navx import get_navx
+from head.units import Length, Angular
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -36,14 +39,28 @@ class Robot:
         self.sim = sim
         self.timer = Timer()
 
+        # Check if navx is connected and create object if it exists
+        bus = SMBus(1)
+        self.navx = None
+        try:
+            bus.write_quick(0x32)
+            self.navx = get_navx()
+        except:
+            pass
+
         if sim:
-            with open("/Robot/robot.json") as robot_json:
-                robot_sim_config = json.loads(robot_json)
-            self.physics_interface = PhysicsInterface(robot_sim_config)
-            appendage_dict = self.s.get_appendages()
-            self.physics_interface._set_starting_hal(appendage_dict)
-            self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
-            self.sim_thread.start()
+            self.sim_init()
+
+    def sim_init(self):
+        with open("/Robot/robot.json") as robot_json:
+            robot_sim_config = json.loads(robot_json)
+        self.physics_interface = PhysicsInterface(robot_sim_config)
+        appendage_dict = self.s.get_appendages()
+        self.physics_interface._set_starting_hal(appendage_dict)
+        if self.navx is not None:
+            self.physics_interface.add_navx(self.navx)
+        self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
+        self.sim_thread.start()
 
     def start(self):
         pass
@@ -52,6 +69,9 @@ class Robot:
         self.sim_stopped = False
         while(True):
             self.physics_interface._on_increment_time(self.timer.get())
+            x, y, angle = self.physics_interface.get_postion()
+            print("X: {0:f} Y: {1:f} angle: {2:f}".format(x.to(Length.inch), y.to(Length.inch),
+                                                          angle.to(Angular.degree)))
             time.sleep(0.01)
 
     def sim_stop(self):

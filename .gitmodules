@@ -7,7 +7,7 @@
 	url = https://github.com/utk-robotics-2017/Pathfinder-Python.git
 	branch = master
 [submodule "head/navigation/navX-Python"]
-	path = head/navigation/navX-Python
+	path = head/navigation/navx_python
 	url = https://github.com/utk-robotics-2017/navX-Python.git
 	branch = master
 [submodule "head/spine/PyCmdMessenger"]
