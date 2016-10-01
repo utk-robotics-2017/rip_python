@@ -1,4 +1,5 @@
 import math
+from ..units import Unit, Angular
 
 
 class MecanumDrive:
@@ -7,7 +8,7 @@ class MecanumDrive:
         self.fwd = fwd
         self.gyro = gyro
 
-    def drive_voltage_cartesian(self, x, y, rotation, fieldCentric):
+    def drive_voltage_cartesian(self, x, y, rotation, fieldCentric=False):
         """Drive method for Mecanum wheeled robots.
         A method for driving with Mecanum wheeled robots. There are 4 wheels
         on the robot, arranged so that the front and back wheels are toed in
@@ -27,14 +28,14 @@ class MecanumDrive:
             # Compenstate for gyro angle.
             xIn, yIn = MecanumDrive.rotateVector(xIn, yIn, self.gyro.getYaw())
 
-        fl = xIn + yIn + rotation
-        fr = -xIn + yIn - rotation
-        bl = -xIn + yIn + rotation
-        br = xIn + yIn - rotation
+        lf = xIn + yIn + rotation
+        rf = -xIn + yIn - rotation
+        lb = -xIn + yIn + rotation
+        rb = xIn + yIn - rotation
 
-        fl, fr, bl, br = MecanumDrive.normalize(
-            fl, fr, bl, br)
-        self.fwd.drive(fl, fr, bl, br)
+        lf, rf, lb, rb = MecanumDrive.normalize(
+            lf, rf, lb, rb)
+        self.fwd.drive(lf, rf, lb, rb)
 
     def drive_voltage_polar(self, magnitude, direction, rotation):
         """Drive method for Mecanum wheeled robots.
@@ -56,16 +57,16 @@ class MecanumDrive:
         cosD = math.cos(dirInRad)
         sinD = math.sin(dirInRad)
 
-        fl = sinD * magnitude + rotation
-        fr = cosD * magnitude - rotation
-        bl = cosD * magnitude + rotation
-        br = sinD * magnitude - rotation
+        lf = sinD * magnitude + rotation
+        rf = cosD * magnitude - rotation
+        lb = cosD * magnitude + rotation
+        rb = sinD * magnitude - rotation
 
-        fl, fr, bl, br = MecanumDrive.normalize(
-            fl, fr, bl, br)
-        self.fwd.drive(fl, fr, bl, br)
+        lf, rf, lb, rb = MecanumDrive.normalize(
+            lf, rf, lb, rb)
+        self.fwd.drive(lf, rf, lb, rb)
 
-    def drive_velocity_cartesian(self, x, y, rotation, fieldCentric):
+    def drive_velocity_cartesian(self, x, y, rotation, fieldCentric=False):
         """Drive method for Mecanum wheeled robots.
         A method for driving with Mecanum wheeled robots. There are 4 wheels
         on the robot, arranged so that the front and back wheels are toed in
@@ -85,15 +86,15 @@ class MecanumDrive:
             # Compenstate for gyro angle.
             xIn, yIn = MecanumDrive.rotateVector(xIn, yIn, self.gyro.getYaw())
 
-        fl = xIn + yIn + rotation
-        fr = -xIn + yIn - rotation
-        bl = -xIn + yIn + rotation
-        br = xIn + yIn - rotation
+        lf = xIn + yIn + rotation
+        rf = -xIn + yIn - rotation
+        lb = -xIn + yIn + rotation
+        rb = xIn + yIn - rotation
 
         if self.maxVelocity is not None:
-            fl, fr, bl, br = MecanumDrive.normalizeVelocity(
-                fl, fr, bl, br, self.maxVelocity)
-        self.fwd.drive_velocity(fl, fr, bl, br)
+            lf, rf, lb, rb = MecanumDrive.normalizeVelocity(
+                lf, rf, lb, rb, self.maxVelocity)
+        self.fwd.drive_velocity(lf, rf, lb, rb)
 
     def drive_velocity_polar(self, magnitude, direction, rotation):
         """Drive method for Mecanum wheeled robots.
@@ -112,26 +113,26 @@ class MecanumDrive:
             magnitude = max(min(magnitude, self.maxVelocity), -self.maxVelocity)
 
         # The rollers are at 45 degree angles.
-        dirInRad = math.radians(direction + 45.0)
+        dirInRad = math.radians(direction.to(Angular.degree) + 45.0)
         cosD = math.cos(dirInRad)
         sinD = math.sin(dirInRad)
 
-        fl = sinD * magnitude + rotation
-        fr = cosD * magnitude - rotation
-        bl = cosD * magnitude + rotation
-        br = sinD * magnitude - rotation
+        lf = Unit(sinD, 1) * magnitude + rotation
+        rf = Unit(cosD, 1) * magnitude - rotation
+        lb = Unit(cosD, 1) * magnitude + rotation
+        rb = Unit(sinD, 1) * magnitude - rotation
 
         if self.maxVelocity is not None:
-            fl, fr, bl, br = MecanumDrive.normalizeVelocity(
-                fl, fr, bl, br, self.maxVelocity)
-        self.fwd.drive_velocity(fl, fr, bl, br)
+            lf, rf, lb, rb = MecanumDrive.normalizeVelocity(
+                lf, rf, lb, rb, self.maxVelocity)
+        self.fwd.drive_velocity(lf, rf, lb, rb)
 
     @staticmethod
-    def normalize(fl, fr, bl, br):
+    def normalize(lf, rf, lb, rb):
         """Normalize all wheel speeds if the magnitude of any wheel is greater
         than 1023.
         """
-        wheel_speeds = [fl, fr, bl, br]
+        wheel_speeds = [lf, rf, lb, rb]
         maxMagnitude = max(abs(x) for x in wheel_speeds)
         if maxMagnitude > 1023:
             for i in range(len(wheel_speeds)):
@@ -139,11 +140,11 @@ class MecanumDrive:
         return wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]
 
     @staticmethod
-    def normalize_velocity(fl, fr, bl, br, max_velocity):
+    def normalize_velocity(lf, rf, lb, rb, max_velocity):
         """Normalize all wheel speeds if the magnitude of any wheel is greater
         than `the max_velocity`.
         """
-        wheel_speeds = [fl, fr, bl, br]
+        wheel_speeds = [lf, rf, lb, rb]
         max_magnitude = max(abs(x) for x in wheel_speeds)
         if max_magnitude > max_velocity:
             for i in range(len(wheel_speeds)):
@@ -153,7 +154,7 @@ class MecanumDrive:
     @staticmethod
     def rotateVector(x, y, angle):
         """Rotate a vector in Cartesian space."""
-        angle = math.radians(angle)
+        angle = math.radians(angle.to(Angular.degree))
         cosA = math.cos(angle)
         sinA = math.sin(angle)
-        return (x * cosA - y * sinA), (x * sinA + y * cosA)
+        return (x * Unit(cosA, 1) - y * Unit(sinA, 1)), (x * Unit(sinA, 1) + y * Unit(cosA, 1))

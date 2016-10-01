@@ -2,9 +2,9 @@ from ..units import Unit
 
 
 class DrivetrainPhysics:
-    def __init__(sefl, wheelbase_width, wheelbase_length):
-        sefl.wheelbase_width = wheelbase_width
-        sefl.wheelbase_length = wheelbase_length
+    def __init__(self, wheelbase_width, wheelbase_length):
+        self.wheelbase_width = wheelbase_width
+        self.wheelbase_length = wheelbase_length
 
     def tank_drive(self, l, r):
         '''
@@ -28,14 +28,14 @@ class DrivetrainPhysics:
 
         return fwd, rcw
 
-    def mecanum_drive(self, fl, fr, bl, br):
+    def mecanum_drive(self, lf, rf, lb, rb):
         '''
             Four motors, each with a mechanum wheel attached to it.
 
             :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
                       clockwise rotation of robot (radians/s)
         '''
-        # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
+        # rfom http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
         # [F] [omega](r) = [V]
         #
         # F is
@@ -44,14 +44,14 @@ class DrivetrainPhysics:
         # -.25k -.25k .25k .25k
         #
         # omega is
-        # [fl bl br fr]
+        # [lf lb rb rf]
 
         # Calculate K
-        k = abs(self.wheelbase_width / 2) + abs(self.wheelbase_length / 2)
+        k = abs(self.wheelbase_width / Unit(2, 1)) + abs(self.wheelbase_length / Unit(2, 1))
 
         # Calculate resulting motion
-        Vy = .25 * (fl + bl + br + fr)
-        Vx = .25 * (fl + -bl + br + -fr)
-        Vw = (.25 / k) * (fl + bl + -br + -fr)
+        Vy = Unit(.25, 1) * (lf + lb + rb + rf)
+        Vx = Unit(.25, 1) * (lf + -lb + rb + -rf)
+        Vw = Unit((.25 / k), 1) * (lf + lb + -rb + -rf)
 
         return Vx, Vy, Vw

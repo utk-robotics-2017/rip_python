@@ -73,7 +73,12 @@ class PhysicsEngine:
                                                                   appendage.get_right_velocity())
                     self.drive(fwd, rcw, tm_diff)
                 elif self.drivetrain_type.lower() == "mecanum":
-                    pass
+                    vx, vy, vw = self.drivetrain_physics.mecanum_drive(
+                        appendage.get_left_front_velocity(),
+                        appendage.get_right_front_velocity(),
+                        appendage.get_left_back_velocity(),
+                        appendage.get_right_back_velocity())
+                    self.vector_drive(vx, vy, vw, tm_diff)
 
     def _set_starting_hal(self, appendages):
         self.appendages = appendages
