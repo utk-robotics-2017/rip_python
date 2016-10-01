@@ -12,6 +12,15 @@ class Timer:
         self.timeout = None
         self.timeout_start = None
 
+    def get(self):
+        if self.sim_time is not None:
+            return self.sim_time.get()
+        else:
+            return time.time()
+
+    def time(self):
+        return self.get()
+
     def sleep(self, secs):
         if self.sim_time is not None:
             self.sim_time.increment_time_by(secs)
