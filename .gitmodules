@@ -2,7 +2,7 @@
 	path = torso/ArduinoGen
 	url = https://github.com/utk-robotics-2017/ArduinoGen.git
 	branch = master
-[submodule "head/navigation/Pathfinder-Python"]
+[submodule "head/navigation/pathfinder-python"]
 	path = head/navigation/pathfinder_python
 	url = https://github.com/utk-robotics-2017/Pathfinder-Python.git
 	branch = master

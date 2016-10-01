@@ -4,6 +4,7 @@ import logging
 # import argparse
 import json
 import time
+import socket
 from threading import Thread
 # from smbus import SMBus
 
@@ -77,6 +78,13 @@ class Robot:
 
     def simulate(self):
         self.sim_stopped = False
+        # Set up the sockets
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind(socket.gethostname(), 5000)
+        self.sock.listen(1)
+
+        client,addr = self.sock.accept()
+
         while(not self.sim_stopped):
             self.physics_interface._on_increment_time(self.timer.get())
             x, y, angle = self.physics_interface.get_position()
