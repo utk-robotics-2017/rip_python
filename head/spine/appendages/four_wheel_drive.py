@@ -2,9 +2,9 @@ import logging
 
 from .component import Component
 from ...units import Unit, Length, Angular, Velocity, AngularVelocity
-from ..our_logging import setup_logger
+from ..ourlogging import setup_logging
 
-setup_logger(__file__)
+setup_logging(__file__)
 logger = logging.getLogger(__name__)
 
 

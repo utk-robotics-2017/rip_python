@@ -1,5 +1,5 @@
 import time
-from simulator.sim_time import SimTime
+from .simulator.sim_time import SimTime
 from .units import Unit, Time
 
 

@@ -10,9 +10,9 @@ from smbus import SMBus
 # Local modules
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
-from head.spine.simulation.physics_core import PhysicsInterface
+from head.simulator.physics_core import PhysicsEngine
 from head.timer import Timer
-from head.navigation.navx_python.navx import get_navx
+# from head.navigation.navx_python.navx import get_navx
 from head.units import Length, Angular
 
 setup_logging(__file__)
@@ -40,22 +40,24 @@ class Robot:
         self.timer = Timer()
 
         # Check if navx is connected and create object if it exists
-        bus = SMBus(1)
+        # bus = SMBus(1)
+
         self.navx = None
+        '''
         try:
             bus.write_quick(0x32)
             self.navx = get_navx()
         except:
             pass
-
+        '''
         if sim:
             self.sim_init()
 
     def sim_init(self):
         with open("/Robot/robot.json") as robot_json:
-            robot_sim_config = json.loads(robot_json)
-        self.physics_interface = PhysicsInterface(robot_sim_config)
-        appendage_dict = self.s.get_appendages()
+            robot_sim_config = json.loads(robot_json.read())
+        self.physics_interface = PhysicsEngine(robot_sim_config)
+        appendage_dict = self.s.get_appendage_dict()
         self.physics_interface._set_starting_hal(appendage_dict)
         if self.navx is not None:
             self.physics_interface.add_navx(self.navx)
