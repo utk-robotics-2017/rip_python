@@ -28,7 +28,7 @@ class DrivetrainPhysics:
             :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
         '''
 
-        fwd = (l + r) * Unit(0.5, 1)
+        fwd = (l + r) * Constant(0.5)
         rcw = (l - r) / self.wheelbase_width
 
         return fwd, rcw
@@ -37,8 +37,8 @@ class DrivetrainPhysics:
         '''
             Four motors, each with a mechanum wheel attached to it.
 
-            :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
-                      clockwise rotation of robot (radians/s)
+            :returns: Speed of robot in x, Speed of robot in y,
+                      clockwise rotation of robot
         '''
         # rfom http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
         # [F] [omega](r) = [V]
@@ -53,11 +53,11 @@ class DrivetrainPhysics:
 
         # Calculate K
         logger.info("lf {0:f} rf {1:f} lb {2:f} rb {3:f}".format(lf.to(Velocity.inch_s), rf.to(Velocity.inch_s), lb.to(Velocity.inch_s), rb.to(Velocity.inch_s)))
-        k = abs(self.wheelbase_width / Unit(2, 1)) + abs(self.wheelbase_length / Unit(2, 1))
+        k = abs(self.wheelbase_width / Constant(2)) + abs(self.wheelbase_length / Constant(2))
 
         # Calculate resulting motion
-        Vx = Unit(.25, 1) * (lf + lb + rb + rf)
-        Vy = Unit(.25, 1) * (lf + -lb + rb + -rf)
-        Vw = (Unit(.25, 1) / k) * (lf + lb + -rb + -rf)
+        Vx = Constant(.25) * (lf + lb + rb + rf)
+        Vy = Constant(.25) * (lf + -lb + rb + -rf)
+        Vw = (Constant(.25) / k) * (lf + lb + -rb + -rf)
 
         return Vx, Vy, Vw

@@ -15,6 +15,9 @@ class Motor(Component):
         self.sim = sim
 
         if sim:
+            from ...simulator.sim_motor import *
+            if config['type'].lower() == "Vex393":
+                self.sim_motor = Vex393()
             self.sim_value = 0
             self.sim_velocity = 0
         else:
@@ -28,7 +31,7 @@ class Motor(Component):
     def drive(self, value):
         if self.sim:
             self.sim_value = value
-            # TODO: use sim_motor to figure out velocity
+            self.sim_velocity = self.sim_motor.get_velocity(value)
             return
 
         if value == 0:

@@ -76,7 +76,7 @@ class Length(Unit):
 Distance = Length
 
 
-class Angular(Unit):
+class Angle(Unit):
     def __init__(self, value, unit):
         Unit.__init__(value, unit)
     degree = 1.0
@@ -149,16 +149,19 @@ class Force(Unit):
     oz = N * 3.59694309
     lbs = oz / 16
 
+
 class Torque(Unit):
     def __init__(self, value, unit):
         Unit.__init__(value, unit)
     Nm = Force.N * Distance.m
     ozinch = Force.oz * Distance.inch
 
+
 class Current(Unit):
     def __init__(self, value, unit):
         Unit.__init__(value, unit)
     A = 1
+
 
 class Voltage(Unit):
     def __init__(self, value, unit):

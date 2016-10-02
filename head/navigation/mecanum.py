@@ -88,7 +88,6 @@ class MecanumDrive:
         """
         xIn = x
         yIn = y
-        logger.info("xIn: {0:f} yIn: {1:f} rot {2:f}".format(xIn.to(Velocity.inch_s), yIn.to(Velocity.inch_s), rotation.to(AngularVelocity.rpm)))
         if fieldCentric and self.gyro is not None:
             # Compenstate for gyro angle.
             xIn, yIn = MecanumDrive.rotate_vector(xIn, yIn, self.gyro.getYaw())
@@ -100,12 +99,9 @@ class MecanumDrive:
         lb = -xIn + yIn + rotation
         rb = xIn + yIn - rotation
 
-        logger.info("lf {0:f} rf {1:f} lb {2:f} rb {3:f}".format(lf.to(Velocity.inch_s), rf.to(Velocity.inch_s), lb.to(Velocity.inch_s), rb.to(Velocity.inch_s)))
-
         if self.max_velocity is not None:
             lf, rf, lb, rb = MecanumDrive.normalize_velocity(
                 lf, rf, lb, rb, self.max_velocity)
-        logger.info("lf {0:f} rf {1:f} lb {2:f} rb {3:f}".format(lf.to(Velocity.inch_s), rf.to(Velocity.inch_s), lb.to(Velocity.inch_s), rb.to(Velocity.inch_s)))
         self.fwd.drive_pid(lf, rf, lb, rb)
 
     def drive_velocity_polar(self, magnitude, direction, rotation):
@@ -125,7 +121,7 @@ class MecanumDrive:
             magnitude = max(min(magnitude, self.maxVelocity), -self.maxVelocity)
 
         # The rollers are at 45 degree angles.
-        dirInRad = math.radians(direction.to(Angular.degree) + 45.0)
+        dirInRad = math.radians(direction.to(Angle.degree) + 45.0)
         cosD = math.cos(dirInRad)
         sinD = math.sin(dirInRad)
 
@@ -166,7 +162,7 @@ class MecanumDrive:
     @staticmethod
     def rotate_vector(x, y, angle):
         """Rotate a vector in Cartesian space."""
-        angle = math.radians(angle.to(Angular.degree))
+        angle = math.radians(angle.to(Angle.degree))
         cosA = math.cos(angle)
         sinA = math.sin(angle)
         return (x * Unit(cosA, 1) - y * Unit(sinA, 1)), (x * Unit(sinA, 1) + y * Unit(cosA, 1))

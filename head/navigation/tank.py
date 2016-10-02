@@ -31,7 +31,7 @@ class TankDrive:
         self.tank.drive(left, right)
 
     def drive_straight_velocity(self, velocity):
-        if(velocity == Unit(0, 1)):
+        if(velocity == Constant(0)):
             self.tank.stop()
         else:
             self.tank.drive_pid(velocity)
@@ -65,7 +65,7 @@ class TankDrive:
             self.tank.stop()
 
     def drive_straight_distance(self, distance, p, i, d):
-        if distance == Unit(0, 1):
+        if distance == Constant(0):
             self.tank.stop()
         else:
             self.tank.set_pid_type("distance")

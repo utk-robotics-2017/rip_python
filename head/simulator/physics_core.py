@@ -23,14 +23,14 @@ class PhysicsEngine:
         self.vx = Unit(0, 1)
         self.vy = Unit(0, 1)
 
-        self.x = Unit(config['simulation']['starting_x'], Length.inch)
-        self.y = Unit(config['simulation']['starting_y'], Length.inch)
-        self.angle = Unit(config['simulation']['starting_angle'], Angular.degree)
+        self.x = Distance(config['simulation']['starting_x'], Distance.inch)
+        self.y = Distance(config['simulation']['starting_y'], Distance.inch)
+        self.angle = Angle(config['simulation']['starting_angle'], Angle.degree)
 
         self.config = config
         self.drivetrain_type = config['drivetrain']['type']
-        wheelbase_width = Unit(config['drivetrain']['wheelbase_width'], Length.inch)
-        wheelbase_length = Unit(config['drivetrain']['wheelbase_length'], Length.inch)
+        wheelbase_width = Length(config['drivetrain']['wheelbase_width'], Length.inch)
+        wheelbase_length = Length(config['drivetrain']['wheelbase_length'], Length.inch)
         self.drivetrain_physics = DrivetrainPhysics(wheelbase_width, wheelbase_length)
 
         self.navx = None
@@ -49,7 +49,7 @@ class PhysicsEngine:
             tm_diff = now - last_tm
 
             # Don't run physics calculations more than 100hz
-            if tm_diff > Unit(0.010, Time.s):
+            if tm_diff > Time(0.010, Time.s):
                 self.update_sim(now, tm_diff)
                 self.last_tm = now
 
@@ -128,8 +128,8 @@ class PhysicsEngine:
         '''
         distance = speed * tm_diff
         angle = rotation_speed * tm_diff
-        x = distance * Unit(math.cos(angle.to(Angular.radian)), 1)
-        y = distance * Unit(math.sin(angle.to(Angular.radian)), 1)
+        x = distance * Constant(math.cos(angle.to(Angle.radian)))
+        y = distance * Constant(math.sin(angle.to(Angular.radian)))
 
         self._move(x, y, angle)
 
@@ -151,8 +151,8 @@ class PhysicsEngine:
         vx = (vx * tm_diff)
         vy = (vy * tm_diff)
 
-        x = vx * Unit(math.sin(angle.to(Angular.radian)), 1) + vy * Unit(math.cos(angle.to(Angular.radian)), 1)
-        y = vx * Unit(math.cos(angle.to(Angular.radian)), 1) + vy * Unit(math.sin(angle.to(Angular.radian)), 1)
+        x = vx * Constant(math.sin(angle.to(Angle.radian))) + vy * Constant(math.cos(angle.to(Angular.radian)))
+        y = vx * Constant(math.cos(angle.to(Angl.radian))) + vy * Constant(math.sin(angle.to(Angular.radian)))
 
         self._move(x, y, angle)
 
@@ -165,8 +165,8 @@ class PhysicsEngine:
             self.vx += x
             self.vy += y
             self.angle += angle
-            c = Unit(math.cos(self.angle.to(Angular.radian)), 1)
-            s = Unit(math.sin(self.angle.to(Angular.radian)), 1)
+            c = Constant(math.cos(self.angle.to(Angular.radian)))
+            s = Constant(math.sin(self.angle.to(Angular.radian)))
 
             self.x += (x * c - y * s)
             self.y += (x * s + y * c)

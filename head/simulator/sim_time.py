@@ -1,6 +1,6 @@
 import time
 import threading
-
+from ..units import *
 
 class SimTime:
     '''
@@ -29,9 +29,8 @@ class SimTime:
             self.pause_secs = None
             self.paused = False
 
-            self.next_ds_time = 0.020
-            self.tm = 0
-            self.last_tm = time.time()
+            self.tm = Constant(0)
+            self.last_tm = Time(time.time(), TIme.s)
 
             self.lock.notify()
 
@@ -42,11 +41,11 @@ class SimTime:
             self._increment_time()
             return self.tm
 
-    def _increment_time(self, secs=None):
+    def _increment_time(self, t=None):
         if self.paused:
             return
 
-        now = time.time()
+        now = Time(time.time(), Time.s)
 
         # normal usage
         if secs is None or self.pause_at is None:
@@ -63,22 +62,22 @@ class SimTime:
             self.paused = True
             self.pause_at = None
 
-    def increment_time_by(self, secs):
+    def increment_time_by(self, t):
 
         self.slept = [True] * 3
 
         was_paused = False
         with self.lock:
-            self._increment_time(secs)
+            self._increment_time(t)
 
-            while self.paused and secs > 0:
+            while self.paused and t > Constant(0):
                 if self.pause_secs is not None:
                     # if pause_secs is set, this means it was a step operation,
                     # so we adjust the wait accordingly
-                    if secs > self.pause_secs:
-                        secs -= self.pause_secs
+                    if t > self.pause_t:
+                        t -= self.pause_t
                     else:
-                        secs = 0
+                        t = Constant(0)
 
                 was_paused = True
 
@@ -89,7 +88,7 @@ class SimTime:
                 self._increment_tm(secs)
 
         if not was_paused:
-            time.sleep(secs)
+            time.sleep(t.to(Time.s))
 
     def pause(self):
         with self.lock:
@@ -97,18 +96,18 @@ class SimTime:
             self.paused = True
             self.lock.notify()
 
-    def resume(self, secs=None):
+    def resume(self, t=None):
         with self.lock:
             # makes sure timers don't get messed up when we resume
             self._increment_tm()
 
             if self.paused:
-                self.last_tm = time.time()
+                self.last_tm = Time(time.time(), Time.s)
 
             self.paused = False
-            if secs is not None:
-                self.pause_at = self.tm + secs
-                self.pause_secs = secs
+            if t is not None:
+                self.pause_at = self.tm + t
+                self.pause_secs = t
             else:
                 self.pause_at = None
                 self.pause_secs = None

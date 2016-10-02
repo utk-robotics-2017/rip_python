@@ -71,7 +71,7 @@ class Robot:
     def start(self):
         fwd = self.s.get_appendage("fwd")
         tank = TankDrive(fwd)
-        tank.rotate_at_angular_velocity_for_time(Unit(1, AngularVelocity.rps), Unit(4, Time.s))
+        tank.rotate_at_angular_velocity_for_time(AngularVelocity(1, AngularVelocity.rps), Time(4, Time.s))
         # mecanum = MecanumDrive(fwd, Unit(self.robot_config['dynamics']['max_velocity'], Velocity.inch_s))
         # mecanum.drive_velocity_cartesian(Unit(0, Velocity.inch_s), Unit(0, Velocity.inch_s),
         #                                  Unit(1, AngularVelocity.rps))

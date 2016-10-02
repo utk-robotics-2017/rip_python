@@ -13,6 +13,9 @@ class Servo(Component):
         self.sim = sim
 
         if sim:
+            from ...simulator.sim_servo import *
+            if config['type'].lower() == "vex":
+                self.sim_servo = VexServo()
             self.sim_value = 0
             self.sim_position = 0
             self.sim_attached = False
@@ -37,7 +40,7 @@ class Servo(Component):
         if self.sim:
             self.sim_attached = True
             self.sim_value = value
-            # TODO: use sim_servo to determine position
+            self.sim_position = self.sim_servo.get_position(value)
             return
 
         assert 0 <= value <= 255

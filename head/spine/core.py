@@ -113,7 +113,6 @@ class Spine:
         self.sim = kwargs.get('sim', False)
         self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
 
-
         config = {}
         for device in devices:
             if not self.sim:
