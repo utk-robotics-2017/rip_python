@@ -1,10 +1,16 @@
 import math
-import sys
-import os
-from drivetrain_physics import DrivetrainPhysics
-sys.path.append(("/").join(os.path.abspath(__file__).split("/")[:-3]))
-from head.units import Unit, Length, Velocity
-from ..spine.appendage.four_wheel_drive import FourWheelDrive
+import logging
+from threading import Lock
+
+from .drivetrain_physics import DrivetrainPhysics
+from ..spine.appendages.four_wheel_drive import FourWheelDrive
+from ..units import Unit, Length, Angular, Time
+
+from ..spine.ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
+
 
 class PhysicsEngine:
 
@@ -15,43 +21,23 @@ class PhysicsEngine:
         field displayed to the user.
     '''
     def __init__(self, config):
-        self.vx = 0
-        self.vy = 0
+        self.vx = Unit(0, 1)
+        self.vy = Unit(0, 1)
 
-        self.x = config['simulation']['starting_x']
-        self.y = config['simulation']['starting_y']
-        self.angle = config['simulation']['starting_angle']
+        self.x = Unit(config['simulation']['starting_x'], Length.inch)
+        self.y = Unit(config['simulation']['starting_y'], Length.inch)
+        self.angle = Unit(config['simulation']['starting_angle'], Angular.degree)
 
         self.config = config
         self.drivetrain_type = config['drivetrain']['type']
-        wheelbase_width = config['drivetrain']['wheelbase_width']
-        wheelbase_length = config['drivetrain']['wheelbase_length']
+        wheelbase_width = Unit(config['drivetrain']['wheelbase_width'], Length.inch)
+        wheelbase_length = Unit(config['drivetrain']['wheelbase_length'], Length.inch)
         self.drivetrain_physics = DrivetrainPhysics(wheelbase_width, wheelbase_length)
 
-    def update_sim(self, hal_data, now, tm_diff):
-        '''
-            Called when the simulation parameters for the program need to be
-            updated.
+        self.navx = None
 
-            :param hal_data: A giant dictionary that has all data about the robot.
-
-            :param now: The current time
-            :type  now: float
-
-            :param tm_diff: The amount of time that has passed since the last
-                            time that this function was called
-            :type  tm_diff: float
-        '''
-
-        # setup
-        left = hal_data['fwd']['right_velocity']
-        right = hal_data['fwd']['left_velocity']
-
-        # drive simulator
-        f_vel, a_vel = self.drivetrain_physics.tank_drive(left, right)
-        self.drive(f_vel, a_vel, tm_diff)
-
-        pass
+        self.last_tm = None
+        self._lock = Lock()
 
     def _on_increment_time(self, now):
         last_tm = self.last_tm
@@ -63,11 +49,10 @@ class PhysicsEngine:
             # not always be called at a constant rate
             tm_diff = now - last_tm
 
-            self.engine._collect_hal()
-
             # Don't run physics calculations more than 100hz
-            if tm_diff > 0.010:
-                self.engine.update_sim(self.hal_data, now, tm_diff)
+            if tm_diff > Unit(0.010, Time.s):
+                self.update_sim(now, tm_diff)
+                self.last_tm = now
 
     def update_sim(self, now, tm_diff):
         '''
@@ -85,11 +70,16 @@ class PhysicsEngine:
             appendage.sim_update(tm_diff)
             if isinstance(appendage, FourWheelDrive):
                 if self.drivetrain_type.lower() == "tank":
-                    fwd, rcw = self.drivetrain_physics.tank_drive(appendage.getLeftVelocity(),
-                                                                  appendage.getRightVelocity())
+                    fwd, rcw = self.drivetrain_physics.tank_drive(appendage.get_left_velocity(),
+                                                                  appendage.get_right_velocity())
                     self.drive(fwd, rcw, tm_diff)
                 elif self.drivetrain_type.lower() == "mecanum":
-                    pass
+                    vx, vy, vw = self.drivetrain_physics.mecanum_drive(
+                        appendage.get_left_front_velocity(),
+                        appendage.get_right_front_velocity(),
+                        appendage.get_left_back_velocity(),
+                        appendage.get_right_back_velocity())
+                    self.vector_drive(vx, vy, vw, tm_diff)
 
     def _set_starting_hal(self, appendages):
         self.appendages = appendages
@@ -119,12 +109,10 @@ class PhysicsEngine:
         '''
         distance = speed * tm_diff
         angle = rotation_speed * tm_diff
-
-        x = distance * math.cos(angle)
-        y = distance * math.sin(angle)
+        x = distance * Unit(math.cos(angle.to(Angular.radian)), 1)
+        y = distance * Unit(math.sin(angle.to(Angular.radian)), 1)
 
         self._move(x, y, angle)
-
 
     def vector_drive(self, vx, vy, vw, tm_diff):
         '''
@@ -144,8 +132,8 @@ class PhysicsEngine:
         vx = (vx * tm_diff)
         vy = (vy * tm_diff)
 
-        x = vx * math.sin(angle) + vy * math.cos(angle)
-        y = vx * math.cos(angle) + vy * math.sin(angle)
+        x = vx * Unit(math.sin(angle.to(Angular.radian)), 1) + vy * Unit(math.cos(angle.to(Angular.radian)), 1)
+        y = vx * Unit(math.cos(angle.to(Angular.radian)), 1) + vy * Unit(math.sin(angle.to(Angular.radian)), 1)
 
         self._move(x, y, angle)
 
@@ -158,9 +146,8 @@ class PhysicsEngine:
             self.vx += x
             self.vy += y
             self.angle += angle
-
-            c = math.cos(self.angle)
-            s = math.sin(self.angle)
+            c = Unit(math.cos(self.angle.to(Angular.radian)), 1)
+            s = Unit(math.sin(self.angle.to(Angular.radian)), 1)
 
             self.x += (x * c - y * s)
             self.y += (x * s + y * c)

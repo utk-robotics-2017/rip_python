@@ -13,3 +13,6 @@ class Component:
 
     def show_suggestions(self):
         raise NotImplementedError("Error: show_suggestions")
+
+    def sim_update(self, tm_diff):
+        pass

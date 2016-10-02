@@ -110,9 +110,9 @@ class Spine:
         self.use_lock = kwargs.get('use_lock', True)
         self.lock_dir = kwargs.get('lock_dir', '/var/lock/')
 
+        self.sim = kwargs.get('sim', False)
         self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
 
-        self.sim = kwargs.get('sim', False)
 
         config = {}
         for device in devices:
