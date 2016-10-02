@@ -11,7 +11,7 @@ from threading import Thread
 # Local modules
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
-from head.simulator.physics_core import PhysicsEngine
+from head.simulator.physics_engine import PhysicsEngine
 from head.timer import Timer
 # from head.navigation.navx_python.navx import get_navx
 from head.units import *
@@ -80,17 +80,21 @@ class Robot:
     def simulate(self):
         self.sim_stopped = False
 
+        '''
         # Set up the sockets
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((socket.gethostname(), 5000))
         self.sock.listen(1)
 
         client, addr = self.sock.accept()
-
+        '''
         while(not self.sim_stopped):
-            self.physics_engine._on_increment_time(self.timer.get())
+            t = self.timer.get()
+            self.physics_engine._on_increment_time(t)
+            x, y, theta = self.physics_engine.get_position()
+            print("T: {0:f}, X: {1:f}, Y: {2:f}, Theta: {3:f}".format(t.to(Time.s), x.to(Length.inch), y.to(Length.inch), theta.to(Angle.degree)))
             hal_data_update = self.physics_engine.get_hal_data_update()
-            client.write(json.dumps(hal_data_update) + "\n")
+            # client.write(json.dumps(hal_data_update) + "\n")
             time.sleep(0.01)
 
     def sim_stop(self):

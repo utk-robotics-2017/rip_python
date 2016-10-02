@@ -1,5 +1,5 @@
 from .component import Component
-from ...units import Unit, Angular, AngularVelocity
+from ...units import *
 
 
 class VelocityControlledMotor(Component):
@@ -19,8 +19,8 @@ class VelocityControlledMotor(Component):
         self.sim = sim
 
         if self.sim:
-            self.sim_velocity = 0
-
+            self.sim_velocity = Constant(0)
+            self.sim_position = Constant(0)
         if not self.sim:
             self.driveIndex = commands[self.DRIVE]
             self.setIndex = commands[self.SET]
@@ -58,7 +58,7 @@ class VelocityControlledMotor(Component):
             return self.sim_velocity
 
         response = self.spine.send(self.devname, True, self.VELOCITY, self.index)
-        response = Unit(response[0], AngularVelocity.rpm)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_position(self):
@@ -66,7 +66,7 @@ class VelocityControlledMotor(Component):
             return self.sim_position
 
         response = self.spine.send(self.devname, True, self.POSITION, self.index)
-        response = Unit(response[0], Angular.rev)
+        response = Angle(response[0], Angle.rev)
         return response
 
     def set_position(self, position):
@@ -75,13 +75,13 @@ class VelocityControlledMotor(Component):
 
     def stop(self):
         if self.sim:
-            self.sim_velocity = 0
+            self.sim_velocity = Constant(0)
             return
 
         self.spine.send(self.devname, False, self.STOP, self.index)
 
     def sim_update(self, tm_diff):
-        pass
+        self.sim_position += self.sim_velocity * tm_diff
 
     def get_hal_data(self):
         hal_data = {}

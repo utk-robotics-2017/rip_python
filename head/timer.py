@@ -1,6 +1,6 @@
 import time
 from .simulator.sim_time import SimTime
-from .units import Unit, Time
+from .units import Time
 
 
 class Timer:
@@ -17,37 +17,37 @@ class Timer:
 
         def get(self):
             if self.sim_time is not None:
-                return Unit(self.sim_time.get(), Time.s)
+                return self.sim_time.get()
             else:
-                return Unit(time.time(), Time.s)
+                return Time(time.time(), Time.s)
 
         def time(self):
             return self.get()
 
-        def sleep(self, secs):
+        def sleep(self, t):
             if self.sim_time is not None:
-                self.sim_time.increment_time_by(secs.to(Time.s))
+                self.sim_time.increment_time_by(t)
             else:
-                time.sleep(secs.to(Time.s))
+                time.sleep(t.to(Time.s))
 
-        def delay(self, secs):
-            self.sleep(secs)
+        def delay(self, t):
+            self.sleep(t)
 
         def set_timeout(self, timeout):
             self.timeout = timeout
             if self.sim_time is not None:
-                self.timeout_start = Unit(self.sim_time.get(), Time.s)
+                self.timeout_start = self.sim_time.get()
             else:
-                self.timeout_start = Unit(time.time(), Time.s)
+                self.timeout_start = Time(time.time(), Time.s)
 
         def timeout_finished(self):
             if self.timeout is None:
                 raise Exception("No timeout set")
 
             if self.sim_time is not None:
-                now = Unit(self.sim_time.get(), Time.s)
+                now = Time(self.sim_time.get(), Time.s)
             else:
-                now = Unit(time.time(), Time.s)
+                now = Time(time.time(), Time.s)
 
             '''
             # Should we do this?

@@ -1,5 +1,5 @@
 from .component import Component
-from ...units import Unit, Angular, AngularVelocity
+from ...units import *
 
 
 class I2CEncoder(Component):
@@ -22,8 +22,8 @@ class I2CEncoder(Component):
         self.sim = sim
 
         if self.sim:
-            self.sim_position = Unit(0, 1)
-            self.sim_velocity = Unit(0, 1)
+            self.sim_position = Constant(0)
+            self.sim_velocity = Constant(0)
         else:
             self.positionIndex = commands[self.POSITION]
             self.positionResultIndex = commands[self.POSITION_RESULT]
@@ -54,7 +54,7 @@ class I2CEncoder(Component):
             return self.sim_position
 
         response = self.spine.send(self.devname, True, self.POSITION, self.index)
-        response = Unit(response[0], Angular.rev)
+        response = Angle(response[0], Angle.rev)
         return response
 
     def set_position(self, position):
@@ -72,7 +72,7 @@ class I2CEncoder(Component):
             return abs(self.sim_velocity)
 
         response = self.spine.send(self.devname, True, self.SPEED, self.index)
-        response = Unit(response[0], AngularVelocity.rpm)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def set_velocity(self, velocity):
@@ -84,13 +84,13 @@ class I2CEncoder(Component):
             return self.sim_velocity
 
         response = self.spine.send(self.devname, True, self.VELOCITY, self.index)
-        response = Unit(response[0], AngularVelocity.rpm)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def zero(self):
         if self.sim:
-            self.sim_position = 0
-            self.sim_velocity = 0
+            self.sim_position = Constant(0)
+            self.sim_velocity = Constant(0)
             return
 
         self.spine.send(self.devname, False, self.ZERO, self.index)

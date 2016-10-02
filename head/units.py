@@ -1,3 +1,6 @@
+import math
+
+
 class Unit:
     def __init__(self, value, unit):
         self.base_value = value * unit
@@ -64,13 +67,13 @@ class Constant(Unit):
 
 class Length(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     m = 1.0
     mm = m * .001
     cm = m * .01
     km = m * 1000.0
 
-    inch = 0.0254
+    inch = m * 39.3701
     ft = inch * 12.0
 
 Distance = Length
@@ -78,15 +81,15 @@ Distance = Length
 
 class Angle(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     degree = 1.0
-    radian = degree * 0.0174533
-    rev = degree / 360.0
+    radian = degree * 180.0 / math.pi
+    rev = degree * 360.0
 
 
 class Time(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     s = 1.0
     ms = s * .001
     minute = s * 60.0
@@ -95,7 +98,7 @@ class Time(Unit):
 
 class Velocity(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     m_s = Length.m / Time.s
     m_minute = Length.m / Time.minute
 
@@ -116,16 +119,16 @@ Speed = Velocity
 
 class AngularVelocity(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
-    rpm = Angular.rev / Time.s
-    rps = Angular.rev / Time.s
-    rad_s = Angular.radian / Time.s
-    deg_s = Angular.degree / Time.s
+        Unit.__init__(self, value, unit)
+    rpm = Angle.rev / Time.s
+    rps = Angle.rev / Time.s
+    rad_s = Angle.radian / Time.s
+    deg_s = Angle.degree / Time.s
 
 
 class Acceleration(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     m_s2 = Length.m / Time.s ** 2
     m_minute2 = Length.m / Time.minute ** 2
 
@@ -144,7 +147,7 @@ class Acceleration(Unit):
 
 class Force(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     N = 1
     oz = N * 3.59694309
     lbs = oz / 16
@@ -152,18 +155,18 @@ class Force(Unit):
 
 class Torque(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     Nm = Force.N * Distance.m
     ozinch = Force.oz * Distance.inch
 
 
 class Current(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     A = 1
 
 
 class Voltage(Unit):
     def __init__(self, value, unit):
-        Unit.__init__(value, unit)
+        Unit.__init__(self, value, unit)
     v = 1

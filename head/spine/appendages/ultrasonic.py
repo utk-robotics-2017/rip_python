@@ -1,5 +1,5 @@
 from .component import Component
-from ...units import Length
+from ...units import *
 
 
 class Ultrasonic(Component):
@@ -14,7 +14,7 @@ class Ultrasonic(Component):
         self.sim = sim
 
         if self.sim:
-            self.sim_distance = 0
+            self.sim_distance = Constant(0)
         else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]

@@ -1,5 +1,5 @@
 from .component import Component
-from ...units import Unit, Angular
+from ...units import *
 
 
 class Encoder(Component):
@@ -16,8 +16,8 @@ class Encoder(Component):
         self.sim = sim
 
         if self.sim:
-            self.sim_velocity = 0
-            self.sim_position = 0
+            self.sim_velocity = Constant(0)
+            self.sim_position = Constant(0)
         else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
@@ -37,7 +37,7 @@ class Encoder(Component):
             return self.sim_position
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
-        response = Unit(response[0] / self.ticks_per_rev, Angular.rev)
+        response = Angle(response[0] / self.ticks_per_rev, Angle.rev)
 
     def set_position(self, position):
         if self.sim:
@@ -49,8 +49,8 @@ class Encoder(Component):
 
     def zero(self):
         if self.sim:
-            self.sim_position = 0
-            self.sim_velocity = 0
+            self.sim_position = Constant(0)
+            self.sim_velocity = Constant(0)
             return
 
         self.spine.send(self.devname, False, self.ZERO, self.index)

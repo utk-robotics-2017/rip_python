@@ -34,20 +34,20 @@ class FourWheelDrive(Component):
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
-        self.wheel_diameter = Unit(config['wheel_diameter'], Length.inch)
-        self.wheelbase_width = Unit(config['wheelbase_width'], Length.inch)
-        self.wheelbase_length = Unit(config['wheelbase_length'], Length.inch)
+        self.wheel_diameter = Length(config['wheel_diameter'], Length.inch)
+        self.wheelbase_width = Length(config['wheelbase_width'], Length.inch)
+        self.wheelbase_length = Length(config['wheelbase_length'], Length.inch)
 
         self.sim = sim
         if self.sim:
-            self.sim_left_velocity = Unit(0, 0)
-            self.sim_left_position = Unit(0, 0)
-            self.sim_right_velocity = Unit(0, 0)
-            self.sim_right_position = Unit(0, 0)
-            self.sim_left_front_velocity = Unit(0, 0)
-            self.sim_left_back_velocity = Unit(0, 0)
-            self.sim_right_front_velocity = Unit(0, 0)
-            self.sim_right_back_velocity = Unit(0, 0)
+            self.sim_left_velocity = Constant(0)
+            self.sim_left_position = Constant(0)
+            self.sim_right_velocity = Constant(0)
+            self.sim_right_position = Constant(0)
+            self.sim_left_front_velocity = Constant(0)
+            self.sim_left_back_velocity = Constant(0)
+            self.sim_right_front_velocity = Constant(0)
+            self.sim_right_back_velocity = Constant(0)
         else:
             self.driveIndex = commands[self.DRIVE]
             self.stopIndex = commands[self.STOP]
@@ -110,12 +110,12 @@ class FourWheelDrive(Component):
 
     def stop(self):
         if self.sim:
-            self.sim_left_velocity = Unit(0, 0)
-            self.sim_right_velocity = Unit(0, 0)
-            self.sim_left_front_velocity = Unit(0, 0)
-            self.sim_left_back_velocity = Unit(0, 0)
-            self.sim_right_front_velocity = Unit(0, 0)
-            self.sim_right_back_velocity = Unit(0, 0)
+            self.sim_left_velocity = Constant(0)
+            self.sim_right_velocity = Constant(0)
+            self.sim_left_front_velocity = Constant(0)
+            self.sim_left_back_velocity = Constant(0)
+            self.sim_right_front_velocity = Constant(0)
+            self.sim_right_back_velocity = Constant(0)
         else:
             self.spine.send(self.devname, False, self.STOP, self.index)
 
@@ -155,52 +155,56 @@ class FourWheelDrive(Component):
         if self.sim:
             return self.sim_left_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_VELOCITY, self.index)
-        response = Unit(response[0], AngularVelocity.rpm)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_right_velocity(self):
         if self.sim:
             return self.sim_right_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_VELOCITY, self.index)
-        response = Unit(response[0], AngularVelocity.rpm)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_left_front_velocity(self):
         if self.sim:
             return self.sim_left_front_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_FRONT_VELOCITY, self.index)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_left_back_velocity(self):
         if self.sim:
             return self.sim_left_back_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_BACK_VELOCITY, self.index)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_right_front_velocity(self):
         if self.sim:
             return self.sim_right_front_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_FRONT_VELOCITY, self.index)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_right_back_velocity(self):
         if self.sim:
             return self.sim_right_back_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_BACK_VELOCITY, self.index)
+        response = AngularVelocity(response[0], AngularVelocity.rpm)
         return response
 
     def get_left_position(self):
         if self.sim:
             return self.sim_left_position * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_POSITION, self.index)
-        response = Unit(response[0], Angular.rev)
+        response = Angle(response[0], Angle.rev)
         return response
 
     def get_right_position(self):
         if self.sim:
             return self.sim_right_position * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_POSITION, self.index)
-        response = Unit(response[0], Angular.rev)
+        response = Angle(response[0], Angle.rev)
         return response
 
     def set_pid_type(self, type):

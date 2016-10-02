@@ -1,4 +1,5 @@
 from .component import Component
+from ...simulator.sim_servo import *
 
 
 class Servo(Component):
@@ -13,7 +14,6 @@ class Servo(Component):
         self.sim = sim
 
         if sim:
-            from ...simulator.sim_servo import *
             if config['type'].lower() == "vex":
                 self.sim_servo = VexServo()
             self.sim_value = 0

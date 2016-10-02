@@ -2,6 +2,7 @@ import time
 import threading
 from ..units import *
 
+
 class SimTime:
     '''
         This allows the simulation robot to run in realtime, or we can pause and
@@ -30,7 +31,7 @@ class SimTime:
             self.paused = False
 
             self.tm = Constant(0)
-            self.last_tm = Time(time.time(), TIme.s)
+            self.last_tm = Time(time.time(), Time.s)
 
             self.lock.notify()
 
@@ -48,13 +49,13 @@ class SimTime:
         now = Time(time.time(), Time.s)
 
         # normal usage
-        if secs is None or self.pause_at is None:
+        if t is None or self.pause_at is None:
             self.tm += (now - self.last_tm)
             self.last_tm = now
         else:
             # used by IncrementTimeBy to determine if a further
             # pause is required.
-            self.tm += secs
+            self.tm += t
 
         # single step support
         if self.pause_at is not None and self.tm >= self.pause_at:

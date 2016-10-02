@@ -1,4 +1,5 @@
 from .component import Component
+from ...units import *
 
 
 class Stepper(Component):
@@ -10,11 +11,13 @@ class Stepper(Component):
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.angle_per_step = Angle(config['angle_per_step'], Angle.degree)
         self.sim = sim
+        self.step_position = Constant(0)
+        self.angle = Constant(0)
 
         if self.sim:
-            self.sim_velocity = 0
-            self.sim_position = 0
+            self.sim_velocity = Constant(0)
         else:
             self.setSpeedIndex = commands[self.SET_SPEED]
             self.stepIndex = commands[self.STEP]
@@ -23,7 +26,7 @@ class Stepper(Component):
         yield self.setSpeedIndex, [self.SET_SPEED, "ii"]
         yield self.stepIndex, [self.STEP, "ii"]
 
-    def setSpeed(self, value):
+    def set_speed(self, velocity):
         '''
         Set speed for a stepper motor.
         :param value:
@@ -32,16 +35,22 @@ class Stepper(Component):
         '''
         if self.sim:
             # Current sim assumption is instant move
-            self.sim_velocity = value
+            self.sim_velocity = velocity
             return
 
-        self.spine.send(self.devname, False, self.SET_SPEED, self.index, value)
+        self.spine.send(self.devname, False, self.SET_SPEED, self.index, velocity)
 
-    def set_position(self, position):
-        if self.sim:
-            self.sim_position = position
+    def set_angle(self, angle):
+        '''
+        Set angle for a stepper motor
+        :param angle:
+            Angle to set the stepper to
 
-    def step(self, value):
+        '''
+        steps = (angle - self.angle) / self.angle_per_step
+        self.step(steps)
+
+    def step(self, steps):
         '''
         Step the motor forward value amount
 
@@ -52,10 +61,11 @@ class Stepper(Component):
         if self.sim:
             # Current sim assumption is instant move
             # TODO: add speed to simulation
-            self.sim_position += value
+            self.step_position += steps
             return
 
         self.spine.send(self.devname, False, self.STEP, self.index, value)
+        self.angle += Constant(steps) * self.angle_per_step
 
     def sim_update(self, tm_diff):
         pass
@@ -63,5 +73,6 @@ class Stepper(Component):
     def get_hal_data(self):
         hal_data = {}
         hal_data['velocity'] = self.sim_velocity
-        hal_data['position'] = self.sim_position
+        hal_data['step_position'] = self.step_position
+        hal_data['angle'] = self.angle
         return hal_data

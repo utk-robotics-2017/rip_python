@@ -1,6 +1,8 @@
 import time
 
 from .component import Component
+from ...units import *
+from ...simulator.sim_motor import *
 
 
 class Motor(Component):
@@ -15,11 +17,10 @@ class Motor(Component):
         self.sim = sim
 
         if sim:
-            from ...simulator.sim_motor import *
             if config['type'].lower() == "Vex393":
                 self.sim_motor = Vex393()
             self.sim_value = 0
-            self.sim_velocity = 0
+            self.sim_velocity = Constant(0)
         else:
             self.driveIndex = commands[self.DRIVE]
             self.stopIndex = commands[self.STOP]
@@ -42,7 +43,7 @@ class Motor(Component):
     def stop(self):
         if self.sim:
             self.sim_value = 0
-            self.sim_velocity = 0
+            self.sim_velocity = Constant(0)
             return
 
         self.spine.send(self.devname, False, self.STOP, self.index)

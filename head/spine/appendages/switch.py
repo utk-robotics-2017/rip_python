@@ -31,7 +31,7 @@ class Switch(Component):
             return self.sim_state
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
-        return response
+        return [False, True][response[0]]
 
     def sim_update(self, tm_diff):
         pass

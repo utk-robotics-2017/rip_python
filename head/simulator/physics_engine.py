@@ -4,7 +4,7 @@ from threading import Lock
 
 from .drivetrain_physics import DrivetrainPhysics
 from ..spine.appendages.four_wheel_drive import FourWheelDrive
-from ..units import Unit, Length, Angular, Time
+from ..units import *
 
 from ..spine.ourlogging import setup_logging
 
@@ -65,6 +65,7 @@ class PhysicsEngine:
                             time that this function was called
             :type  tm_diff: float
         '''
+        print("TD: {0:f}".format(tm_diff.to(Time.s)))
         for appendage in self.appendages.values():
             appendage.sim_update(tm_diff)
             if isinstance(appendage, FourWheelDrive):
@@ -93,12 +94,18 @@ class PhysicsEngine:
             hal_data[label] = appendage.get_hal_data()
         if hasattr(self, 'hal_data'):
             for label in self.hal_data.keys():
-                for sim_variable, sim_value in hal_data[label]:
+                del_list = []
+                for sim_variable, sim_value in iter(hal_data[label].items()):
                     if self.hal_data[label][sim_variable] == sim_value:
-                        del hal_data[label][sim_variable]
+                        del_list.append(sim_variable)
+                for d in del_list:
+                    del self.hal_data[label][d]
+            del_list = []
             for label in self.hal_data.keys():
                 if hal_data[label] is None:
-                    del hal_data[label]
+                    del_list.append(label)
+            for d in del_list:
+                del hal_data[d]
             for label in hal_data:
                 for sim_variable in hal_data[label]:
                     self.hal_data[label][sim_variable] = hal_data[label][sim_variable]
@@ -129,7 +136,7 @@ class PhysicsEngine:
         distance = speed * tm_diff
         angle = rotation_speed * tm_diff
         x = distance * Constant(math.cos(angle.to(Angle.radian)))
-        y = distance * Constant(math.sin(angle.to(Angular.radian)))
+        y = distance * Constant(math.sin(angle.to(Angle.radian)))
 
         self._move(x, y, angle)
 
@@ -151,8 +158,8 @@ class PhysicsEngine:
         vx = (vx * tm_diff)
         vy = (vy * tm_diff)
 
-        x = vx * Constant(math.sin(angle.to(Angle.radian))) + vy * Constant(math.cos(angle.to(Angular.radian)))
-        y = vx * Constant(math.cos(angle.to(Angl.radian))) + vy * Constant(math.sin(angle.to(Angular.radian)))
+        x = vx * Constant(math.sin(angle.to(Angle.radian))) + vy * Constant(math.cos(angle.to(Angle.radian)))
+        y = vx * Constant(math.cos(angle.to(Angle.radian))) + vy * Constant(math.sin(angle.to(Angle.radian)))
 
         self._move(x, y, angle)
 
@@ -165,8 +172,8 @@ class PhysicsEngine:
             self.vx += x
             self.vy += y
             self.angle += angle
-            c = Constant(math.cos(self.angle.to(Angular.radian)))
-            s = Constant(math.sin(self.angle.to(Angular.radian)))
+            c = Constant(math.cos(self.angle.to(Angle.radian)))
+            s = Constant(math.sin(self.angle.to(Angle.radian)))
 
             self.x += (x * c - y * s)
             self.y += (x * s + y * c)
