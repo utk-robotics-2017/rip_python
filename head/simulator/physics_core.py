@@ -87,6 +87,26 @@ class PhysicsEngine:
             for sim_var_name, sim_var_start_value in iter(sim_vars.items()):
                 self.appendages[label].__dict__[sim_var_name] = Unit(sim_var_start_value, 1)
 
+    def get_hal_data_update(self):
+        hal_data = {}
+        for label, appendage in iter(self.appendages.items()):
+            hal_data[label] = appendage.get_hal_data()
+        if hasattr(self, 'hal_data'):
+            for label in self.hal_data.keys():
+                for sim_variable, sim_value in hal_data[label]:
+                    if self.hal_data[label][sim_variable] == sim_value:
+                        del hal_data[label][sim_variable]
+            for label in self.hal_data.keys():
+                if hal_data[label] is None:
+                    del hal_data[label]
+            for label in hal_data:
+                for sim_variable in hal_data[label]:
+                    self.hal_data[label][sim_variable] = hal_data[label][sim_variable]
+            return hal_data
+        else:
+            self.hal_data = hal_data
+            return hal_data
+
     def add_navx(self, navx):
         self.navx = navx
         self.navs.set_yaw(self.angle)

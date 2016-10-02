@@ -79,3 +79,9 @@ class Pid(Component):
 
         response = self.spine.send(self.devname, True, self.DISPLAY, self.index)
         return response
+
+    def sim_update(self, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        return {}

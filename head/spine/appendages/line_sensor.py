@@ -16,7 +16,7 @@ class LineSensor(Component):
         self.sim = sim
 
         if self.sim:
-            self.value = 0
+            self.sim_value = 0
         else:
             if self.READ_DIGITAL in commands:
                 self.readDigitalIndex = commands[self.READ_DIGITAL]
@@ -37,13 +37,22 @@ class LineSensor(Component):
 
     def set_value(self, value):
         if self.sim:
-            self.value = value
+            self.sim_value = value
 
     def read(self):
         if self.sim:
-            return self.value
+            return self.sim_value
 
         if self.digital:
             return self.spine.send(self.devname, True, self.READ_DIGITAL, self.index)
         else:
             return self.spine.send(self.devname, True, self.READ_ANALOG, self.index)
+
+    def sim_update(self, tm_diff):
+        # TODO
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['value'] = self.sim_value
+        return hal_data

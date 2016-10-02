@@ -13,7 +13,7 @@ class Switch(Component):
         self.sim = sim
 
         if self.sim:
-            self.state = False
+            self.sim_state = False
         else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
@@ -24,11 +24,19 @@ class Switch(Component):
 
     def set_state(self, state):
         if self.sim:
-            self.state = state
+            self.sim_state = state
 
     def read(self):
         if self.sim:
-            return self.state
+            return self.sim_state
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
         return response
+
+    def sim_update(self, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['state'] = self.sim_state
+        return hal_data

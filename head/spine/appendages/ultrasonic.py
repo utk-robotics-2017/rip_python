@@ -14,7 +14,7 @@ class Ultrasonic(Component):
         self.sim = sim
 
         if self.sim:
-            self.distance = 0
+            self.sim_distance = 0
         else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
@@ -25,7 +25,7 @@ class Ultrasonic(Component):
 
     def set_distance(self, distance):
         if self.sim:
-            self.distance = distance
+            self.sim_distance = distance
 
     def read(self):
         '''
@@ -33,7 +33,7 @@ class Ultrasonic(Component):
         :return: distance in specified unit
         '''
         if self.sim:
-            return self.distance
+            return self.sim_distance
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
 
@@ -43,3 +43,11 @@ class Ultrasonic(Component):
         response = Length(float(response / 2.0 / 29.1), Length.cm)
 
         return response
+
+    def sim_update(self, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['distance'] = self.sim_distance
+        return hal_data

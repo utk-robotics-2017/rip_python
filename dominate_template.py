@@ -4,7 +4,7 @@ import logging
 # import argparse
 import json
 import time
-# import socket
+import socket
 from threading import Thread
 # from smbus import SMBus
 
@@ -16,7 +16,7 @@ from head.timer import Timer
 # from head.navigation.navx_python.navx import get_navx
 from head.units import *
 from head.navigation.tank import TankDrive
-from head.navigation.mecanum import MecanumDrive
+# from head.navigation.mecanum import MecanumDrive
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -70,27 +70,27 @@ class Robot:
 
     def start(self):
         fwd = self.s.get_appendage("fwd")
-        # tank = TankDrive(fwd)
-        # tank.rotate_at_angular_velocity_for_time(Unit(1, AngularVelocity.rps), Unit(4, Time.s))
-        mecanum = MecanumDrive(fwd, Unit(self.robot_config['dynamics']['max_velocity'], Velocity.inch_s))
-        mecanum.drive_velocity_cartesian(Unit(0, Velocity.inch_s), Unit(0, Velocity.inch_s), Unit(1, AngularVelocity.rps))
-        self.timer.sleep(Unit(4, Time.s))
+        tank = TankDrive(fwd)
+        tank.rotate_at_angular_velocity_for_time(Unit(1, AngularVelocity.rps), Unit(4, Time.s))
+        # mecanum = MecanumDrive(fwd, Unit(self.robot_config['dynamics']['max_velocity'], Velocity.inch_s))
+        # mecanum.drive_velocity_cartesian(Unit(0, Velocity.inch_s), Unit(0, Velocity.inch_s),
+        #                                  Unit(1, AngularVelocity.rps))
+        # self.timer.sleep(Unit(4, Time.s))
 
     def simulate(self):
         self.sim_stopped = False
-        '''
+
         # Set up the sockets
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((socket.gethostname(), 5000))
         self.sock.listen(1)
 
-        client,addr = self.sock.accept()
-        '''
+        client, addr = self.sock.accept()
+
         while(not self.sim_stopped):
             self.physics_engine._on_increment_time(self.timer.get())
-            x, y, angle = self.physics_engine.get_position()
-            print("X: {0:f} Y: {1:f} angle: {2:f}".format(x.to(Length.inch), y.to(Length.inch),
-                                                          angle.to(Angular.rev)))
+            hal_data_update = self.physics_engine.get_hal_data_update()
+            client.write(json.dumps(hal_data_update) + "\n")
             time.sleep(0.01)
 
     def sim_stop(self):

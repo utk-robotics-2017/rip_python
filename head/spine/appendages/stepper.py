@@ -13,6 +13,7 @@ class Stepper(Component):
         self.sim = sim
 
         if self.sim:
+            self.sim_velocity = 0
             self.sim_position = 0
         else:
             self.setSpeedIndex = commands[self.SET_SPEED]
@@ -31,7 +32,7 @@ class Stepper(Component):
         '''
         if self.sim:
             # Current sim assumption is instant move
-            # TODO: add speed to simulation
+            self.sim_velocity = value
             return
 
         self.spine.send(self.devname, False, self.SET_SPEED, self.index, value)
@@ -55,3 +56,12 @@ class Stepper(Component):
             return
 
         self.spine.send(self.devname, False, self.STEP, self.index, value)
+
+    def sim_update(self, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['velocity'] = self.sim_velocity
+        hal_data['position'] = self.sim_position
+        return hal_data

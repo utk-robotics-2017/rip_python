@@ -15,4 +15,7 @@ class Component:
         raise NotImplementedError("Error: show_suggestions")
 
     def sim_update(self, tm_diff):
-        pass
+        raise NotImplementedError("Error: sim_update")
+
+    def get_hal_data(self):
+        raise NotImplementedError("Error: get_hal_data")

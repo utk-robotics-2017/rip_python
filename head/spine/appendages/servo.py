@@ -35,6 +35,7 @@ class Servo(Component):
         :type value: ``int``
         '''
         if self.sim:
+            self.sim_attached = True
             self.sim_value = value
             # TODO: use sim_servo to determine position
             return
@@ -44,6 +45,17 @@ class Servo(Component):
 
     def detach(self):
         if self.sim:
+            self.sim_attached = False
             return
 
         self.spine.send(self.devname, False, self.DETACH, self.index)
+
+    def sim_update(self, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['value'] = self.sim_value
+        hal_data['position'] = self.sim_position
+        hal_data['attached'] = self.sim_attached
+        return hal_data

@@ -101,3 +101,13 @@ class Motor(Component):
     def show_suggestions(self):
         print("If the motor drove in the wrong way then update your config")
         print("If the motor did not run at all then check your wiring")
+
+    def sim_update(self, tm_diff):
+        # TODO
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['value'] = self.sim_value
+        hal_data['velocity'] = self.sim_velocity
+        return hal_data

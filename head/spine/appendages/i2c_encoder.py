@@ -103,3 +103,9 @@ class I2CEncoder(Component):
 
     def sim_update(self, tm_diff):
         self.sim_position += self.sim_velocity * tm_diff
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['velocity'] = self.sim_velocity
+        hal_data['position'] = self.sim_position
+        return hal_data

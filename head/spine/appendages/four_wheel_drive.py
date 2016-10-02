@@ -227,3 +227,15 @@ class FourWheelDrive(Component):
         self.sim_right_front_position += self.sim_right_front_velocity * tm_diff
         self.sim_right_back_position += self.sim_right_back_velocity * tm_diff
         '''
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['left_velocity'] = self.sim_left_velocity
+        hal_data['right_velocity'] = self.sim_right_velocity
+        hal_data['left_position'] = self.sim_left_position
+        hal_data['right_position'] = self.sim_right_position
+        hal_data['left_front_velocity'] = self.sim_left_front_velocity
+        hal_data['left_back_velocity'] = self.sim_left_back_velocity
+        hal_data['right_front_velocity'] = self.sim_right_front_velocity
+        hal_data['right_back_velocity'] = self.sim_right_back_velocity
+        return hal_data

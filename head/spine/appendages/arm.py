@@ -62,3 +62,13 @@ class Arm(Component):
             return
 
         self.spine.send(self.devname, False, self.DETACH, self.index)
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['base'] = self.sim_base
+        hal_data['shoulder'] = self.sim_shoulder
+        hal_data['elbow'] = self.sim_elbow
+        hal_data['wrist'] = self.sim_wrist
+        hal_data['wrist_rot'] = self.sim_wrist_rot
+        hal_data['attached'] = self.sim_attached
+        return hal_data

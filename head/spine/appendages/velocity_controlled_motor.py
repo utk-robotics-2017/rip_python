@@ -79,3 +79,12 @@ class VelocityControlledMotor(Component):
             return
 
         self.spine.send(self.devname, False, self.STOP, self.index)
+
+    def sim_update(self, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['velocity'] = self.sim_velocity
+        hal_data['position'] = self.sim_position
+        return hal_data
