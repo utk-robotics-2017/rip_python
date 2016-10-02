@@ -4,7 +4,7 @@ import logging
 # import argparse
 import json
 import time
-import socket
+# import socket
 from threading import Thread
 # from smbus import SMBus
 
@@ -92,8 +92,11 @@ class Robot:
             t = self.timer.get()
             self.physics_engine._on_increment_time(t)
             x, y, theta = self.physics_engine.get_position()
-            print("T: {0:f}, X: {1:f}, Y: {2:f}, Theta: {3:f}".format(t.to(Time.s), x.to(Length.inch), y.to(Length.inch), theta.to(Angle.degree)))
-            hal_data_update = self.physics_engine.get_hal_data_update()
+            print("T: {0:f}, X: {1:f}, Y: {2:f}, Theta: {3:f}".format(t.to(Time.s),
+                                                                      x.to(Length.inch),
+                                                                      y.to(Length.inch),
+                                                                      theta.to(Angle.degree)))
+            # hal_data_update = self.physics_engine.get_hal_data_update()
             # client.write(json.dumps(hal_data_update) + "\n")
             time.sleep(0.01)
 

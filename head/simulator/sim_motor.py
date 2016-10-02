@@ -1,5 +1,6 @@
 from ..units import *
 
+
 class Vex393:
     STANDARD = 0
     HIGH_SPEED = 1
