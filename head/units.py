@@ -73,6 +73,8 @@ class Length(Unit):
     inch = 0.0254
     ft = inch * 12.0
 
+Distance = Length
+
 
 class Angular(Unit):
     def __init__(self, value, unit):
@@ -109,6 +111,8 @@ class Velocity(Unit):
     ft_s = Length.ft / Time.s
     ft_minute = Length.ft / Time.minute
 
+Speed = Velocity
+
 
 class AngularVelocity(Unit):
     def __init__(self, value, unit):
@@ -142,5 +146,21 @@ class Force(Unit):
     def __init__(self, value, unit):
         Unit.__init__(value, unit)
     N = 1
-    oz = 3.59694309
-    lbs = 0.224808942443
+    oz = N * 3.59694309
+    lbs = oz / 16
+
+class Torque(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
+    Nm = Force.N * Distance.m
+    ozinch = Force.oz * Distance.inch
+
+class Current(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
+    A = 1
+
+class Voltage(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(value, unit)
+    v = 1
