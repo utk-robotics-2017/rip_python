@@ -1,15 +1,37 @@
 # import the necessary packages
 from threading import Thread
 import cv2
+import scanf
+import logging
+from ..spine.ourlogging import setup_logging
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class WebcamVideoStream:
     def __init__(self, **kwargs):
         # initialize the video camera stream and read the first frame
         # from the stream
-        src = kwargs.get('src', 0)
+        if 'src' in kwargs:
+            try:
+                src_int = int(kwargs['src'])
+                src = src_int
+            except:
+                logger.error("Unknown option for `src`")
+                raise Exception("Unknown option for `src`")
+        else:
+            src = 0
+
         self.stream = cv2.VideoCapture(src)
-        self.resolution = kwargs.get('resolution', (320, 240))
+
+        if 'resolution' in kwargs:
+            try:
+                w, h = scanf.sscanf(kwargs['resolution'], "(%d, %d)")
+            except:
+                logger.error("Unknown option for `resolution`. Format should be (w, h)")
+                raise Exception("Unknown option for `resolution`. Format should be (w, h)")
+        else:
+            self.resolution = (320, 240)
         self.stream.set(3, self.resolution[0])
         self.stream.set(4, self.resolution[1])
         (self.grabbed, self.frame) = self.stream.read()

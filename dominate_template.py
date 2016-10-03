@@ -23,12 +23,14 @@ logger = logging.getLogger(__name__)
 
 
 class get_robot:
-    def __init__(self, sim=False):
+    def __init__(self, sim=False, navx=False, camera=False):
         self.sim = sim
+        self.navx = navx
+        self.camera = camera
 
     def __enter__(self):
         self.gs = get_spine(devices=["fakearduino"], sim=self.sim)
-        self.r = Robot(self.gs.__enter__(), self.sim)
+        self.r = Robot(s=self.gs.__enter__(), sim=self.sim, navx=navx, camera=camera)
         return self.r
 
     def __exit__(self, type, value, traceback):
@@ -37,7 +39,7 @@ class get_robot:
 
 
 class Robot:
-    def __init__(self, s, sim):
+    def __init__(self, s, sim, navx, camera):
         self.s = s
         self.sim = sim
         self.timer = Timer(sim)
@@ -49,13 +51,28 @@ class Robot:
         # bus = SMBus(1)
 
         self.navx = None
-        '''
-        try:
-            bus.write_quick(0x32)
-            self.navx = get_navx()
-        except:
-            pass
-        '''
+        if navx:
+            if sim:
+                self.navx = SimNavX()
+            else:
+                try:
+                    bus.write_quick(0x32)
+                    self.navx = get_navx()
+                except:
+                    logger.error("NavX not found on I2C")
+                    raise Exception("NavX not found on I2C")
+
+        self.camera = None
+        if camera:
+            camera_options = {}
+            for option in camera.split(';'):
+                parameter_split = option.split("=")
+                camera_options[parameter_split[0]] = parameter_split[1]
+            if sim:
+                self.camera = SimCamera(**camera_options)
+            else:
+                self.camera = VideoStream(**camera_options)
+
         if sim:
             self.sim_init()
 
@@ -109,5 +126,18 @@ class Robot:
             self.sim_thread.join(5)
 
 if __name__ == "__main__":
-    with get_robot(True) as bot:
+    # Collect command line arguments
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-s", "--simulate", required=False, action="store_true",
+                    help="Turns on simulation mode")
+    ap.add_argument("-n", "--navx", required=False, action="store_true",
+                    help="Turns on attempting to use navx")
+    ap.add_argment("-c", "--camera", required=False,
+                   help="Turns on attempting to use Camera")
+    args = vars(ap.parse_args())
+
+    if 'camera' is not args:
+        args['camera'] = False
+
+    with get_robot(sim=args['simulate'], navx=args['navx'], camera=args['camera']) as bot:
         bot.start()

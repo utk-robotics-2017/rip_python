@@ -2,30 +2,78 @@
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from threading import Thread
+import scanf
+import logging
+from ..spine.ourlogging import setup_logging
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class PiVideoStream:
     def __init__(self, **kwargs):
         # initialize the camera and stream
         self.camera = PiCamera()
-        self.camera.resolution = kwargs.get('resolution', (320, 240))
-        self.camera.framerate = kwargs.get('framerate', 32)
-        self.camera.sharpness = kwargs.get('sharpness', 0)
-        self.camera.contrast = kwargs.get('contrast', 0)
-        self.camera.brightness = kwargs.get('brightness', 50)
-        self.camera.saturation = kwargs.get('saturation', 0)
-        self.camera.ISO = kwargs.get('ISO', 0)
-        self.camera.video_stabilization = kwargs.get('video_stabilization', False)
-        self.camera.exposure_compensation = kwargs.get('exposure_compensation', 0)
-        self.camera.exposure_mode = kwargs.get('exposure_mode', 'auto')
-        self.camera.meter_mode = kwargs.get('meter_mode', 'average')
-        self.camera.awb_mode = kwargs.get('awb_mode', 'auto')
-        self.camera.image_effect = kwargs.get('image_effect', 'none')
-        self.camera.color_effects = kwargs.get('color_effects', None)
-        self.camera.rotation = kwargs.get('rotation', 0)
-        self.camera.hflip = kwargs.get('hflip', False)
-        self.camera.vflip = kwargs.get('vflip', False)
-        self.camera.crop = kwargs.get('crop', (0.0, 0.0, 1.0, 1.0))
+        if 'resolution' in kwargs:
+            try:
+                w, h = scanf.sscanf(kwargs['resolution'], "(%d, %d)")
+                self.camera.resolution((w, h))
+            except:
+                logger.error("Unknown option for `resolution`. Format should be (w, h)")
+                raise Exception("Unknown option for `resolution`. Format should be (w, h)")
+        else:
+            self.camera.resolution = (320, 240)
+
+        opt_default = {'framerate': 32, 'sharpness': 0, 'contrast': 0, 'brightness': 50,
+                       'saturation': 0, 'ISO': 0, 'exposure_compensation': 0, 'rotation': 0}
+
+        for opt in ['framerate', 'sharpness', 'contrast', 'brightness', 'saturation', 'ISO',
+                    'exposure_compensation', 'rotation']:
+            if opt in kwargs:
+                try:
+                    opt_int = int(kwargs[opt])
+                    self.camera.__dict__[opt] = opt_int
+                except:
+                    logger.error("Unknown option for `{0:s}`".format(opt))
+                    raise Exception("Unknown option for `{0:s}`".format(opt))
+            else:
+                self.camera.__dict__[opt] = opt_default[opt]
+
+        for opt in ['video_stabilization', 'hflip', 'vflip']:
+            if opt in kwargs:
+                if kwargs[opt].lower() == "true":
+                    opt_bool = True
+                elif kwargs[opt].lower() == "false":
+                    opt_bool = False
+                else:
+                    logger.error("Unknown option for `{0:s}`".format(opt))
+                    raise Exception("Unknown option for `{0:s}`".format(opt))
+                self.camera.__dict__[opt] = opt_bool
+            else:
+                self.camera.__dict__[opt] = False
+
+        opt_default = {'exposure_mode': 'auto', 'meter_mode': 'average', 'awb_mode': 'auto',
+                       'image_effect': 'none'}
+
+        for opt in ['exposure_mode', 'meter_mode', 'awb_mode', 'image_effect']:
+            if opt in kwargs:
+                self.camera.__dict__[opt] = kwargs[opt]
+            else:
+                self.camera.__dict__[opt] = opt_default[opt]
+
+        if 'color_effects' in kwargs:
+            self.camera.color_effects = kwargs['color_effects']
+        else:
+            self.camera.color_effects = None
+
+        if 'crop' in kwargs:
+            try:
+                crop = scanf.sscanf(kwargs['crop'], "(%f, %f, %f, %f)")
+                self.camera.crop = crop
+            except:
+                logger.error("Unknown option for `crop`. Format is (x0, y0, x1, y1) as a percentage")
+                raise Exception("Unknown option for `crop`. Format is (x0, y0, x1, y1) as a percentage")
+        else:
+            self.camera.crop = (0.0, 0.0, 1.0, 1.0)
 
         self.rawCapture = PiRGBArray(self.camera, size=self.camera.resolution)
         self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
