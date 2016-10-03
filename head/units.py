@@ -85,6 +85,8 @@ class Angle(Unit):
     degree = 1.0
     radian = degree * 180.0 / math.pi
     rev = degree * 360.0
+    quaternion = radian * math.pi
+    Q = quaternion
 
 
 class Time(Unit):
@@ -144,6 +146,9 @@ class Acceleration(Unit):
     ft_s2 = Length.ft / Time.s ** 2
     ft_minute2 = Length.ft / Time.minute ** 2
 
+    G = m_s2 * 9.81
+    g = G
+
 
 class Force(Unit):
     def __init__(self, value, unit):
@@ -151,6 +156,16 @@ class Force(Unit):
     N = 1
     oz = N * 3.59694309
     lbs = oz / 16
+
+
+class Pressue(Unit):
+    def __init__(self, value, unit):
+        Unit.__init__(self, value, unit)
+    Pa = Force.N / (Distance.m ** 2)
+    kPa = Pa * 1000
+    atm = Pa * 9.86923e-6
+    mb = Pa * 0.01
+    Hg = Pa * 3386.38866667
 
 
 class Torque(Unit):
@@ -170,3 +185,25 @@ class Voltage(Unit):
     def __init__(self, value, unit):
         Unit.__init__(self, value, unit)
     v = 1
+
+
+class Temperature(Unit):
+    def __init__(self, value, unit):
+        if unit == self.C:
+            self.base_value = value
+        elif unit == self.K:
+            self.base_value = value - 273.15
+        elif unit == self.F:
+            self.base_value = (value - 32) * (5 / 9)
+
+    def to(self, unit):
+        if unit == self.C:
+            return self.base_value
+        elif unit == self.K:
+            return self.base_value + 273.15
+        elif unit == self.F:
+            return (self.base_value * (9 / 5)) + 32
+
+    C = 1
+    K = 2
+    F = 3

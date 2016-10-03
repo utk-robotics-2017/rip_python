@@ -12,8 +12,10 @@ from threading import Thread
 from head.spine.core import get_spine
 from head.spine.ourlogging import setup_logging
 from head.simulator.physics_engine import PhysicsEngine
+from head.simulator.sim_navx import SimNavX
+from head.simulator.sim_camera import SimCamera
 from head.timer import Timer
-# from head.navigation.navx_python.navx import get_navx
+from head.navigation.navx_python.navx import get_navx
 from head.units import *
 from head.navigation.tank import TankDrive
 # from head.navigation.mecanum import MecanumDrive
@@ -82,6 +84,10 @@ class Robot:
         self.physics_engine._set_starting_hal(appendage_dict)
         if self.navx is not None:
             self.physics_engine.add_navx(self.navx)
+        '''
+        if self.camera is not None:
+            self.physics_engine.add_camera(self.camera)
+        '''
         self.sim_thread = Thread(target=self.simulate, name="Simulation Thread", args=())
         self.sim_thread.start()
 
