@@ -17,6 +17,9 @@ class VelocityControlledMotor(Component):
         self.label = config['label']
         self.index = config['index']
         self.sim = sim
+        self.motor = config['motor']
+        self.encoder = config['encoder']
+        self.vpid = config['pid']
 
         if self.sim:
             self.sim_velocity = Constant(0)
@@ -79,6 +82,12 @@ class VelocityControlledMotor(Component):
             return
 
         self.spine.send(self.devname, False, self.STOP, self.index)
+
+    def get_dependency_update(self):
+        dependencies = {}
+        dependencies[self.motor]['sim_velocity'] = self.sim_velocity
+        dependencies[self.encoder]['sim_velocity'] = self.sim_velocity
+        return dependencies
 
     def sim_update(self, tm_diff):
         self.sim_position += self.sim_velocity * tm_diff

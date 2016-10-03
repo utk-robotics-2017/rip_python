@@ -54,7 +54,7 @@ class Servo(Component):
         self.spine.send(self.devname, False, self.DETACH, self.index)
 
     def sim_update(self, tm_diff):
-        pass
+        self.sim_position = self.sim_servo.get_position(value)
 
     def get_hal_data(self):
         hal_data = {}

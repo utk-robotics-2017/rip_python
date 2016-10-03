@@ -37,6 +37,10 @@ class FourWheelDrive(Component):
         self.wheel_diameter = Length(config['wheel_diameter'], Length.inch)
         self.wheelbase_width = Length(config['wheelbase_width'], Length.inch)
         self.wheelbase_length = Length(config['wheelbase_length'], Length.inch)
+        self.lf = config['left_front_motor']
+        self.rf = config['right_front_motor']
+        self.lb = config['left_back_motor']
+        self.rb = config['right_back_motor']
 
         self.sim = sim
         if self.sim:
@@ -222,15 +226,17 @@ class FourWheelDrive(Component):
         elif self.pid_type == "angle":
             self.drive_PID(value, -value)
 
+    def get_dependency_update(self):
+        dependencies = {}
+        dependencies[self.lf]['sim_velocity'] = self.sim_left_front_velocity
+        dependencies[self.lb]['sim_velocity'] = self.sim_left_back_velocity
+        dependencies[self.rf]['sim_velocity'] = self.sim_right_front_velocity
+        dependencies[self.rb]['sim_velocity'] = self.sim_right_back_velocity
+        return dependencies
+
     def sim_update(self, tm_diff):
         self.sim_left_position += self.sim_left_velocity * tm_diff
         self.sim_right_position += self.sim_right_velocity * tm_diff
-        '''
-        self.sim_left_front_position += self.sim_left_front_velocity * tm_diff
-        self.sim_left_back_position += self.sim_left_back_velocity * tm_diff
-        self.sim_right_front_position += self.sim_right_front_velocity * tm_diff
-        self.sim_right_back_position += self.sim_right_back_velocity * tm_diff
-        '''
 
     def get_hal_data(self):
         hal_data = {}

@@ -53,6 +53,20 @@ class PhysicsEngine:
                 self.update_sim(now, tm_diff)
                 self.last_tm = now
 
+    def update_dependencies(self):
+        for appendage in self.appendages.values:
+            dependencies = appendage.get_dependency_update()
+            if dependencies is not None:
+                self.update_dependency(dependencies)
+
+    def update_dependency(self, dependencies):
+        for label in dependencies.keys():
+            for key, value in iter(dependencies[label].items()):
+                self.appendages[label].__dict__[key] = value
+            dependency = self.appendages[label].get_dependency_update()
+            if dependency is not None:
+                self.update_dependency(dependency)
+
     def update_sim(self, now, tm_diff):
         '''
             Called when the simulation parameters for the program need to be
@@ -65,9 +79,9 @@ class PhysicsEngine:
                             time that this function was called
             :type  tm_diff: float
         '''
-        print("TD: {0:f}".format(tm_diff.to(Time.s)))
+        self.update_dependencies()
         for appendage in self.appendages.values():
-            appendage.sim_update(tm_diff)
+            appendage.sim_update(self.hal_data, tm_diff)
             if isinstance(appendage, FourWheelDrive):
                 if self.drivetrain_type.lower() == "tank":
                     fwd, rcw = self.drivetrain_physics.tank_drive(appendage.get_left_velocity(),
@@ -92,6 +106,9 @@ class PhysicsEngine:
         hal_data = {}
         for label, appendage in iter(self.appendages.items()):
             hal_data[label] = appendage.get_hal_data()
+        hal_data['robot']['x'] = self.x
+        hal_data['robot']['y'] = self.y
+        hal_data['robot']['angle'] = self.angle
         if hasattr(self, 'hal_data'):
             for label in self.hal_data.keys():
                 del_list = []

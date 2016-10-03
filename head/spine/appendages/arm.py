@@ -10,6 +10,11 @@ class Arm(Component):
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.base = config['base']
+        self.shoulder = config['shoulder']
+        self.elbow = config['elbow']
+        self.wrist = config['wrist']
+        self.wrist_rot = config['wrist_rot']
 
         self.sim = sim
         if sim:
@@ -62,6 +67,15 @@ class Arm(Component):
             return
 
         self.spine.send(self.devname, False, self.DETACH, self.index)
+
+    def get_dependency_update(self):
+        dependencies = {}
+        dependencies[self.base]['sim_value'] = self.sim_base
+        dependencies[self.shoulder]['sim_value'] = self.sim_shoulder
+        dependencies[self.elbow]['sim_value'] = self.sim_elbow
+        dependencies[self.wrist]['sim_value'] = self.sim_wrist
+        dependencies[self.wrist_rot]['sim_value'] = self.sim_wrist_rot
+        return dependencies
 
     def get_hal_data(self):
         hal_data = {}

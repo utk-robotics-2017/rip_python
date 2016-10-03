@@ -58,9 +58,8 @@ class Encoder(Component):
     def pidGet(self):
         return self.read()
 
-    def sim_update(self, tm_diff):
-        # TODO
-        pass
+    def sim_update(self, hal_data, tm_diff):
+        self.sim_position = self.sim_velocity * tm_diff
 
     def get_hal_data(self):
         hal_data = {}
