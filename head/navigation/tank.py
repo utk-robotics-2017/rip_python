@@ -1,10 +1,11 @@
-import time
 import math
 import logging
 
-from ..controller.pid_controller import PIDController
-from pathfinder_python.distance_follower import DistanceFollower
+from ..controllers.pid_controller import PIDController
+from .pathfinder_python.DistanceFollower import DistanceFollower
 from ..spine.ourlogging import setup_logging
+from ..units import *
+from ..timer import Timer
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -12,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 class TankDrive:
 
-    def __init__(self, tank, wb_width, gyro=None):
+    def __init__(self, tank, gyro=None):
         self.tank = tank
         self.gyro = gyro
-        self.wb_width = wb_width
+        self.timer = Timer()
 
     def drive_straight_voltage(self, value):
-        if value == 0:
+        if value == Unit(0, 1):
             self.tank.stop()
         else:
             self.tank.drive(value)
@@ -30,46 +31,67 @@ class TankDrive:
         self.tank.drive(left, right)
 
     def drive_straight_velocity(self, velocity):
-        if(velocity == 0):
+        if(velocity == Constant(0)):
             self.tank.stop()
         else:
-            self.tank.driveVelocity(velocity)
+            self.tank.drive_pid(velocity)
 
-    def drive_arc_velocity(self, velocity, arc):
-        self.drive_velocity(velocity + arc, velocity - arc)
+    def drive_arc_velocity(self, velocity, radius, cw):
+
+        angular_velocity = velocity / radius
+
+        if cw:
+            right = angular_velocity * (radius - (self.tank.wheelbase_width / 2))
+            left = angular_velocity * (radius - (self.tank.wheelbase / 2))
+        else:
+            left = angular_velocity * (radius - (self.tank.wheelbase_width / 2))
+            right = angular_velocity * (radius - (self.tank.wheelbase_width / 2))
+
+        self.drive_velocity(left, right)
 
     def drive_velocity(self, left, right):
-        self.tank.drive_velocity(left, right)
+        self.tank.drive_pid(left, right)
 
     def drive_straight_velocity_for_time(self, velocity, delay, stop=True):
         self.drive_straight_velocity(velocity)
-        time.sleep(delay)
+        self.timer.sleep(delay)
         if stop:
-            self.drivebase.stop()
+            self.tank.stop()
 
-    def drive_arc_velocity_for_time(self, velocity, arc, delay, stop=True):
-        self.drive_arc_velocity(velocity, arc)
-        time.sleep(delay)
+    def drive_arc_velocity_for_time(self, velocity, radius, cw, delay, stop=True):
+        self.drive_arc_velocity(velocity, radius, cw)
+        self.timer.sleep(delay)
         if stop:
-            self.drivebase.stop()
+            self.tank.stop()
 
     def drive_straight_distance(self, distance, p, i, d):
-        if distance == 0:
+        if distance == Constant(0):
             self.tank.stop()
         else:
             self.tank.set_pid_type("distance")
             distance_controller = PIDController(kp=p, ki=i, kd=d,
                                                 input_sources=self.tank,
                                                 output_sources=self.tank)
+            distance_controller.set_setpoint(distance)
             while not distance_controller.is_finnished():
                 distance_controller.calculate()
 
-    def rotateToAngle(self, angle, p, i, d):
+    def rotate_at_angular_velocity(self, angular_velocity):
+        self.tank.rotate_pid(angular_velocity, -angular_velocity)
+
+    def rotate_at_angular_velocity_for_time(self, angular_velocity, delay, stop=True):
+        self.rotate_at_angular_velocity(angular_velocity)
+        self.timer.sleep(delay)
+        if stop:
+            self.tank.stop()
+
+    def rotate_to_angle(self, angle, p, i, d):
         if self.gyro is not None:
             self.tank.set_pid_type("angle")
             angle_controller = PIDController(kp=p, ki=i, kd=d,
                                              input_sources=self.gyro,
                                              output_sources=self.tank)
+            angle_controller.set_setpoint(angle)
             while not angle_controller.is_finished():
                 angle_controller.calculate()
         elif self.tank.is_velocity_controlled():
@@ -77,6 +99,7 @@ class TankDrive:
             angle_controller = PIDController(kp=p, ki=i, kd=d,
                                              input_sources=self.tank,
                                              output_sources=self.tank)
+            angle_controller.set_setpoint(angle)
             while not angle_controller.is_finished():
                 angle_controller.calculate()
         else:
