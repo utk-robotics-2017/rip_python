@@ -1,11 +1,11 @@
 from math import atan2, sqrt, sin, cos
-from .rotation import Rotation
-from .translation import Translation
-from .rigit_transform import RigidTransform
-from .interpolatable import InterpolatingMap, InterpolatingDouble
-from ..vision.target_tracker import TargetTracker
-from ..units import Angle, Distance, Time
-from ..constants import Constants
+from ..kinematics.rotation import Rotation
+from ..kinematics.translation import Translation
+from ..kinematics.rigit_transform import RigidTransform
+from ..kinematics.interpolatable import InterpolatingMap, InterpolatingDouble
+from ...vision.target_tracker import TargetTracker, TrackReport, TrackReportComparator
+from ...misc.units import Angle, Distance, Time
+from ...misc.constants import Constants
 
 
 class TurretState:
@@ -40,39 +40,40 @@ class TurretState:
         4. Camera-to-target: This is a pure translation, and is measured by the vision
         system.
     '''
-    def __init__(self, robot_state=None, vehicle_to_turret=None, turret_rotating_to_camera=None):
-        if robot_state is not None:
-            self.robot_state = robot_state
-        if vehicle_to_turret is not None:
-            self.vehicle_to_turret = vehicle_to_turret
-        if turret_rotating_to_camera is not None:
-            self.turret_rotating_to_camera = turret_rotating_to_camera
+
+    constants = Constants()
+    kObservationBufferSize = constants.constants.robot_state.observation_buffer_size
+    # Camera
+    kCameraPitchAngle = Angle(constants.constants.camera.frame.pitch_angle_degrees, Angle.degree)
+    kCameraYawAngle = Angle(constants.constants.camera.frame.yaw_angle_degrees, Angle.degree)
+    kCameraXOffset = Distance(constants.constants.camera.frame.x_offset_inches, Distance.inch)
+    kCameraYOffset = Distance(constants.constants.camera.frame.y_offset_inches, Distance.inch)
+    kCameraZOffset = Distance(constants.constants.camera.frame.z_offset_inches, Distance.inch)
+    kCameraDeadband = constants.constants.camera.deadband
+
+    # Turret
+    kTurretXOffset = Distance(constants.constants.turret.frame.x_offset_inches, Distance.inch)
+    kTurretYOffset = Distance(constants.constants.turret.frame.y_offset_inches, Distance.inch)
+    kTurretAngleOffset = Angle(constants.constants.turret.frame.angle_offset_degrees, Angle.degree)
+
+    kVehicleToTurretFixed = RigidTransform(Translation(self.kTurretXOffset, self.kTurretYOffset),
+                                           Rotation(self.kTurretAngleOffset))
+
+    kTurretRotatingToCamera = RigidTransform(Translation(self.kCameraXOffset, self.kCameraYOffset),
+                                             Rotation())
+    # Target Tracker
+    kCenterOfTargetHeight = constants.constants.target_tracker.center_of_target_height_inches
+    kMaxTargetAge = Time(constants.constants.target_tracker.max_target_age_seconds, Time.s)
+
+    shared_state = {}
+    def __init__(self, robot_state):
+        self.__dict__ = self.shared_state
         if not hasattr(self, 'instance'):
             self.reset(0, Rotation())
-            constants = Constants()
-            self.self.kObservationBufferSize = constants.constants.robot_state.observation_buffer_size
-            # Camera
-            self.kCameraPitchAngle = Angle(constants.constants.camera.frame.pitch_angle_degrees, Angle.degree)
-            self.kCameraYawAngle = Angle(constants.constants.camera.frame.yaw_angle_degrees, Angle.degree)
-            self.kCameraXOffset = Distance(constants.constants.camera.frame.x_offset_inches, Distance.inch)
-            self.kCameraYOffset = Distance(constants.constants.camera.frame.y_offset_inches, Distance.inch)
-            self.kCameraZOffset = Distance(constants.constants.camera.frame.z_offset_inches, Distance.inch)
-            self.kCameraDeadband = constants.constants.camera.deadband
-
-            # Turret
-            self.kTurretXOffset = Distance(constants.constants.turret.frame.x_offset_inches, Distance.inch)
-            self.kTurretYOffset = Distance(constants.constants.turret.frame.y_offset_inches, Distance.inch)
-            self.kTurretAngleOffset = Angle(constants.constants.turret.frame.angle_offset_degrees, Angle.degree)
-
-            self.kVehicleToTurretFixed = RigidTransform(Translation(self.kTurretXOffset, self.kTurretYOffset),
-                                                        Rotation(self.kTurretAngleOffset))
-
-            self.kTurretRotatingToCamera = RigidTransform(Translation(self.kCameraXOffset, self.kCameraYOffset),
-                                                          Rotation())
-            # Target Tracker
-            self.kCenterOfTargetHeight = constants.constants.target_tracker.center_of_target_height_inches
-            self.kMaxTargetAge = Time(constants.constants.target_tracker.max_target_age_seconds, Time.s)
-        self.instance = True
+            self.robot_state = robot_state
+            self.vehicle_to_turret = self.kVehicleToTurretFixed
+            self.turret_rotating_to_camera = self.kTurretRotatingToCamera
+            self.instance = True
 
     def reset(self, start_time, initial_turret_rotation):
         self.turret_rotation = InterpolatingMap(self.kObservationBufferSize)
@@ -103,10 +104,10 @@ class TurretState:
             rv.append(RigidTransform(report.field_to_target, Rotation()))
         return rv
 
-    def get_aiming_parameters(self, current_timestamp, comparator):
+    def get_aiming_parameters(self, current_timestamp, current_track_id):
         rv = []
         reports = self.target_tracker.get_tracks()
-        reports.sort(key=comparator)
+        reports.sort(key=lambda track: TrackReportComparator(current_timestamp, current_track_id, TrackReport(track)).score)
 
         # turret fixed (latest) -> vehicle (latest) -> field
         latest_turret_fixed_to_field = self.robot_state.get_predicted_field_to_vehicle(
@@ -134,18 +135,18 @@ class TurretState:
         field_to_targets = []
         field_to_camera = self.get_field_to_camera(timestamp)
         if vision_update is not None and len(vision_update) > 0:
-            for target_info in vision_update:
-                if target_info.get_y() > -self.kCameraDeadband and target_info.get_y() < self.kCameraDeadband:
+            for target in vision_update:
+                if target['y'] > -self.kCameraDeadband and target['y'] < self.kCameraDeadband:
                     ydeadband = 0
                 else:
-                    ydeadband = target_info.get_y()
+                    ydeadband = target['y']
 
                 # Compensate for camera yaw
-                xyaw = (target_info.get_x() * cos(self.camera_yaw_correction.to(Angle.radian)) +
+                xyaw = (target['x'] * cos(self.camera_yaw_correction.to(Angle.radian)) +
                         ydeadband * sin(self.camera_yaw_correction.to(Angle.radian)))
                 yyaw = (ydeadband * cos(self.camera_yaw_correction.to(Angle.radian)) -
-                        target_info.get_x() * sin(self.camera_yaw_correction.to(Angle.radian)))
-                zyaw = target_info.get_z()
+                        target['x'] * sin(self.camera_yaw_correction.to(Angle.radian)))
+                zyaw = target['z']
 
                 # Compensate for camera pitch
                 xr = (zyaw * sin(self.camera_pitch_correction.to(Angle.radian)) +

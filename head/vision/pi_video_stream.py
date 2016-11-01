@@ -3,6 +3,7 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 from threading import Thread
 import scanf
+import ..misc.timer import Timer
 import logging
 from ..spine.ourlogging import setup_logging
 setup_logging(__file__)
@@ -77,7 +78,7 @@ class PiVideoStream:
 
         self.rawCapture = PiRGBArray(self.camera, size=self.camera.resolution)
         self.stream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
-
+        self.timer = Timer()
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
         self.frame = None
@@ -93,6 +94,7 @@ class PiVideoStream:
         for f in self.stream:
             # grab the frame from the stream and clear the stream in
             # preparation for the next frame
+            self.timestamp = timer.time()
             self.frame = f.array
             self.rawCapture.truncate(0)
 
@@ -106,7 +108,7 @@ class PiVideoStream:
 
     def read(self):
         # return the frame most recently read
-        return self.frame
+        return (self.timestamp, self.frame)
 
     def free(self):
         self.stop()

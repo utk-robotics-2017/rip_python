@@ -2,6 +2,7 @@
 from threading import Thread
 import cv2
 import scanf
+from ..misc.timer import Timer
 import logging
 from ..spine.ourlogging import setup_logging
 setup_logging(__file__)
@@ -34,7 +35,8 @@ class WebcamVideoStream:
             self.resolution = (320, 240)
         self.stream.set(3, self.resolution[0])
         self.stream.set(4, self.resolution[1])
-        (self.grabbed, self.frame) = self.stream.read()
+        (grabbed, self.frame) = self.stream.read()
+        self.timer = Timer()
 
         # initialize the variable used to indicate if the thread should
         # be stopped
@@ -49,11 +51,14 @@ class WebcamVideoStream:
         # keep looping infinitely until the thread is stopped
         while not self.stopped:
             # otherwise, read the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
+            self.timestamp = timer.time()
+            (grabbed, self.frame) = self.stream.read()
+            if not grabbed:
+                logger.e("Camera didn't grab an image")
 
     def read(self):
         # return the frame most recently read
-        return self.frame
+        return (self.timestamp, self.frame)
 
     def free(self):
         self.stop()

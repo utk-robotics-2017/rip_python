@@ -1,11 +1,11 @@
 import math
 from ..timer import Timer
 from .translation_2d import Translation2d
-from ..units import Constant, Distance, Time
+from ..units import Distance, Time
 from ..constants import Constants
 
 
-class TargetTrack:
+class TrackedTarget:
     '''
         A class that is used to keep track of all goals detected by the vision
         system. As goals are detected/not detected anymore by the vision system,
@@ -29,7 +29,7 @@ class TargetTrack:
         '''
             Makes a new track based on the timestamp and the goal's coordinates (from vision)
         '''
-        rv = TargetTrack()
+        rv = TrackedTarget()
         rv.observed_position[timestamp] = first_observation
         rv.id = id
         return rv
@@ -87,9 +87,6 @@ class TargetTrack:
             y /= len(self.observed_positions)
             self.smoothed_position = Translation2d(x, y)
 
-    def get_smoothed_position(self):
-        return self.smoothed_position
-
     def get_latest_timestamp(self):
         if len(self.observed_positions) > 0:
             rv = Constant(0.0)
@@ -102,6 +99,3 @@ class TargetTrack:
 
     def get_stability(self):
         return math.min(1.0, len(self.observed_positions) / (self.kCameraFrameRate * self.kMaxGoalTrackAge))
-
-    def get_id(self):
-        return self.id

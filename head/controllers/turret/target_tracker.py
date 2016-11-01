@@ -1,5 +1,5 @@
 from .target_track import TargetTrack
-
+from ...misc.constants import Constants
 
 class TargetTracker:
     '''
@@ -9,20 +9,51 @@ class TargetTracker:
         to make consistent decisions about which target to aim at and to smooth out
         jitter from vibration of the camera.
     '''
-
     class TrackReport:
         '''
             Track reports contain all of the relevant information about a given target
             track.
         '''
+
+
         def __init__(self, track):
-            self.field_to_goal = track.get_smoothed_position()
+            self.field_to_goal = track.smoothed_position
             self.latest_timestamp = track.get_latest_timestamp()
 
             # The percentage of the target tracking time during which this goal has
             # been observed (0 to 1)
             self.stability = track.get_stability()
-            self.id = track.get_id()
+            self.id = track.id
+
+    class TrackReportComparator:
+        constants = Constants()
+        kStabilityWeight = constants.constants.target_tracker.track_report_comparator.stability_weight
+        kAgeWeight = constants.constants.target_tracker.track_report_comparator.age_weight
+        kSwitchingWeight = constants.constants.target_tracker.track_report_comparator.switching_weight
+        kMaxGoalTrackAge = Time(constants.constants.target_tracker.max_goal_track_age_seconds, Time.s)
+        def init(self, current_timestamp, last_track_id, track_report):
+            self.score = self.kStabilityWeight * track_report.stability
+            if track_report.id != last_track_id:
+                self.score += self.kSwitchingWeight
+            self.score += self.kAgeWeight * max(0, (self.kMaxGoalTrackAge - (current_timestamp - report.latest_timestamp)) / self.kMaxGoalTrackAge)
+
+        def __gt__(self, other):
+            return self.score > other.score
+
+        def __lt__(self, other):
+            return self.score < other.score
+
+        def __ge__(self, other):
+            return self.score >= other.score
+
+        def __le__(self, other):
+            return self.score <= other.score
+
+        def __eq__(self, other):
+            return self.score == other.score
+
+        def __ne__(self, other):
+            return self.score != other.score
 
     def __init__(self):
         self.current_tracks = []
