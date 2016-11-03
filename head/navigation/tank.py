@@ -41,13 +41,17 @@ class TankDrive:
     def drive_velocity(self, left, right):
         self.tank.drive_velocity(left, right)
 
-    def drive_straight_velocity_for_time(self, velocity, delay):
+    def drive_straight_velocity_for_time(self, velocity, delay, stop=True):
         self.drive_straight_velocity(velocity)
         time.sleep(delay)
+        if stop:
+            self.drivebase.stop()
 
-    def drive_arc_velocity_for_time(self, velocity, arc, delay):
+    def drive_arc_velocity_for_time(self, velocity, arc, delay, stop=True):
         self.drive_arc_velocity(velocity, arc)
         time.sleep(delay)
+        if stop:
+            self.drivebase.stop()
 
     def drive_straight_distance(self, distance, p, i, d):
         if distance == 0:

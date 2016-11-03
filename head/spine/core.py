@@ -117,9 +117,9 @@ class Spine:
                 lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, device)
                 if os.path.isfile(lockfn):
                     self.close()
-                    print((("Lockfile {0:s} exists. It's possible that someone is using this " +
+                    print(("Lockfile {0:s} exists. It's possible that someone is using this " +
                            "serial port. If not, remove this lock file. Closing and raising " +
-                           "error.").format(lockfn)))
+                           "error.").format(lockfn))
                     sys.exit()
 
             logger.info("Connecting to /dev/{0:s}.".format(device))
@@ -297,6 +297,9 @@ class Spine:
 
     def get_appendage(self, label):
         return self.appendages[label]
+
+    def get_appendage_dict(self):
+        return self.appendages
 
     def print_appendages(self):
         print(self.appendages)

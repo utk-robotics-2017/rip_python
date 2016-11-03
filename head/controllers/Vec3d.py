@@ -410,10 +410,12 @@ class Vec3d(object):
         return other * (projected_length_times_other_length / other_length_sqrd)
 
     def cross(self, other):
-        return Vec3d(self.y * other[2] - self.z * other[1], self.z * other[0] - self.x * other[2], self.x * other[1] - self.y * other[0])
+        return Vec3d(self.y * other[2] - self.z * other[1],
+                     self.z * other[0] - self.x * other[2], self.x * other[1] - self.y * other[0])
 
     def interpolate_to(self, other, range):
-        return Vec3d(self.x + (other[0] - self.x) * range, self.y + (other[1] - self.y) * range, self.z + (other[2] - self.z) * range)
+        return Vec3d(self.x + (other[0] - self.x) * range,
+                     self.y + (other[1] - self.y) * range, self.z + (other[2] - self.z) * range)
 
     def convert_to_basis(self, x_vector, y_vector, z_vector):
         return Vec3d(self.dot(x_vector) / x_vector.get_length_sqrd(),
@@ -427,7 +429,7 @@ class Vec3d(object):
         self.x, self.y, self.z = dict
 
 ########################################################################
-## Unit Testing                                                                                                           ##
+# Unit Testing                                                       ##
 ########################################################################
 if __name__ == "__main__":
 
@@ -514,7 +516,6 @@ if __name__ == "__main__":
             v2.rotate_around_y(300)
             self.assertAlmostEqual(v.get_angle_between(v2), 60)
             v2.rotate_around_y(v2.get_angle_between(v))
-            angle = v.get_angle_between(v2)
             self.assertAlmostEqual(v.get_angle_between(v2), 0)
 
         def testHighLevel(self):
