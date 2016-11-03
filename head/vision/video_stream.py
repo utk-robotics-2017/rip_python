@@ -1,20 +1,29 @@
 # import the necessary packages
 from multiprocessing import Process, Pipe
 import time
+import logging
 
-from webcam_video_stream import WebcamVideoStream
+from .webcam_video_stream import WebcamVideoStream
+from .pi_video_stream import PiVideoStream
+from ..spine.ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class VideoStream:
     def __init__(self, **kwargs):
         # check to see if the picamera module should be used
-        if kwargs.get('usePiCamera', False):
-            # only import the picamera packages unless we are
-            # explicity told to do so -- this helps remove the
-            # requirement of `picamera[array]` from desktops or
-            # laptops that still want to use the `imutils` package
-            from pi_video_stream import PiVideoStream
-
+        use_pi_camera = kwargs.get('use_pi_camera', False)
+        if isinstance(use_pi_camera, str):
+            if use_pi_camera.lower() == "true":
+                use_pi_camera = True
+            elif use_pi_camera.lower() == "false":
+                use_pi_camera = False
+            else:
+                logger.error("Unknown option for `use_pi_camera`")
+                raise Exception("Unknown option for `use_pi_camera`")
+        if kwargs.get('use_pi_camera', False):
             # initialize the picamera stream and allow the camera
             # sensor to warmup
             self.stream = PiVideoStream(**kwargs)

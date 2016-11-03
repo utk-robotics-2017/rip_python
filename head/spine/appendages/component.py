@@ -13,3 +13,12 @@ class Component:
 
     def show_suggestions(self):
         raise NotImplementedError("Error: show_suggestions")
+
+    def get_dependency_update(self):
+        pass
+
+    def sim_update(self, hal_data, tm_diff):
+        pass
+
+    def get_hal_data(self):
+        raise NotImplementedError("Error: get_hal_data")
