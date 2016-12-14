@@ -9,8 +9,8 @@ import importlib
 
 # Third-party
 from .ourlogging import setup_logging
-from .PyCmdMessenger.PyCmdMessenger.PyCmdMessenger import CmdMessenger
-from .PyCmdMessenger.PyCmdMessenger.arduino import ArduinoBoard
+from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
+from .py_cmd_messenger.src.arduino import ArduinoBoard
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
