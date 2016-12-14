@@ -21,7 +21,7 @@ class Servo(Component):
             self.sim_attached = False
         else:
             self.setIndex = commands[self.SET]
-            self.detachIndex = commands[self.DETACh]
+            self.detachIndex = commands[self.DETACH]
 
     def get_command_parameters(self):
         yield self.setIndex, [self.SET, "ii"]
