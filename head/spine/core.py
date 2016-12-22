@@ -218,7 +218,7 @@ class Spine:
         :return: The string response of the command, without the newline.
         '''
         self.sendMutex.acquire()
-        logger.debug("Sending {0:s} to '{1:s}'".format(command, devname))
+        logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
         with DelayedKeyboardInterrupt():
             self.messengers[devname].send(command, *args)
             acknowledgement = self.messengers[devname].receive()

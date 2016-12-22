@@ -43,7 +43,7 @@ class Servo(Component):
             self.sim_position = self.sim_servo.get_position(value)
             return
 
-        assert 0 <= value <= 255
+        #assert 0 <= value <= 255
         self.spine.send(self.devname, False, self.SET, self.index, value)
 
     def detach(self):

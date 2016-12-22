@@ -20,7 +20,7 @@ class Switch(Component):
 
     def get_command_parameters(self):
         yield self.readIndex, [self.READ, "i"]
-        yield self.readResultIndex, [self.READ_RESULT, "?"]
+        yield self.readResultIndex, [self.READ_RESULT, "i"]
 
     def set_state(self, state):
         if self.sim:
