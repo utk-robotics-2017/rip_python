@@ -37,7 +37,7 @@ class Encoder(Component):
             return self.sim_position
 
         response = self.spine.send(self.devname, True, self.READ, self.index)
-        response = Angle(response[0] / self.ticks_per_rev, Angle.rev)
+        return Angle(response[0] / self.ticks_per_rev, Angle.rev)
 
     def set_position(self, position):
         if self.sim:
