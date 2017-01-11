@@ -17,5 +17,5 @@ class ElectronicComponentDetector:
         yield self.decodeIndex, [self.DECODE, "c"]
 
     def decode(self, pad='9'):
-        response = self.spine.send(self.devname, True, self.DECODE, self.index, pad)
+        response = self.spine.send(self.devname, True, self.DECODE, pad)
         return response
