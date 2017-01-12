@@ -1,10 +1,10 @@
 from .component import Component
-from ...units import *
+from ... import units
 
 
 class Ultrasonic(Component):
     READ = "kReadUltrasonic"
-    READ_RESULT = "kReadUltrasonic"
+    READ_RESULT = "kReadUltrasonicResult"
 
     def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
@@ -14,14 +14,14 @@ class Ultrasonic(Component):
         self.sim = sim
 
         if self.sim:
-            self.sim_distance = Constant(0)
+            self.sim_distance = units.Constant(0)
         else:
             self.readIndex = commands[self.READ]
             self.readResultIndex = commands[self.READ_RESULT]
 
     def get_command_parameters(self):
         yield self.readIndex, [self.READ, "i"]
-        yield self.readResult, [self.READ_RESULT, "i"]
+        yield self.readResultIndex, [self.READ_RESULT, "i"]
 
     def set_distance(self, distance):
         if self.sim:
@@ -40,7 +40,7 @@ class Ultrasonic(Component):
         if response == 0:
             response = float('inf')
 
-        response = Length(float(response / 2.0 / 29.1), Length.cm)
+        response = units.Length(float(response[0] / 2.0 / 29.1), units.Length.cm)
 
         return response
 
