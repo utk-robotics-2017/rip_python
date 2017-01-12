@@ -2,9 +2,9 @@ from threading import Thread
 import math
 import logging
 
-from head.spine.ourlogging import setup_logging
-from head.controllers.PID import PID
-from head.controllers.VPID import VPID
+from ..spine.ourlogging import setup_logging
+from .pid import PID
+from .vpid import VPID
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -53,9 +53,9 @@ class PIDController:
 
         self.output_ = self.PID.calculate(input_)
 
-        # outputSources is None if this PIDController is chained to another PIDController
+        # output_sources is None if this PIDController is chained to another PIDController
         if self.output_sources is not None:
-            # outputSources is a list if multiple outputs are set to follow one input
+            # output_sources is a list if multiple outputs are set to follow one input
             if isinstance(self.output_sources, list):
                 if self.reverse is not None:
                     for output_source, reverse in self.output_sources, self.reverse:

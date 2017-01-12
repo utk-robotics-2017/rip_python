@@ -1,18 +1,27 @@
 from .component import Component
+from ...simulator.sim_servo import *
 
 
 class Servo(Component):
     SET = "kSetServo"
     DETACH = "kDetachServo"
 
-    def __init__(self, spine, devname, config, commands):
+    def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
+        self.sim = sim
 
-        self.setIndex = commands[self.SET]
-        self.detachIndex = commands[self.DETACh]
+        if sim:
+            if config['type'].lower() == "vex":
+                self.sim_servo = VexServo()
+            self.sim_value = 0
+            self.sim_position = 0
+            self.sim_attached = False
+        else:
+            self.setIndex = commands[self.SET]
+            self.detachIndex = commands[self.DETACH]
 
     def get_command_parameters(self):
         yield self.setIndex, [self.SET, "ii"]
@@ -28,8 +37,28 @@ class Servo(Component):
             Position from 0 to 255 of the servo.
         :type value: ``int``
         '''
-        assert 0 <= value <= 255
+        if self.sim:
+            self.sim_attached = True
+            self.sim_value = value
+            self.sim_position = self.sim_servo.get_position(value)
+            return
+
+        #assert 0 <= value <= 255
         self.spine.send(self.devname, False, self.SET, self.index, value)
 
     def detach(self):
+        if self.sim:
+            self.sim_attached = False
+            return
+
         self.spine.send(self.devname, False, self.DETACH, self.index)
+
+    def sim_update(self, tm_diff):
+        self.sim_position = self.sim_servo.get_position(value)
+
+    def get_hal_data(self):
+        hal_data = {}
+        hal_data['value'] = self.sim_value
+        hal_data['position'] = self.sim_position
+        hal_data['attached'] = self.sim_attached
+        return hal_data

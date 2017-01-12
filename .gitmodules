@@ -1,16 +1,12 @@
-[submodule "torso/ArduinoGen"]
-	path = torso/ArduinoGen
-	url = https://github.com/utk-robotics-2017/ArduinoGen.git
-	branch = master
-[submodule "head/navigation/Pathfinder-Python"]
-	path = head/navigation/Pathfinder-Python
-	url = https://github.com/utk-robotics-2017/Pathfinder-Python.git
-	branch = master
-[submodule "head/navigation/navX-Python"]
-	path = head/navigation/navX-Python
-	url = https://github.com/utk-robotics-2017/navX-Python.git
-	branch = master
-[submodule "head/spine/PyCmdMessenger"]
-	path = head/spine/PyCmdMessenger
-	url = git@github.com:utk-robotics-2017/PyCmdMessenger.git
-	branch = master
+[submodule "head/navigation/navx_python"]
+	path = head/navigation/navx_python
+	url = git@github.com:utk-robotics-2017/navx_python.git
+[submodule "head/navigation/pathfinder_python"]
+	path = head/navigation/pathfinder_python
+	url = git@github.com:utk-robotics-2017/pathfinder_python.git
+[submodule "head/spine/py_cmd_messenger"]
+	path = head/spine/py_cmd_messenger
+	url = git@github.com:utk-robotics-2017/py_cmd_messenger.git
+[submodule "torso/arduino_gen"]
+	path = torso/arduino_gen
+	url = git@github.com:utk-robotics-2017/arduino_gen.git

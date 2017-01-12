@@ -125,8 +125,8 @@ class TargetTracker:
             solidarity = area / hullArea
 
             # Filter by Solidarity
-            if ((self.maxSolidarity != -1 and solidarity > self.maxSolidarity) or
-                (self.minSolidarity != -1 and solidarity < self.minSolidarity)):
+            if((self.maxSolidarity != -1 and solidarity > self.maxSolidarity) or
+               (self.minSolidarity != -1 and solidarity < self.minSolidarity)):
                 continue
 
             keptContours.append(contour)

@@ -9,8 +9,8 @@ import importlib
 
 # Third-party
 from .ourlogging import setup_logging
-from .PyCmdMessenger.PyCmdMessenger.PyCmdMessenger import CmdMessenger
-from .PyCmdMessenger.PyCmdMessenger.arduino import ArduinoBoard
+from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
+from .py_cmd_messenger.src.arduino import ArduinoBoard
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -58,15 +58,16 @@ class get_spine:
     `this article <http://effbot.org/zone/python-with-statement.htm>`_.
     '''
 
-    def __init__(self, devices=None):
+    def __init__(self, devices=None, sim=False):
         if devices is not None:
             self.devices = devices
+        self.sim = sim
 
     def __enter__(self):
         if hasattr(self, 'devices'):
-            self.s = Spine(devices=self.devices)
+            self.s = Spine(devices=self.devices, sim=self.sim)
         else:
-            self.s = Spine()
+            self.s = Spine(sim=self.sim)
         self.s.startup()
         return self.s
 
@@ -109,31 +110,33 @@ class Spine:
         self.use_lock = kwargs.get('use_lock', True)
         self.lock_dir = kwargs.get('lock_dir', '/var/lock/')
 
+        self.sim = kwargs.get('sim', False)
         self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
 
         config = {}
         for device in devices:
-            if self.use_lock:
-                lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, device)
-                if os.path.isfile(lockfn):
-                    self.close()
-                    print((("Lockfile {0:s} exists. It's possible that someone is using this " +
-                           "serial port. If not, remove this lock file. Closing and raising " +
-                           "error.").format(lockfn)))
-                    sys.exit()
+            if not self.sim:
+                if self.use_lock:
+                    lockfn = "{0:s}{1:s}.lck".format(self.lock_dir, device)
+                    if os.path.isfile(lockfn):
+                        self.close()
+                        print(("Lockfile {0:s} exists. It's possible that someone is using this " +
+                               "serial port. If not, remove this lock file. Closing and raising " +
+                               "error.").format(lockfn))
+                        sys.exit()
 
-            logger.info("Connecting to /dev/{0:s}.".format(device))
+                logger.info("Connecting to /dev/{0:s}.".format(device))
 
-            self.arduinos[device] = ArduinoBoard("/dev/{0:s}".format(device), baud_rate=115200,
-                                                 timeout=t_out)
-            if self.use_lock:
-                with open(lockfn, 'w') as f:
-                    f.write('RIP Core')
-                os.chmod(lockfn, 0o777)
-                logger.info('Created lock at {0:s}.'.format(lockfn))
+                self.arduinos[device] = ArduinoBoard("/dev/{0:s}".format(device), baud_rate=115200,
+                                                     timeout=t_out)
+                if self.use_lock:
+                    with open(lockfn, 'w') as f:
+                        f.write('RIP Core')
+                    os.chmod(lockfn, 0o777)
+                    logger.info('Created lock at {0:s}.'.format(lockfn))
             config_file = open("{0:s}/{1:s}/{1:s}_core.json".format(CURRENT_ARDUINO_CODE_DIR, device))
             config[device] = json.loads(config_file.read())
-        self.configure_arduino(config)
+            self.configure_arduino(config)
         self.delim = delim
         self.sendMutex = Lock()
 
@@ -142,9 +145,11 @@ class Spine:
                          if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
                          not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
                                                             .format(CURRENT_ARDUINO_CODE_DIR, d))]
-
-        connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
-        return connectedDeviceOptions
+        if self.sim:
+            return deviceOptions
+        else:
+            connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
+            return connectedDeviceOptions
 
     def startup(self):
         '''
@@ -154,6 +159,9 @@ class Spine:
         boards, it is possible for them to encounter their own problems. This
         command will cause the script to fail early.
         '''
+        if self.sim:
+            return
+
         time.sleep(2)
 
         self.ping()
@@ -162,6 +170,9 @@ class Spine:
             self.set_led(devname, True)
 
     def stop(self):
+        if self.sim:
+            return
+
         for appendage in self.appendages.values():
             if hasattr(appendage, 'stop'):
                 appendage.stop()
@@ -176,6 +187,9 @@ class Spine:
             If you are using a :func:`get_spine` environment, this method will
             get called automatically during cleanup.
         '''
+        if self.sim:
+            return
+
         for devname in self.messengers.keys():
             self.set_led(devname, False)
             if self.use_lock:
@@ -204,7 +218,7 @@ class Spine:
         :return: The string response of the command, without the newline.
         '''
         self.sendMutex.acquire()
-        logger.debug("Sending {0:s} to '{1:s}'".format(command, devname))
+        logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
         with DelayedKeyboardInterrupt():
             self.messengers[devname].send(command, *args)
             acknowledgement = self.messengers[devname].receive()
@@ -235,6 +249,9 @@ class Spine:
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
+        if self.sim:
+            return
+
         for devname in self.messengers.keys():
             response = self.send(devname, True, "kPing")
             assert self.command_map[devname][response[0]] == "kPong"
@@ -250,34 +267,45 @@ class Spine:
             True for on, False for off.
         :type status: ``bool``
         '''
+        if self.sim:
+            return
+
         self.send(devname, False, "kSetLed", status)
 
     def configure_arduino(self, config):
-        '''
+        '''Sets up the appendages dictionary with all the objects that are
+        connected to each Arduino. Also sets up the `CmdMessengers` as well
+        as the command map
+        :param config
+            The dict with all the appendage information needed to setup
         '''
         self.appendages = dict()
-        self.command_map = dict()
+        if not self.sim:
+            self.command_map = dict()
         for devname, arduino in iter(config.items()):
             appendages = arduino['appendages']
-            commands_config = arduino['commands']
+            if self.sim:
+                commands_config = None
+            else:
+                commands_config = arduino['commands']
 
-            commands = [None] * len(commands_config)
-            commands[0] = ["kAcknowledge", "i"]
-            commands[1] = ["kError", "i"]
-            commands[2] = ["kUnknown", ""]
-            commands[3] = ["kSetLed", "?"]
-            commands[4] = ["kPing", ""]
-            commands[5] = ["kPingResult", "i"]
-            commands[6] = ["kPong", ""]
+                commands = [None] * len(commands_config)
+                commands[0] = ["kAcknowledge", "i"]
+                commands[1] = ["kError", "i"]
+                commands[2] = ["kUnknown", ""]
+                commands[3] = ["kSetLed", "?"]
+                commands[4] = ["kPing", ""]
+                commands[5] = ["kPingResult", "i"]
+                commands[6] = ["kPong", ""]
 
-            self.command_map[devname] = {}
-            self.command_map[devname][0] = "kAcknowledge"
-            self.command_map[devname][1] = "kError"
-            self.command_map[devname][2] = "kUnknown"
-            self.command_map[devname][3] = "kSetLed"
-            self.command_map[devname][4] = "kPing"
-            self.command_map[devname][5] = "kPingResult"
-            self.command_map[devname][6] = "kPong"
+                self.command_map[devname] = {}
+                self.command_map[devname][0] = "kAcknowledge"
+                self.command_map[devname][1] = "kError"
+                self.command_map[devname][2] = "kUnknown"
+                self.command_map[devname][3] = "kSetLed"
+                self.command_map[devname][4] = "kPing"
+                self.command_map[devname][5] = "kPingResult"
+                self.command_map[devname][6] = "kPong"
 
             m = self.__module__[:-4]
             for appendage in appendages:
@@ -288,12 +316,14 @@ class Spine:
                                                  .format(m, appendage['type']).lower().replace(' ', '_'))
                 class_ = getattr(module, appendage['type'].title().replace(' ', ''))
 
-                self.appendages[appendage['label']] = class_(self, devname, appendage, commands_config)
-                for i, command in self.appendages[appendage['label']].get_command_parameters():
-                    if commands[i] is None:
-                        commands[i] = command
-                        self.command_map[devname][i] = commands[i][0]
-            self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
+                self.appendages[appendage['label']] = class_(self, devname, appendage, commands_config, self.sim)
+                if not self.sim:
+                    for i, command in self.appendages[appendage['label']].get_command_parameters():
+                        if commands[i] is None:
+                            commands[i] = command
+                            self.command_map[devname][i] = commands[i][0]
+            if not self.sim:
+                self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
 
     def get_appendage(self, label):
         return self.appendages[label]

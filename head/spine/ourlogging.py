@@ -3,7 +3,7 @@ import logging.handlers
 import os
 import sys
 import re
-from colors import color
+from .colors import color
 
 
 class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
@@ -48,28 +48,28 @@ def setup_logging(fn):
 
     # create file handler which logs even debug messages
     logfn = '/var/log/spine/%s.log' % os.path.split(fn)[-1].split('.')[0]
-    # fh_ = logging.FileHandler('/var/log/spine/%s.log' % os.path.split(__file__)[-1])
     fh_ = GroupWriteRotatingFileHandler(logfn, maxBytes=1024 * 1024 * 5, backupCount=10)
     fh_.setLevel(logging.DEBUG)
     # Normally our Python scripts steady-state at 3.8%. With memory log buffering, this will increase.
     # Can be 5.0% after running arm_test.py now.
     fh = logging.handlers.MemoryHandler(1024 * 1024 * 10, logging.ERROR, fh_)
 
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    previous_handler = root.hasHandlers()
 
-    # create formatter and add it to the handlers
     formatter = logging.Formatter(fmt)
-    ch.setFormatter(AnsiColorFormatter(fmt))
-    # ch.setFormatter(formatter)
     fh_.setFormatter(formatter)
-
-    # add the handlers to logger
-    # logger.addHandler(ch)
-    # logger.addHandler(fh)
-    root.addHandler(ch)
     root.addHandler(fh)
+
+    if not previous_handler:
+        # create console handler with a higher log level
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+
+        # create formatter and add it to the handlers
+        ch.setFormatter(AnsiColorFormatter(fmt))
+
+        # add the handlers to logger
+        root.addHandler(ch)
 
     def my_excepthook(excType, excValue, traceback, logger=logging):
         logger.error("Logging an uncaught exception",
