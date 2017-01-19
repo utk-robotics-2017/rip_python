@@ -21,7 +21,7 @@ class Ultrasonic(Component):
 
     def get_command_parameters(self):
         yield self.readIndex, [self.READ, "i"]
-        yield self.readResultIndex, [self.READ_RESULT, "i"]
+        yield self.readResultIndex, [self.READ_RESULT, "L"]
 
     def set_distance(self, distance):
         if self.sim:
@@ -40,9 +40,9 @@ class Ultrasonic(Component):
         if response == 0:
             response = float('inf')
 
-        response = units.Length(float(response[0]), units.Length.cm)
+        converted_response = units.Length(float(response[0]), units.Length.cm)
 
-        return response
+        return converted_response
 
     def sim_update(self, tm_diff):
         pass
