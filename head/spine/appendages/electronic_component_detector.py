@@ -17,7 +17,7 @@ class ElectronicComponentDetector:
 
     def get_command_parameters(self):
         yield self.decodeIndex, [self.DECODE, "c"]
-        yield self.decodeResultIndex, [self.DECODE_RESULT, "s"]
+        yield self.decodeResultIndex, [self.DECODE_RESULT, "ccccc"]
 
     def decode(self, pad='9'):
         response = self.spine.send(self.devname, True, self.DECODE, pad)

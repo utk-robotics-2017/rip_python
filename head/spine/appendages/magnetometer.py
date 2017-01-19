@@ -5,7 +5,7 @@ class Magnetometer(Component):
     READ_X = "kReadX"
     READ_X_RESULT = "kReadXResult"
     READ_Y = "kReadY"
-    READ_Y_RESULT = "KReadYResult"
+    READ_Y_RESULT = "kReadYResult"
     READ_Z = "kReadZ"
     READ_Z_RESULT = "kReadZResult"
 
@@ -13,7 +13,6 @@ class Magnetometer(Component):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
-        self.index = config['index']
 
         self.sim = sim
         if sim:
@@ -27,21 +26,21 @@ class Magnetometer(Component):
             self.readZResultIndex = commands[self.READ_Z_RESULT]
 
     def get_command_parameters(self):
-        yield self.readXIndex, []
-        yield self.readXResultIndex, ['i']
-        yield self.readYIndex, []
-        yield self.readYResultIndex, ['i']
-        yield self.readZIndex, []
-        yield self.readZResultIndex, ['i']
+        yield self.readXIndex, [self.READ_X, '']
+        yield self.readXResultIndex, [self.READ_X_RESULT, 'i']
+        yield self.readYIndex, [self.READ_Y, '']
+        yield self.readYResultIndex, [self.READ_Y_RESULT, 'i']
+        yield self.readZIndex, [self.READ_Z, '']
+        yield self.readZResultIndex, [self.READ_Z_RESULT, 'i']
 
     def read_x(self):
-        result = self.spine.send(self.devname, True, self.READ_X, [])
-        return result
+        result = self.spine.send(self.devname, True, self.READ_X)
+        return result[0]
 
     def read_y(self):
-        result = self.spine.send(self.devname, True, self.READ_Y, [])
-        return result
+        result = self.spine.send(self.devname, True, self.READ_Y)
+        return result[0]
 
     def read_z(self):
-        result = self.spine.send(self.devname, True, self.READ_Z, [])
-        return result
+        result = self.spine.send(self.devname, True, self.READ_Z)
+        return result[0]
