@@ -40,7 +40,7 @@ class Ultrasonic(Component):
         if response == 0:
             response = float('inf')
 
-        response = units.Length(float(response[0] / 2.0 / 29.1), units.Length.cm)
+        response = units.Length(float(response[0]), units.Length.cm)
 
         return response
 
