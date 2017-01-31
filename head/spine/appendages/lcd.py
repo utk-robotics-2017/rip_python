@@ -3,6 +3,8 @@ from .component import Component
 
 class Lcd(Component):
     WRITE = "kPrintLCD"
+    CLEAR = "kClearLCD"
+    SETPOS = "kSetCursorLCD"
 
     def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
@@ -13,15 +15,20 @@ class Lcd(Component):
         self.message = ""
 
         if self.sim:
-            self.write
+            pass
+            # No need for a display in sim?
         else:
             self.writeLCD = commands[self.WRITE]
+            self.clearLCD = commands[self.CLEAR]
+            self.setposLCD = commands[self.SETPOS]
 
     def get_command_parameters(self):
         yield self.writeLCD, [self.WRITE, "is"]
+        yield self.clearLCD, [self.CLEAR, "i"]
+        yield self.setposLCD, [self.SETPOS, "iii"]
 
     def write(self, message):
-        '''
+        '''write(str message)
         Writes a message to the LCD display.
         :return: nothing
         '''
@@ -29,9 +36,30 @@ class Lcd(Component):
         self.message = message
         print("Trying to set LCD message: " + self.message)
         response = self.spine.send(self.devname, False, self.WRITE, self.index, self.message)
-        # TODO Debugging
         print("Written: \"" + message + "\" to the LCD #" + str(self.index) +
               ", spine.send response: " + str(response))
+
+        return
+
+    def clear(self):
+        '''clear()
+        Clears the LCD display of all text.
+        :return: nothing
+        '''
+
+        response = self.spine.send(self.devname, False, self.CLEAR, self.index)
+        print("Cleared LCD display: #" + str(self.index) + ", response: " + str(response))
+
+        return
+
+    def setpos(self, horizontal, vertical):
+        '''setpos(int horizontal, int vertical)
+        Sets the cursor position for the LCD display.
+        :return: nothing
+        '''
+
+        reponse = self.spine.send(self.devname, False, self.SETPOS, self.index, horizontal, vertical)
+        print("Set cursor position for LCD #" + str(self.index) + ", reponse: " + str(reponse))
 
         return
 
