@@ -37,7 +37,7 @@ class Arm(Component):
         Move the arm to a position given in raw servo values.
         :warning:
             You probably do not want to call this method directly. Please see
-            the documentation on the Arm class which can greatly simplify the
+            the documentation on the ArmController class which can greatly simplify the
             process of programming for the arm. It can help with the translation
             between cartesian coordinates and servo values, and it can also
             handle the interpolation between arm positions.
@@ -62,6 +62,9 @@ class Arm(Component):
         self.spine.send(self.devname, False, self.SET, self.index, *rot)
 
     def detach(self):
+        '''
+        Detaches each of the servos in the arm
+        '''
         if self.sim:
             self.sim_attached = False
             return
@@ -69,6 +72,14 @@ class Arm(Component):
         self.spine.send(self.devname, False, self.DETACH, self.index)
 
     def get_dependency_update(self):
+        '''
+        Returns values to update the simulate components which are the dependencies.
+        In this case that is the 5 servos that operate the arm.
+
+        Note: this is only used if the robot is running as a simulation
+
+        :return dict with simulated values from the dependency components
+        '''
         dependencies = {}
         dependencies[self.base]['sim_value'] = self.sim_base
         dependencies[self.shoulder]['sim_value'] = self.sim_shoulder
@@ -78,6 +89,11 @@ class Arm(Component):
         return dependencies
 
     def get_hal_data(self):
+        '''
+        returns the simulated hal (Hardware Abstraction Layer) data
+
+        Note: this is only used if the robot is running as a simulation
+        '''
         hal_data = {}
         hal_data['base'] = self.sim_base
         hal_data['shoulder'] = self.sim_shoulder
