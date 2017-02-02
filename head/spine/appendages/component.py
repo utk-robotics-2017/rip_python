@@ -1,4 +1,6 @@
 class Component:
+    '''Base class for all RIP appendages'''
+    # Constants for diagnostics
     PASSED_TEST = 0
     FAILED_TEST = 1
 

@@ -95,6 +95,14 @@ class FourWheelDrive(Component):
         yield self.rightPositionResultIndex, [self.RIGHT_POSITION_RESULT, "f"]
 
     def drive(self, *args):
+        '''
+        Sets the drive speed based on analog values from 0-1023
+
+        Parameter options:
+                (value)
+                (left_value, right_value)
+                (left_front_value, right_front_value, left_back_value, right_back_value)
+        '''
         # Parameter order: lf_value, rf_value, lb_value, rb_value
         if len(args) == 1:
             values = [args[0]] * 4
@@ -113,6 +121,7 @@ class FourWheelDrive(Component):
             self.spine.send(self.devname, False, self.DRIVE, self.index, *values)
 
     def stop(self):
+        '''Stops the drive'''
         if self.sim:
             self.sim_left_velocity = Constant(0)
             self.sim_right_velocity = Constant(0)
@@ -124,6 +133,14 @@ class FourWheelDrive(Component):
             self.spine.send(self.devname, False, self.STOP, self.index)
 
     def drive_pid(self, *args):
+        '''
+        Sets the drive speed using pids to maintain accurate speed
+
+        Parameter options:
+                (value)
+                (left_value, right_value)
+                (left_front_value, right_front_value, left_back_value, right_back_value)
+        '''
         # Parameter order: lf_value, rf_value, lb_value, rb_value
         if len(args) == 1:
             values = [args[0]] * 4
@@ -150,12 +167,16 @@ class FourWheelDrive(Component):
             self.spine.send(self.devname, False, self.DRIVE_PID, self.index, *values)
 
     def rotate_pid(self, left, right):
+        '''
+        Rotate the chassis using a displacement pid
+        '''
         left *= (self.wheelbase_width / Constant(2))
         right *= (self.wheelbase_width / Constant(2))
 
         self.drive_pid(left, right)
 
     def get_left_velocity(self):
+        '''Returns the velocity from the wheels on the left side of the chassis'''
         if self.sim:
             return self.sim_left_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_VELOCITY, self.index)
@@ -163,6 +184,7 @@ class FourWheelDrive(Component):
         return response
 
     def get_right_velocity(self):
+        '''Returns the velocity from the wheels on the right side of the chassis'''
         if self.sim:
             return self.sim_right_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_VELOCITY, self.index)
@@ -170,6 +192,7 @@ class FourWheelDrive(Component):
         return response
 
     def get_left_front_velocity(self):
+        '''Returns the velocity from the wheel on the left front side of the chassis'''
         if self.sim:
             return self.sim_left_front_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_FRONT_VELOCITY, self.index)
@@ -177,6 +200,7 @@ class FourWheelDrive(Component):
         return response
 
     def get_left_back_velocity(self):
+        '''Returns the velocity from the wheel on the left back side of the chassis'''
         if self.sim:
             return self.sim_left_back_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_BACK_VELOCITY, self.index)
@@ -184,6 +208,7 @@ class FourWheelDrive(Component):
         return response
 
     def get_right_front_velocity(self):
+        '''Returns the velocity from the wheel on the right front side of the chassis'''
         if self.sim:
             return self.sim_right_front_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_FRONT_VELOCITY, self.index)
@@ -191,6 +216,7 @@ class FourWheelDrive(Component):
         return response
 
     def get_right_back_velocity(self):
+        '''Returns the velocity from the wheel on the right back side of the chassis'''
         if self.sim:
             return self.sim_right_back_velocity * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_BACK_VELOCITY, self.index)
@@ -198,6 +224,7 @@ class FourWheelDrive(Component):
         return response
 
     def get_left_position(self):
+        '''Returns the displacement from the wheels on the left side of the chassis'''
         if self.sim:
             return self.sim_left_position * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.LEFT_POSITION, self.index)
@@ -205,28 +232,61 @@ class FourWheelDrive(Component):
         return response
 
     def get_right_position(self):
+        '''Returns the displacement from the wheels on the right side of the chassis'''
         if self.sim:
             return self.sim_right_position * self.wheel_diameter
         response = self.spine.send(self.devname, True, self.RIGHT_POSITION, self.index)
         response = Angle(response[0], Angle.rev)
         return response
 
-    def set_pid_type(self, type):
-        self.pid_type = type
+    def set_pid_type(self, type_):
+        '''
+        Set whether a displacement pid or rotation pid should be used for pid_get
+        and pid_set
+
+        Note:
+            Used for the pid controller
+        '''
+        self.pid_type = type_
 
     def pid_get(self):
+        '''
+        Returns either the current displacement or angle depending on the pid_type
+
+        Based WPILIB's PIDSource
+
+        Note:
+            Used for the pid controller
+        '''
         if not hasattr(self, "pid_type") or self.pid_type == "distance":
             return (self.get_left_position() + self.get_right_position()) / 2
         elif self.pid_type == "angle":
             return self.get_left_position() - self.get_right_position()
 
     def pid_set(self, value):
+        '''
+        Sets either the current displacement or angle pid depending on the pid_type
+
+        Based WPILIB's PIDOutput
+
+        Note:
+            Used for the pid controller
+        '''
         if not hasattr(self, "pid_type") or self.pid_type == "distance":
             self.drive_PID(value)
         elif self.pid_type == "angle":
             self.drive_PID(value, -value)
 
     def get_dependency_update(self):
+        '''
+        Returns values to update the simulate components which are the dependencies.
+        In this case that is the 4 motors or 4 velocity controlled motors that
+        run the drivebase.
+
+        Note: this is only used if the robot is running as a simulation
+
+        :return dict with simulated values from the dependency components
+        '''
         dependencies = {}
         dependencies[self.lf]['sim_velocity'] = self.sim_left_front_velocity
         dependencies[self.lb]['sim_velocity'] = self.sim_left_back_velocity
@@ -235,10 +295,20 @@ class FourWheelDrive(Component):
         return dependencies
 
     def sim_update(self, tm_diff):
+        '''
+        Moves the position of the drive based on the velocity and the time step
+        '''
+        self.sim_left_velocity = (self.sim_left_front_velocity + self.sim_left_back_velocity) / 2
+        self.sim_right_velocity = (self.sim_right_front_velocity + self.sim_right_back_velocity) / 2
         self.sim_left_position += self.sim_left_velocity * tm_diff
         self.sim_right_position += self.sim_right_velocity * tm_diff
 
     def get_hal_data(self):
+        '''
+        returns the simulated hal (Hardware Abstraction Layer) data
+
+        Note: this is only used if the robot is running as a simulation
+        '''
         hal_data = {}
         hal_data['left_velocity'] = self.sim_left_velocity
         hal_data['right_velocity'] = self.sim_right_velocity
