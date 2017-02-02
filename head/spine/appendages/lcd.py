@@ -1,4 +1,10 @@
+import logging
 from .component import Component
+
+from ..ourlogging import setup_logging
+
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
 
 
 class Lcd(Component):
@@ -34,10 +40,10 @@ class Lcd(Component):
         '''
 
         self.message = message
-        print("Trying to set LCD message: " + self.message)
+        logger.info("Trying to set LCD message: " + self.message)
         response = self.spine.send(self.devname, False, self.WRITE, self.index, self.message)
-        print("Written: \"" + message + "\" to the LCD #" + str(self.index) +
-              ", spine.send response: " + str(response))
+        logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index) +
+                    ", spine.send response: " + str(response))
 
         return
 
@@ -48,7 +54,7 @@ class Lcd(Component):
         '''
 
         response = self.spine.send(self.devname, False, self.CLEAR, self.index)
-        print("Cleared LCD display: #" + str(self.index) + ", response: " + str(response))
+        logger.info("Cleared LCD display: #" + str(self.index) + ", response: " + str(response))
 
         return
 
@@ -59,7 +65,7 @@ class Lcd(Component):
         '''
 
         reponse = self.spine.send(self.devname, False, self.SETPOS, self.index, horizontal, vertical)
-        print("Set cursor position for LCD #" + str(self.index) + ", reponse: " + str(reponse))
+        logger.info("Set cursor position for LCD #" + str(self.index) + ", reponse: " + str(reponse))
 
         return
 
