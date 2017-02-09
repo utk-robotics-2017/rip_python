@@ -12,21 +12,31 @@ class Lcd(Component):
     CLEAR = "kClearLCD"
     SETPOS = "kSetCursorLCD"
 
-    def __init__(self, spine, devname, config, commands, sim):
+    def __init__(self, spine, devname, config, commands, sim, rows=2, cols=16):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
         self.sim = sim
-        self.message = ""
+        self.rows = rows
+        self.cols = cols
+        # lines is an array for keeping track of what is on each line.
+        # contains char lists for each line/row.
+        self.lines = []
+        # self.cursor: (row, col)
+        # keeps track of where the cursor is.
+        self.cursor = (0, 0)
 
         if self.sim:
-            pass
-            # No need for a display in sim?
+            for i in range(0, self.rows):
+                self.lines.append(list("Sim Line " + str(i)))
         else:
             self.writeLCD = commands[self.WRITE]
             self.clearLCD = commands[self.CLEAR]
             self.setposLCD = commands[self.SETPOS]
+            # The display is initially empty.
+            for i in range(0, self.rows):
+                self.lines.append(list(" " * cols))
 
     def get_command_parameters(self):
         yield self.writeLCD, [self.WRITE, "is"]
@@ -35,15 +45,22 @@ class Lcd(Component):
 
     def write(self, message):
         '''write(str message)
-        Writes a message to the LCD display.
+        Writes a message to the LCD display at the current position.
         :return: nothing
         '''
 
-        self.message = message
-        logger.info("Trying to set LCD message: " + self.message)
-        response = self.spine.send(self.devname, False, self.WRITE, self.index, self.message)
-        logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index) +
-                    ", spine.send response: " + str(response))
+        logger.info("Trying to set LCD message: " + message)
+
+        if not self.sim:
+            try:
+                self.spine.send(self.devname, False, self.WRITE, self.index, message)
+                # logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index))
+            except Exception as e:
+                logger.error("Error writing to LCD #" + self.index + " error: " + str(e))
+        else:
+            logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index))
+
+        self.lines[self.cursor[0]] = list(message)
 
         return
 
@@ -53,21 +70,41 @@ class Lcd(Component):
         :return: nothing
         '''
 
-        response = self.spine.send(self.devname, False, self.CLEAR, self.index)
-        logger.info("Cleared LCD display: #" + str(self.index) + ", response: " + str(response))
+        self.spine.send(self.devname, False, self.CLEAR, self.index)
+        logger.info("Cleared LCD display #" + str(self.index))
+
+        for row in range(0, self.rows):
+            self.lines[row] = list(" " * self.cols)
 
         return
 
-    def setpos(self, horizontal, vertical):
-        '''setpos(int horizontal, int vertical)
+    def setpos(self, vertical, horizontal):
+        '''setpos(int vertical, int horizontal)
         Sets the cursor position for the LCD display.
         :return: nothing
         '''
 
-        reponse = self.spine.send(self.devname, False, self.SETPOS, self.index, horizontal, vertical)
-        logger.info("Set cursor position for LCD #" + str(self.index) + ", reponse: " + str(reponse))
+        self.cursor = (vertical, horizontal)
+
+        if not self.sim:
+            self.spine.send(self.devname, False, self.SETPOS, self.index, vertical, horizontal)
+
+        logger.info("Set cursor position for LCD #" + str(self.index))
 
         return
+
+    def get_message(self):
+        '''get_message()
+        Returns a representation of what the display was last set to.
+        :return: multi-line string, newline at end of each line
+        '''
+        return_message = ""
+
+        for linelist in self.lines:
+            return_message += "".join(linelist)
+            return_message += "\n"
+
+        return return_message
 
     def get_hal_data(self):
         hal_data = {}
