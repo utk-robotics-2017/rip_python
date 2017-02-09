@@ -43,7 +43,7 @@ class Stepper(Component):
 
         self.spine.send(self.devname, False, self.SET_SPEED, self.index, velocity)
 
-    def set_angle(self, angle):
+    def step_angle(self, angle):
         '''
         Set angle for a stepper motor
         :param angle:
