@@ -2,7 +2,7 @@ from .component import Component
 from ...units import *
 
 
-class Stepper(Component):
+class EasyStepper(Component):
     SET_SPEED = "kEasySetStepperSpeed"
     STEP = "kEasyStep"
     STEP_ANGLE = "kEasyStepAngle"
