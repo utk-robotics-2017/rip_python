@@ -53,6 +53,7 @@ class Stepper(Component):
         self.step(steps)
         '''
         self.spine.send(self.devname, False, self.STEP_ANGLE, self.index, angle)
+        self.angle = Angle(angle, angle.degree)
 
     def step(self, steps):
         '''
