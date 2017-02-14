@@ -52,11 +52,8 @@ class Lcd(Component):
         logger.info("Trying to set LCD message: " + message)
 
         if not self.sim:
-            try:
-                self.spine.send(self.devname, False, self.WRITE, self.index, message)
-                # logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index))
-            except Exception as e:
-                logger.error("Error writing to LCD #" + self.index + " error: " + str(e))
+            self.spine.send(self.devname, False, self.WRITE, self.index, message)
+            logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index))
         else:
             logger.info("Written: \"" + message + "\" to the LCD #" + str(self.index))
 
