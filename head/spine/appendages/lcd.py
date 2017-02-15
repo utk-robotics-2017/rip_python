@@ -67,7 +67,8 @@ class Lcd(Component):
         :return: nothing
         '''
 
-        self.spine.send(self.devname, False, self.CLEAR, self.index)
+        if not self.sim:
+            self.spine.send(self.devname, False, self.CLEAR, self.index)
         logger.info("Cleared LCD display #" + str(self.index))
 
         for row in range(0, self.rows):
