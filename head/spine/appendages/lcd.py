@@ -105,6 +105,5 @@ class Lcd(Component):
         return return_message
 
     def get_hal_data(self):
-        hal_data = {}
-        hal_data['message'] = self.message
-        return hal_data
+        message = self.get_message()
+        return message
