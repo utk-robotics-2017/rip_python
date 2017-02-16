@@ -69,7 +69,7 @@ class EasyStepper(Component):
             self.step_position += steps
             return
 
-        self.spine.send(self.devname, False, self.STEP, self.index, value)
+        self.spine.send(self.devname, False, self.STEP, self.index, steps)
         self.angle += Constant(steps) * self.angle_per_step
 
     def sim_update(self, tm_diff):
