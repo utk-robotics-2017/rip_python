@@ -9,8 +9,8 @@ import importlib
 
 # Third-party
 from .ourlogging import setup_logging
-from .PyCmdMessenger.PyCmdMessenger.PyCmdMessenger import CmdMessenger
-from .PyCmdMessenger.PyCmdMessenger.arduino import ArduinoBoard
+from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
+from .py_cmd_messenger.src.arduino import ArduinoBoard
 
 setup_logging(__file__)
 logger = logging.getLogger(__name__)
@@ -218,7 +218,7 @@ class Spine:
         :return: The string response of the command, without the newline.
         '''
         self.sendMutex.acquire()
-        logger.debug("Sending {0:s} to '{1:s}'".format(command, devname))
+        logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
         with DelayedKeyboardInterrupt():
             self.messengers[devname].send(command, *args)
             acknowledgement = self.messengers[devname].receive()
