@@ -21,7 +21,7 @@ class Servo(Component):
             self.sim_attached = False
         else:
             self.setIndex = commands[self.SET]
-            self.detachIndex = commands[self.DETACh]
+            self.detachIndex = commands[self.DETACH]
 
     def get_command_parameters(self):
         yield self.setIndex, [self.SET, "ii"]
@@ -43,7 +43,7 @@ class Servo(Component):
             self.sim_position = self.sim_servo.get_position(value)
             return
 
-        assert 0 <= value <= 255
+        #assert 0 <= value <= 255
         self.spine.send(self.devname, False, self.SET, self.index, value)
 
     def detach(self):
