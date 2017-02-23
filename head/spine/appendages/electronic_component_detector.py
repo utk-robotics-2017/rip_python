@@ -20,5 +20,8 @@ class ElectronicComponentDetector:
         yield self.decodeResultIndex, [self.DECODE_RESULT, "i"]
 
     def decode(self, pad='9'):
-        response = self.spine.send(self.devname, True, self.DECODE, pad)
-        return response
+        response = self.spine.send(self.devname, True, self.DECODE, pad)[0]
+        code = []
+        for i in range(5):
+            code.append(respone >> (i * 3) & 7)
+        return code
