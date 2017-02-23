@@ -23,5 +23,5 @@ class ElectronicComponentDetector:
         response = self.spine.send(self.devname, True, self.DECODE, pad)[0]
         code = []
         for i in range(5):
-            code.append(respone >> (i * 3) & 7)
+            code.append(response >> (i * 3) & 7)
         return code
