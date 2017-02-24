@@ -43,7 +43,7 @@ class EasyStepper(Component):
 
         self.spine.send(self.devname, False, self.SET_SPEED, self.index, velocity)
 
-    def step_angle(self, angle):
+    def step_angle(self, angle, timeout=None):
         '''
         Set angle for a stepper motor
         :param angle:
@@ -52,10 +52,14 @@ class EasyStepper(Component):
         steps = (angle - self.angle) / self.angle_per_step
         self.step(steps)
         '''
-        self.spine.send(self.devname, False, self.STEP_ANGLE, self.index, angle)
+
+        if timeout is not None and (type(timeout) is int or type(timeout) is float):
+            self.spine.send(self.devname, False, self.STEP_ANGLE, timeout, self.index, angle)
+        else:
+            self.spine.send(self.devname, False, self.STEP_ANGLE, self.index, angle)
         self.angle = Angle(angle, Angle.degree)
 
-    def step(self, steps):
+    def step(self, steps, timeout=None):
         '''
         Step the motor forward value amount
 
@@ -69,7 +73,10 @@ class EasyStepper(Component):
             self.step_position += steps
             return
 
-        self.spine.send(self.devname, False, self.STEP, self.index, steps)
+        if timeout is not None and (type(timeout) is int or type(timeout) is float):
+            self.spine.send(self.devname, False, self.STEP, timeout, self.index, steps)
+        else:
+            self.spine.send(self.devname, False, self.STEP, self.index, steps)
         self.angle += Constant(steps) * self.angle_per_step
 
     def sim_update(self, tm_diff):
