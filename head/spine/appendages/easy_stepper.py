@@ -48,6 +48,9 @@ class EasyStepper(Component):
         Set angle for a stepper motor
         :param angle:
             Angle to set the stepper to
+        :param timeout:
+            Optional timeout to wait for stepper to turn,
+            If this is set too low, it will throw a timeout error.
 
         steps = (angle - self.angle) / self.angle_per_step
         self.step(steps)
