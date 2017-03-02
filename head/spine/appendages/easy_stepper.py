@@ -57,7 +57,7 @@ class EasyStepper(Component):
         '''
 
         if timeout is not None and (type(timeout) is int or type(timeout) is float):
-            self.spine.send(self.devname, False, self.STEP_ANGLE, timeout, self.index, angle)
+            self.spine.send(self.devname, False, self.STEP_ANGLE, self.index, angle, timeout=timeout)
         else:
             self.spine.send(self.devname, False, self.STEP_ANGLE, self.index, angle)
         self.angle = Angle(angle, Angle.degree)
@@ -77,7 +77,7 @@ class EasyStepper(Component):
             return
 
         if timeout is not None and (type(timeout) is int or type(timeout) is float):
-            self.spine.send(self.devname, False, self.STEP, timeout, self.index, steps)
+            self.spine.send(self.devname, False, self.STEP, self.index, steps, timeout=timeout)
         else:
             self.spine.send(self.devname, False, self.STEP, self.index, steps)
         self.angle += Constant(steps) * self.angle_per_step

@@ -200,7 +200,7 @@ class Spine:
                 os.remove(lockfn)
                 logger.info("Removed lock at {0:s}.".format(lockfn))
 
-    def send(self, devname, has_response, command, timeout=1.0, *args):
+    def send(self, devname, has_response, command, *args, **kwargs):
         '''Send a command to a device and return the result.
         This is an internal method and should not be used directly. This is
         only for testing new commands that do not yet have specific Spine
@@ -217,9 +217,9 @@ class Spine:
         :type command: ``string``
         :return: The string response of the command, without the newline.
         '''
-        if timeout != 1.0:
+        if 'timeout' in kwargs and kwargs['timeout'] is not self.arduinos[devname].comm.timeout:
             oldTimeout = self.arduinos[devname].comm.timeout
-            self.arduinos[devname].comm.timeout = timeout
+            self.arduinos[devname].comm.timeout = kwargs['timeout']
 
         self.sendMutex.acquire()
         logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
@@ -249,7 +249,7 @@ class Spine:
         if has_response:
             return response[1]
 
-        if timeout != 1.0:
+        if self.arduinos[devname].comm.timeout is not oldTimeout:
             self.arduinos[devname].comm.timeout = oldTimeout
 
     def ping(self):
