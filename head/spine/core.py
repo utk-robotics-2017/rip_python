@@ -217,7 +217,7 @@ class Spine:
         :type command: ``string``
         :return: The string response of the command, without the newline.
         '''
-        if 'timeout' in kwargs and kwargs['timeout'] is not self.arduinos[devname].comm.timeout:
+        if 'timeout' in kwargs:
             oldTimeout = self.arduinos[devname].comm.timeout
             self.arduinos[devname].comm.timeout = kwargs['timeout']
 
@@ -249,7 +249,7 @@ class Spine:
         if has_response:
             return response[1]
 
-        if self.arduinos[devname].comm.timeout is not oldTimeout:
+        if 'timeout' in kwargs:
             self.arduinos[devname].comm.timeout = oldTimeout
 
     def ping(self):
