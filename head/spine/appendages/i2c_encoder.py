@@ -35,7 +35,7 @@ class I2CEncoder(Component):
             self.velocityResultIndex = commands[self.VELOCITY_RESULT]
             self.zeroIndex = commands[self.ZERO]
 
-    def get_commands_parameters(self):
+    def get_command_parameters(self):
         yield self.positionIndex, [self.POSITION, "i"]
         yield self.positionResultIndex, [self.POSITION_RESULT, "d"]
         yield self.rawPositionIndex, [self.RAW_POSITION, "i"]
