@@ -113,6 +113,10 @@ class Spine:
         self.sim = kwargs.get('sim', False)
         self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
 
+        if len(devices) == 0:
+            logger.error("No devices detected!")
+            sys.exit()
+
         config = {}
         for device in devices:
             if not self.sim:
