@@ -6,7 +6,7 @@ class Component:
         pass
 
     def get_command_parameters(self):
-        raise NotImplementedError("Error: get_command_paramters")
+        raise NotImplementedError("Error: get_command_parameters")
 
     def run_tests(self):
         raise NotImplementedError("Error: run_tests")
