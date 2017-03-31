@@ -318,10 +318,15 @@ class Spine:
 
                 self.appendages[appendage['label']] = class_(self, devname, appendage, commands_config, self.sim)
                 if not self.sim:
-                    for i, command in self.appendages[appendage['label']].get_command_parameters():
-                        if commands[i] is None:
-                            commands[i] = command
-                            self.command_map[devname][i] = commands[i][0]
+                    try:
+                        for i, command in self.appendages[appendage['label']].get_command_parameters():
+                            if commands[i] is None:
+                                commands[i] = command
+                                self.command_map[devname][i] = commands[i][0]
+                    except NotImplementedError:
+                        print("Could not get commmand parameters for '{}' of type '{}'".format(appendage['label'], appendage['type']))
+                        print(self.appendages)
+                        raise
             if not self.sim:
                 self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
 
