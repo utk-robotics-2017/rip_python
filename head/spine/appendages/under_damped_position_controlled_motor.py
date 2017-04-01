@@ -6,6 +6,7 @@ class UnderDampedPositionControlledMotor(Component):
     SET_VOLTAGE = "kSetUdpcmVoltage"
     SET_POSITION = "kSetUdpcmPosition"
     SET_ALLOWED_DIRECTION = "kSetUdpcmAllowedDirection"
+    SET_MODE = "kSetUdpcmMode"
     GET_POSITION = "kGetUdpcmPosition"
     GET_POSITION_RESULT = "kGetUdpcmPositionResult"
     GET_VELOCITY = "kGetUdpcmVelocity"
@@ -34,6 +35,7 @@ class UnderDampedPositionControlledMotor(Component):
             self.setVoltageIndex = commands[self.SET_VOLTAGE]
             self.setPositionIndex = commands[self.SET_POSITION]
             self.setAllowedDirectionIndex = commands[self.SET_ALLOWED_DIRECTION]
+            self.setModeIndex = commands[self.SET_MODE]
             self.getPositionIndex = commands[self.GET_POSITION]
             self.getPositionResultIndex = commands[self.GET_POSITION_RESULT]
             self.getVelocityIndex = commands[self.GET_VELOCITY]
@@ -44,6 +46,7 @@ class UnderDampedPositionControlledMotor(Component):
         yield self.setVoltageIndex, [self.SET_VOLTAGE, "ii"]
         yield self.setPositionIndex, [self.SET_POSITION, "id"]
         yield self.setAllowedDirectionIndex, [self.SET_ALLOWED_DIRECTION, "ii"]
+        yield self.setModeIndex, [self.SET_MODE, "ii"]
         yield self.getPositionIndex, [self.GET_POSITION, "i"]
         yield self.getPositionResultIndex, [self.GET_POSITION_RESULT, "d"]
         yield self.getVelocityIndex, [self.GET_VELOCITY, "i"]
@@ -58,6 +61,9 @@ class UnderDampedPositionControlledMotor(Component):
 
     def set_allowed_direction(self, direction):
         self.spine.send(self.devname, False, self.SET_ALLOWED_DIRECTION, self.index, direction)
+
+    def set_mode(self, mode):
+        self.spine.send(self.devname, False, self.SET_MODE, self.index, mode)
 
     def get_position(self):
         response = self.spine.send(self.devname, True, self.GET_POSITION, self.index)

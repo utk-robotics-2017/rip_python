@@ -48,7 +48,7 @@ class Udpid(Component):
         if self.sim:
             return
 
-        self.spine.send(self.devname, False, self.UDPID_SETPOINT, self.index, setpoint)
+        self.spine.send(self.devname, False, self.SET_UDPID_SETPOINT, self.index, setpoint)
 
     def off(self):
         if self.sim:
