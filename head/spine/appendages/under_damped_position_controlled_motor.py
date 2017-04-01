@@ -3,14 +3,14 @@ from ...units import *
 
 
 class UnderDampedPositionControlledMotor(Component):
-    SET_VOLTAGE = "kSetUDPCMVoltage"
-    SET_POSITION = "kSetUDPCMPosition"
-    SET_ALLOWED_DIRECTION = "UDPCMkSetAllowedDirection"
-    GET_POSITION = "kGetUDPCMPosition"
-    GET_POSITION_RESULT = "kGetUDPCMPositionResult"
-    GET_VELOCITY = "kGetUDPCMVelocity"
-    GET_VELOCITY_RESULT = "kGetUDPCMVelocityResult"
-    STOP = "kStopUDPCM"
+    SET_VOLTAGE = "kSetUdpcmVoltage"
+    SET_POSITION = "kSetUdpcmPosition"
+    SET_ALLOWED_DIRECTION = "kSetUdpcmAllowedDirection"
+    GET_POSITION = "kGetUdpcmPosition"
+    GET_POSITION_RESULT = "kGetUdpcmPositionResult"
+    GET_VELOCITY = "kGetUdpcmVelocity"
+    GET_VELOCITY_RESULT = "kGetUdpcmVelocityResult"
+    STOP = "kStopUdpcm"
 
     # for allowed direction
     DIRECT = 0
