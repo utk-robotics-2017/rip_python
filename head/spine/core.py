@@ -4,7 +4,8 @@ import signal
 import logging
 import json
 import sys
-from multiprocessing import Lock
+from thread import Lock as TLock
+from multiprocessing import PLock
 import importlib
 
 # Third-party
@@ -113,6 +114,9 @@ class Spine:
         self.sim = kwargs.get('sim', False)
         self.devices = devices = kwargs.get('devices', self.grab_connected_devices())
 
+        self.tlock = TLock()
+        self.plock = PLock()
+
         config = {}
         for device in devices:
             if not self.sim:
@@ -138,7 +142,6 @@ class Spine:
             config[device] = json.loads(config_file.read())
             self.configure_arduino(config)
         self.delim = delim
-        self.sendMutex = Lock()
 
     def grab_connected_devices(self):
         deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
@@ -218,13 +221,27 @@ class Spine:
         :return: The string response of the command, without the newline.
         '''
         if 'timeout' in kwargs:
-            oldTimeout = self.arduinos[devname].comm.timeout
+            default_timeout = self.arduinos[devname].comm.timeout
             self.arduinos[devname].comm.timeout = kwargs['timeout']
 
-        self.sendMutex.acquire()
+        self.tlock.acquire()
+        self.plock.acquire()
         logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
         with DelayedKeyboardInterrupt():
-            self.messengers[devname].send(command, *args)
+            for fails in range(3):
+                try:
+                    self.messengers[devname].send(command, *args)
+                except socket.timeout as t:
+                    # Socket connection with the arduino has timedout
+                    f
+                except socket.error as e:
+                    self.reset_connection(devname)
+                finally:
+                    break
+            # Reset has failed
+            if fails == 2:
+                os.system('sudo reboot')
+
             acknowledgement = self.messengers[devname].receive()
             if has_response:
                 response = self.messengers[devname].receive()
@@ -245,12 +262,15 @@ class Spine:
                 logger.warning("Response error to {0:s}.".format(devname))
                 logger.warning("Actual response command was {}".format(repr(response)))
                 logger.warning("Command was {0:s}.".format(command))
-        self.sendMutex.release()
-        if has_response:
-            return response[1]
 
         if 'timeout' in kwargs:
-            self.arduinos[devname].comm.timeout = oldTimeout
+            self.arduinos[devname].comm.timeout = default_timeout
+
+        self.tlock.release()
+        self.plock.release()
+
+        if has_response:
+            return response[1]
 
     def ping(self):
         '''Send a ping command to all devices and assert success.
@@ -278,6 +298,20 @@ class Spine:
             return
 
         self.send(devname, False, "kSetLed", status)
+
+    def reset_connection(self, devname):
+
+        arduinos = self.grab_connected_devices()
+
+        while devname not in arduinos:
+            # TODO
+            # Turn off usb hub
+            # Turn on usb hub
+            time.sleep(1)
+            arduinos = self.grab_connected_devices()
+
+        self.arduinos[devname] = ArduinoBoard("/dev/{0:s}".format(devname), baud_rate=115200,
+                                             timeout=t_out)
 
     def configure_arduino(self, config):
         '''Sets up the appendages dictionary with all the objects that are
