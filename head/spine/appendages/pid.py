@@ -2,104 +2,68 @@ from .component import Component
 
 
 class Pid(Component):
-    PID_CONSTANTS = "kPidConstants"
-    PID_CONSTANTS_RESULT = "kPidConstantsResult"
-    PID_MODIFY_CONSTANTS = "kModifyPidConstants"
-    PID_SET = "kSetPidSetpoint"
+    GET_PID_CONSTANTS = "kGetPidConstants"
+    GET_PID_CONSTANTS_RESULT = "kGetPidConstantsResult"
+    SET_PID_CONSTANTS = "kSetPidConstants"
+    SET_PID_SETPOINT = "kSetPidSetpoint"
+    GET_PID_VALUES = "kGetPidValues"
+    GET_PID_VALUES_RESULT = "kGetPidValuesResult"
     PID_OFF = "kPidOff"
-    PID_DISPLAY = "kPidDisplay"
-    PID_DISPLAY_RESULT = "kPidDisplayResult"
-
-    VPID_CONSTANTS = "kVPidConstants"
-    VPID_CONSTANTS_RESULT = "kVPidConstantsResult"
-    VPID_MODIFY_CONSTANTS = "kModifyVpidConstants"
-    VPID_SET = "kSetVpidSetpoint"
-    VPID_OFF = "kVpidOff"
-    VPID_DISPLAY = "kVpidDisplay"
-    VPID_DISPLAY_RESULT = "kVpidDisplayResult"
 
     def __init__(self, spine, devname, config, commands, sim):
         self.spine = spine
         self.devname = devname
         self.label = config['label']
         self.index = config['index']
-        self.vpid = config['vpid']
         self.sim = sim
 
         if not self.sim:
-            if not self.vpid:
-                self.constantsIndex = commands[self.PID_CONSTANTS]
-                self.constantsResultIndex = commands[self.PID_CONSTANTS_RESULT]
-                self.modifyConstantsIndex = commands[self.PID_MODIFY_CONSTANTS]
-                self.setIndex = commands[self.PID_SET]
-                self.offIndex = commands[self.PID_OFF]
-                self.displayIndex = commands[self.PID_DISPLAY]
-                self.displayResultIndex = commands[self.PID_DISPLAY_RESULT]
-
-                self.CONSTANTS = self.PID_CONSTANTS
-                self.CONSTANTS_RESULT = self.PID_CONSTANTS_RESULT
-                self.MODIFY_CONSTANTS = self.PID_MODIFY_CONSTANTS
-                self.SET = self.PID_SET
-                self.OFF = self.PID_OFF
-                self.DISPLAY = self.PID_DISPLAY
-                self.DISPLAY_RESULT = self.PID_DISPLAY_RESULT
-            else:
-                self.constantsIndex = commands[self.VPID_CONSTANTS]
-                self.constantsResultIndex = commands[self.VPID_CONSTANTS_RESULT]
-                self.modifyConstantsIndex = commands[self.VPID_MODIFY_CONSTANTS]
-                self.setIndex = commands[self.VPID_SET]
-                self.offIndex = commands[self.VPID_OFF]
-                self.displayIndex = commands[self.VPID_DISPLAY]
-                self.displayResultIndex = commands[self.VPID_DISPLAY_RESULT]
-
-                self.CONSTANTS = self.VPID_CONSTANTS
-                self.CONSTANTS_RESULT = self.VPID_CONSTANTS_RESULT
-                self.MODIFY_CONSTANTS = self.VPID_MODIFY_CONSTANTS
-                self.SET = self.VPID_SET
-                self.OFF = self.VPID_OFF
-                self.DISPLAY = self.VPID_DISPLAY
-                self.DISPLAY_RESULT = self.VPID_DISPLAY_RESULT
+            self.getPidConstantsIndex = commands[self.GET_PID_CONSTANTS]
+            self.getPidConstantsResultIndex = commands[self.GET_PID_CONSTANTS_RESULT]
+            self.setPidConstantsIndex = commands[self.SET_PID_CONSTANTS]
+            self.setPidSetpointIndex = commands[self.SET_PID_SETPOINT]
+            self.getPidValuesIndex = commands[self.GET_PID_VALUES]
+            self.getPidValuesResultIndex = commands[self.GET_PID_VALUES_RESULT]
+            self.pidOffIndex = commands[self.PID_OFF]
 
     def get_command_parameters(self):
-        yield self.constantsIndex, [self.CONSTANTS, "i"]
-        yield self.constantsResultIndex, [self.CONSTANTS, "iddd"]
-        yield self.modifyConstantsIndex, [self.MODIFY_CONSTANTS, "iddd"]
-        yield self.setIndex, [self.SET, "id"]
-        yield self.offIndex, [self.OFF, "i"]
-        yield self.displayIndex, [self.DISPLAY, "i"]
-        yield self.displayResultIndex, [self.DISPLAY_RESULT, "iddd"]
+        yield self.getPidConstantsIndex, [self.GET_PID_CONSTANTS, "i"]
+        yield self.getPidConstantsResultIndex, [self.GET_PID_CONSTANTS_RESULT, "ddd"]
+        yield self.setPidConstantsIndex, [self.SET_PID_CONSTANTS, "iddd"]
+        yield self.setPidSetpointIndex, [self.SET_PID_SETPOINT, "id"]
+        yield self.getPidValuesIndex, [self.GET_PID_VALUES, "i"]
+        yield self.getPidValuesResultIndex, [self.GET_PID_VALUES_RESULT, "ddd"]
+        yield self.pidOffIndex, [self.PID_OFF, "i"]
 
-    def constants(self):
+    def get_constants(self):
         if self.sim:
             return
 
-        response = self.spine.send(self.devname, True, self.CONSTANTS, self.index)
-        return response
+        return self.spine.send(self.devname, True, self.GET_PID_CONSTANTS, self.index)
 
-    def modify_constants(self, kp, ki, kd):
+    def set_constants(self, kp, ki, kd):
         if self.sim:
             return
 
-        self.spine.send(self.devname, False, self.MODIFY_CONSTANTS, self.index, kp, ki, kd)
+        self.spine.send(self.devname, False, self.SET_PID_CONSTANTS, self.index, kp, ki, kd)
 
-    def set(self, setpoint):
+    def set_setpoint(self, setpoint):
         if self.sim:
             return
 
-        self.spine.send(self.devname, False, self.SET, self.index, setpoint)
+        self.spine.send(self.devname, False, self.SET_PID_SETPOINT, self.index, setpoint)
+
+    def get_values(self):
+        if self.sim:
+            return
+
+        return self.spine.send(self.devname, True, self.GET_PID_VALUES, self.index)
 
     def off(self):
         if self.sim:
             return
 
-        self.spine.send(self.devname, False, self.OFF, self.index)
-
-    def display(self):
-        if self.sim:
-            return 0
-
-        response = self.spine.send(self.devname, True, self.DISPLAY, self.index)
-        return response
+        self.spine.send(self.devname, False, self.PID_OFF, self.index)
 
     def sim_update(self, tm_diff):
         pass
