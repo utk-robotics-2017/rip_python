@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 import os
 import sys
+import time
 import re
 from .colors import color
 
@@ -10,7 +11,7 @@ logger = None
 
 
 def Logger():
-    global loggers
+    global logger
 
     if logger is not None:
         return logger
@@ -21,9 +22,9 @@ def Logger():
             name = 'unknown'
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)
-        fmt = '%(asctime)s - %(threadname)s - %(filename)s - %(levelname)s - %(message)s'
+        fmt = '%(relativeCreated)6d - %(threadname)s - %(filename)s - %(levelname)s - %(message)s'
         # create file handler which logs even debug messages
-        logfn = '/var/log/spine/%s.log' % name
+        logfn = '/var/log/spine/{0:s}_{1:d}.log'.format(name, int(time.time()))
         fh_ = GroupWriteRotatingFileHandler(logfn, maxBytes=1024 * 1024 * 5, backupCount=10)
         fh_.setLevel(logging.DEBUG)
         fh = logging.handlers.MemoryHandler(1024 * 1024 * 10, logging.ERROR, fh_)
