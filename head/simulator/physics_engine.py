@@ -1,15 +1,13 @@
 import math
-import logging
 from threading import Lock
 
 from .drivetrain_physics import DrivetrainPhysics
 from ..spine.appendages.four_wheel_drive import FourWheelDrive
 from ..units import *
 
-from ..spine.ourlogging import setup_logging
+from ..spine.ourlogging import Logger
 
-setup_logging(__file__)
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 class PhysicsEngine:

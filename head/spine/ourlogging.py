@@ -1,9 +1,48 @@
+import __main__
 import logging
 import logging.handlers
 import os
 import sys
 import re
 from .colors import color
+
+logger = None
+
+
+def Logger():
+    global loggers
+
+    if logger is not None:
+        return logger
+    else:
+        if hasattr(__main__, '__file__'):
+            name = __main__.__file__[:-3]  # remove '.py'
+        else:
+            name = 'unknown'
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+        fmt = '%(asctime)s - %(threadname)s - %(filename)s - %(levelname)s - %(message)s'
+        # create file handler which logs even debug messages
+        logfn = '/var/log/spine/%s.log' % name
+        fh_ = GroupWriteRotatingFileHandler(logfn, maxBytes=1024 * 1024 * 5, backupCount=10)
+        fh_.setLevel(logging.DEBUG)
+        fh = logging.handlers.MemoryHandler(1024 * 1024 * 10, logging.ERROR, fh_)
+
+        formatter = logging.Formatter(fmt)
+        fh_.setFormatter(formatter)
+
+        # create console handler with a higher log level
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(AnsiColorFormatter(fmt))
+
+        # add the handlers to logger
+        logger.addHandler(fh)
+        logger.addHandler(ch)
+
+        def my_excepthook(excType, excValue, traceback, logger=logging):
+            logger.error("Logging an uncaught exception", exc_info=(excType, excValue, traceback))
+        sys.excepthook = my_excepthook
 
 
 class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
@@ -37,7 +76,7 @@ class AnsiColorFormatter(logging.Formatter):
 
         return s
 
-
+'''
 def setup_logging(fn):
 
     fmt = '%(asctime)s - %(threadname)s - %(filename)s - %(levelname)s - %(message)s'
@@ -74,3 +113,4 @@ def setup_logging(fn):
                      exc_info=(excType, excValue, traceback))
 
     sys.excepthook = my_excepthook
+'''
