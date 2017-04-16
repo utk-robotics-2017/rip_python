@@ -8,9 +8,7 @@ from .colors import color
 
 class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
     def _open(self):
-        # prevumask = os.umask(0o022)
         prevumask = os.umask(0o000)
-        # os.fdopen(os.open('/path/to/file', os.O_WRONLY, 0600))
         rtv = logging.handlers.RotatingFileHandler._open(self)
         os.umask(prevumask)
         return rtv
@@ -42,7 +40,7 @@ class AnsiColorFormatter(logging.Formatter):
 
 def setup_logging(fn):
 
-    fmt = '%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s'
+    fmt = '%(asctime)s - %(threadname)s - %(filename)s - %(levelname)s - %(message)s'
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
 
