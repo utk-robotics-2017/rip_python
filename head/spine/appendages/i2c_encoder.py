@@ -39,7 +39,7 @@ class I2CEncoder(Component):
         yield self.positionIndex, [self.POSITION, "i"]
         yield self.positionResultIndex, [self.POSITION_RESULT, "d"]
         yield self.rawPositionIndex, [self.RAW_POSITION, "i"]
-        yield self.rawPositionResultIndex, [self.RAW_POSITION_RESULT, "d"]
+        yield self.rawPositionResultIndex, [self.RAW_POSITION_RESULT, "l"]
         yield self.speedIndex, [self.SPEED, "i"]
         yield self.speedResultIndex, [self.SPEED_RESULT, "d"]
         yield self.velocityIndex, [self.VELOCITY, "i"]
@@ -54,7 +54,7 @@ class I2CEncoder(Component):
             return self.sim_position
 
         response = self.spine.send(self.devname, True, self.POSITION, self.index)
-        response = Angle(response[0], Angle.rev)
+        response = Angle(response[0] / 2, Angle.rev)
         return response
 
     def set_position(self, position):
@@ -97,9 +97,9 @@ class I2CEncoder(Component):
 
     def pid_get(self):
         if self.pidSource == 'position':
-            return self.position()
+            return self.get_position()
         elif self.pidSource == 'velocity':
-            return self.velocity()
+            return self.get_velocity()
 
     def sim_update(self, tm_diff):
         self.sim_position += self.sim_velocity * tm_diff
