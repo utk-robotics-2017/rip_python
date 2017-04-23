@@ -1,6 +1,5 @@
 # Python modules
 # import time
-import logging
 # import argparse
 import json
 import time
@@ -10,7 +9,7 @@ from threading import Thread
 
 # Local modules
 from head.spine.core import get_spine
-from head.spine.ourlogging import setup_logging
+from head.spine.ourlogging import Logger
 from head.simulator.physics_engine import PhysicsEngine
 from head.simulator.sim_navx import SimNavX
 from head.simulator.sim_camera import SimCamera
@@ -18,10 +17,8 @@ from head.timer import Timer
 from head.navigation.navx_python.navx import get_navx
 from head.units import *
 from head.navigation.tank import TankDrive
-# from head.navigation.mecanum import MecanumDrive
 
-setup_logging(__file__)
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 class get_robot:
