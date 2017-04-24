@@ -15,7 +15,7 @@
 import re
 
 from functools import partial
-
+from .decorators import type_check
 
 __version__ = '1.0.2'
 
@@ -24,8 +24,8 @@ COLORS = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan',
 STYLES = ('bold', 'faint', 'italic', 'underline', 'blink', 'blink2',
           'negative', 'concealed', 'crossed')
 
-
-def color(s, fg=None, bg=None, style=None):
+@type_check
+def color(s, fg: str=None, bg: str=None, style: str=None):
     sgr = []
 
     if fg:

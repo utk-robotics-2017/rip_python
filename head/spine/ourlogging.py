@@ -4,6 +4,8 @@ import os
 import sys
 import re
 from .colors import color
+from .decorators import type_check
+
 
 
 class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
@@ -14,9 +16,6 @@ class GroupWriteRotatingFileHandler(logging.handlers.RotatingFileHandler):
         rtv = logging.handlers.RotatingFileHandler._open(self)
         os.umask(prevumask)
         return rtv
-
-re_color_codes = re.compile(r'\033\[(\d;)?\d+m')
-
 
 class AnsiColorFormatter(logging.Formatter):
     def __init__(self, msgfmt=None, datefmt=None):
@@ -39,8 +38,8 @@ class AnsiColorFormatter(logging.Formatter):
 
         return s
 
-
-def setup_logging(fn):
+@type_check
+def setup_logging(fn: str) -> None:
 
     fmt = '%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s'
     root = logging.getLogger()
