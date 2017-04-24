@@ -11,6 +11,8 @@ import importlib
 from .appendages.util.logger import Logger
 from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
 from .py_cmd_messenger.src.arduino import ArduinoBoard
+from .decorators import type_check
+
 
 logger = Logger()
 
@@ -41,40 +43,8 @@ class SerialLockException(Exception):
     '''
     pass
 
-
-class get_spine:
-    '''A controlled execution environment for Spine.
-    This controlled execution environment will provide a reference to a spine
-    object in addition to cleanly handling execution completion, keyboard
-    interrupts, and other unexpected interruptions such as exceptions. What does
-    this mean practically? Whenever your code stops running, this environment
-    will make sure that the main robot motors stop and that the serial ports get
-    properly closed. Because this environment offers an easy way to avoid
-    common issues, it is recommended to use this environment rather than by
-    instantiating a Spine object directly.
-    For more information on controlled execution environments and Python's
-    `with` statement, please see
-    `this article <http://effbot.org/zone/python-with-statement.htm>`_.
-    '''
-
-    def __init__(self, devices=None, sim=False):
-        if devices is not None:
-            self.devices = devices
-        self.sim = sim
-
-    def __enter__(self):
-        if hasattr(self, 'devices'):
-            self.s = Spine(devices=self.devices, sim=self.sim)
-        else:
-            self.s = Spine(sim=self.sim)
-        self.s.startup()
-        return self.s
-
-    def __exit__(self, type, value, traceback):
-        self.s.stop()
-        self.s.close()
-
-
+@attr_check
+@singleton
 class Spine:
     '''Provides a simple interface to the robot's peripherals.
     This class should probably not be instantiated directly. Please see
@@ -103,7 +73,21 @@ class Spine:
           example of a valid setting.
     '''
 
-    def __init__(self, t_out=1, delim='\n', **kwargs):
+    # sets error checking for types for class variables
+    arduinos = dict
+    messengers = dict
+    use_lock = bool
+    lock_dir = str
+    sim = bool
+    devices = list
+    delim = chr
+    send_mutex = Lock
+    appendages = dict
+    command_map = dict
+
+
+    @type_check
+    def __init__(self, t_out: float=1, delim: chr='\n', **kwargs):
         self.arduinos = {}
         self.messengers = {}
         self.use_lock = kwargs.get('use_lock', True)
@@ -137,9 +121,11 @@ class Spine:
             config[device] = json.loads(config_file.read())
             self.configure_arduino(config)
         self.delim = delim
-        self.sendMutex = Lock()
+        self.send_mutex = Lock()
+        self.startup()
 
-    def grab_connected_devices(self):
+    @type_check
+    def grab_connected_devices(self) -> list:
         deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
                          if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
                          not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
@@ -150,7 +136,8 @@ class Spine:
             connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
             return connectedDeviceOptions
 
-    def startup(self):
+    @type_check
+    def startup(self) -> None:
         '''
         Ping Arduino boards and turn on their LEDs.
         This command is useful to run at the beginning of scripts to test each
@@ -168,7 +155,15 @@ class Spine:
         for devname in self.messengers.keys():
             self.set_led(devname, True)
 
-    def stop(self):
+    # Runs when the program closes
+    @atexit.register
+    @type_check
+    def exit(self) -> None:
+        self.stop()
+        self.close()
+
+    @type_check
+    def stop(self) -> None:
         if self.sim:
             return
 
@@ -176,7 +171,8 @@ class Spine:
             if hasattr(appendage, 'stop'):
                 appendage.stop()
 
-    def close(self):
+    @type_check
+    def close(self) -> None:
         '''Close all serial connections and remove locks.
 
         Failing to call this when you are done with the Spine object will force
@@ -199,7 +195,8 @@ class Spine:
                 os.remove(lockfn)
                 logger.info("Removed lock at {0:s}.".format(lockfn))
 
-    def send(self, devname, has_response, command, *args, **kwargs):
+    @type_check
+    def send(self, devname: str, has_response: bool, command: str, *args, **kwargs):
         '''Send a command to a device and return the result.
         This is an internal method and should not be used directly. This is
         only for testing new commands that do not yet have specific Spine
@@ -220,7 +217,7 @@ class Spine:
             oldTimeout = self.arduinos[devname].comm.timeout
             self.arduinos[devname].comm.timeout = kwargs['timeout']
 
-        self.sendMutex.acquire()
+        self.send_mutex.acquire()
         logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
         with DelayedKeyboardInterrupt():
             self.messengers[devname].send(command, *args)
@@ -231,7 +228,7 @@ class Spine:
             assert (acknowledgement[0] == "kAcknowledge" and
                     self.command_map[devname][acknowledgement[1][0]] == command)
         except AssertionError:
-            logger.warning("Acknowledgement error to {0:s}.".format(devname))
+            logger.warning("Acknowledgment error to {0:s}.".format(devname))
             logger.warning("Actual response was {}.".format(repr(acknowledgement)))
             logger.warning("Acknowledged Command was {0:s}.".format(self.command_map[devname][acknowledgement[1][0]]))
             logger.warning("Command was {0:s}.".format(command))
@@ -244,14 +241,15 @@ class Spine:
                 logger.warning("Response error to {0:s}.".format(devname))
                 logger.warning("Actual response command was {}".format(repr(response)))
                 logger.warning("Command was {0:s}.".format(command))
-        self.sendMutex.release()
+        self.send_mutex.release()
         if has_response:
             return response[1]
 
         if 'timeout' in kwargs:
             self.arduinos[devname].comm.timeout = oldTimeout
 
-    def ping(self):
+    @type_check
+    def ping(self) -> None:
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
@@ -262,7 +260,8 @@ class Spine:
             response = self.send(devname, True, "kPing")
             assert self.command_map[devname][response[0]] == "kPong"
 
-    def set_led(self, devname, status):
+    @type_check
+    def set_led(self, devname: str, status: bool) -> None:
         '''Turns the debug LED on or off for certain devices.
         This is typically only used for debug purposes. LEDs are flashed three
         times on all devices during the :func:`startup()` call.
@@ -278,7 +277,8 @@ class Spine:
 
         self.send(devname, False, "kSetLed", status)
 
-    def configure_arduino(self, config):
+    @type_check
+    def configure_arduino(self, config: dict) -> None:
         '''Sets up the appendages dictionary with all the objects that are
         connected to each Arduino. Also sets up the `CmdMessengers` as well
         as the command map
@@ -331,11 +331,14 @@ class Spine:
             if not self.sim:
                 self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
 
-    def get_appendage(self, label):
+    @type_check
+    def get_appendage(self, label: str):
         return self.appendages[label]
 
-    def get_appendage_dict(self):
+    @type_check
+    def get_appendage_dict(self) -> dict:
         return self.appendages
 
-    def print_appendages(self):
+    @type_check
+    def print_appendages(self) -> None:
         print(self.appendages)

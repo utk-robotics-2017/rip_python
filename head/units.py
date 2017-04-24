@@ -1,7 +1,11 @@
 import math
+from .spine.decorators import attr_check
 
 
+@attr_check
 class Unit:
+    base_value = float
+
     def __init__(self, value, unit):
         self.base_value = value * unit
 
