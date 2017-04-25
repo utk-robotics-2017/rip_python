@@ -1,9 +1,7 @@
-import logging
 from ..units import Constant
-from ..spine.ourlogging import setup_logging
+from ..spine.ourlogging import Logger
 
-setup_logging(__file__)
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 class DrivetrainPhysics:

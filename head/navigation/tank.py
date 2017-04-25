@@ -1,14 +1,12 @@
 import math
-import logging
 
 from ..controllers.pid_controller import PIDController
 from .pathfinder_python.DistanceFollower import DistanceFollower
-from ..spine.ourlogging import setup_logging
+from ..spine.ourlogging import Logger
 from ..units import *
 from ..timer import Timer
 
-setup_logging(__file__)
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 class TankDrive:

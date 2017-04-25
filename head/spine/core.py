@@ -1,19 +1,17 @@
 import time
 import os
 import signal
-import logging
 import json
 import sys
 from multiprocessing import Lock
 import importlib
 
 # Third-party
-from .ourlogging import setup_logging
+from .ourlogging import Logger
 from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
 from .py_cmd_messenger.src.arduino import ArduinoBoard
 
-setup_logging(__file__)
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 CURRENT_ARDUINO_CODE_DIR = "/Robot/CurrentArduinoCode"
 
@@ -26,7 +24,7 @@ class DelayedKeyboardInterrupt(object):
 
     def handler(self, signal, frame):
         self.signal_received = (signal, frame)
-        logging.info('SIGINT received. Delaying KeyboardInterrupt.')
+        logger.info('SIGINT received. Delaying KeyboardInterrupt.')
 
     def __exit__(self, type, value, traceback):
         signal.signal(signal.SIGINT, self.old_handler)
