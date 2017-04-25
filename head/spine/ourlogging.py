@@ -49,24 +49,32 @@ def Logger():
 
             def emit(self, record):
                 global new_message
-                if self.previous_message == record.getMessage():
-                    new_message = False
-                    self.repeat_times += 1
-                    record.msg += " x%(repeat_times)d"
-                    if isinstance(record.args, dict):
-                        record.args['repeat_times'] = self.repeat_times
-                        record.args['new_message'] = False
+                try:
+                    if self.previous_message == record.getMessage():
+                        new_message = False
+                        self.repeat_times += 1
+                        record.msg += " x%(repeat_times)d"
+                        if isinstance(record.args, dict):
+                            record.args['repeat_times'] = self.repeat_times
+                            record.args['new_message'] = False
+                        else:
+                            record.args = {'repeat_times': self.repeat_times, 'new_message': False}
+                        self.stream.write("\x1b[80D\x1b[1A\x1b[K")
                     else:
-                        record.args = {'repeat_times': self.repeat_times, 'new_message': False}
-                else:
-                    if isinstance(record.args, dict):
-                        record.args['new_message'] = True
-                    else:
-                        record.args = {'new_message': True}
-                    self.repeat_times = 1
-                    self.previous_message = record.getMessage()
-                    record.msg = record.msg
-                super().emit(record)
+                        if isinstance(record.args, dict):
+                            record.args['new_message'] = True
+                        else:
+                            record.args = {'new_message': True}
+                        self.repeat_times = 1
+                        self.previous_message = record.getMessage()
+                        record.msg = record.msg
+                    msg = self.format(record)
+                    self.stream.write(msg + "\n")
+                    self.stream.flush()
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except:
+                    self.handleError(record)
 
         ch = RepeatedMessageSteamHandler()
         ch.setLevel(logging.INFO)
@@ -74,7 +82,6 @@ def Logger():
         class AnsiColorFormatter(logging.Formatter):
             def __init__(self, msgfmt=None, datefmt=None):
                 self.formatter = logging.Formatter(msgfmt)
-                self.first_time = True
 
             def format(self, record):
                 s = self.formatter.format(record)
@@ -89,15 +96,9 @@ def Logger():
                     s = color(s, fg='blue')
                 elif record.levelname == 'INFO':
                     pass
-                if record.args['new_message']:
-                    if not self.first_time:
-                        s = '\n' + s
-                    else:
-                        self.first_time = False
+ 
                 return s
-        ch.setFormatter(AnsiColorFormatter('\r' + fmt))
-
-        ch.terminator = ''
+        ch.setFormatter(AnsiColorFormatter(fmt))
 
         # add the handlers to logger
         logger.addHandler(fh)
@@ -107,12 +108,3 @@ def Logger():
             logger.error("Logging an uncaught exception", exc_info=(excType, excValue, traceback))
         sys.excepthook = my_excepthook
         return logger
-
-
-@atexit.register
-def del_logger():
-    global logger
-    for handler in logger.handlers:
-        if handler.__class__.__name__ == 'RepeatedMessageSteamHandler':
-            handler.stream.write('\n')
-            handler.stream.flush()
