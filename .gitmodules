@@ -10,3 +10,6 @@
 [submodule "torso/arduino_gen"]
 	path = torso/arduino_gen
 	url = git@github.com:utk-robotics-2017/arduino_gen.git
+[submodule "head/spine/appendages"]
+	path = head/spine/appendages
+	url = https://github.com/utk-robotics-2017/appendages.git
