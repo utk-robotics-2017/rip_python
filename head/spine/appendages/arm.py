@@ -60,6 +60,70 @@ class Arm(Component):
         for r in rot:
             assert 0 <= r <= 180
         self.spine.send(self.devname, False, self.SET, self.index, *rot)
+    
+    def run_tests(self):
+        run_again = True
+        while run_again:
+            print("Test 1: swivel the base of {0:s} 180 degrees".format(self.label))
+            self.set((0, 90, 90, 90, 90))
+            time.sleep(2)
+            self.set((180, 90, 90, 90, 90))
+            time.sleep(2)
+            ans = input("Do you want to run that test again? y/n\n")
+            if ans in ['yes', 'y']:
+                run_again = True
+            else:
+                break
+        #reusing variables. Hope this doesn't break anything
+        while run_again:
+            print("Test 2: swivel the shoulder of {0:s} 180 degrees".format(self.label))
+            self.set((90, 0, 90, 90, 90))
+            time.sleep(2)
+            self.set((90, 180, 90, 90, 90))
+            time.sleep(2)
+            ans = input("Do you want to run that test again? y/n\n")
+            if ans in ['yes', 'y']:
+                run_again = True
+            else:
+                break
+        #do some more tests
+        while run_again:
+            print("Test 3: swivel the elbow of {0:s} 180 degrees".format(self.label))
+            self.set((90, 90, 0, 90, 90))
+            time.sleep(2)
+            self.set((90, 90, 180, 90, 90))
+            time.sleep(2)
+            ans = input("Do you want to run that test again? y/n\n")
+            if ans in ['yes', 'y']:
+                run_again = True
+            else:
+                break
+        #test wrist
+        while run_again:
+            print("Test 4: swivel the wrist of {0:s} 180 degrees".format(self.label))
+            self.set((90, 90, 90, 0, 90))
+            time.sleep(2)
+            self.set((90, 90, 90, 180, 90))
+            time.sleep(2)
+            ans = input("Do you want to run that test again? y/n\n")
+            if ans in ['yes', 'y']:
+                run_again = True
+            else:
+                break
+        #test wrist_rot
+        while run_again:
+            print("Test 4: rotate wrist of {0:s} 180 degrees".format(self.label))
+            self.set((90, 90, 90, 90, 0))
+            time.sleep(2)
+            self.set((90, 90, 90, 90, 180))
+            time.sleep(2)
+            ans = input("Do you want to run that test again? y/n\n")
+            if ans in ['yes', 'y']:
+                run_again = True
+            else:
+                break
+
+
 
     def detach(self):
         if self.sim:
