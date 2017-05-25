@@ -63,6 +63,7 @@ class Arm(Component):
     
     def run_tests(self):
         run_again = True
+        #TODO: see if we can't do this in some kind of loop
         while run_again:
             print("Test 1: swivel the base of {0:s} 180 degrees".format(self.label))
             self.set((0, 90, 90, 90, 90))
@@ -122,7 +123,15 @@ class Arm(Component):
                 run_again = True
             else:
                 break
+        ans = input("Were the tests successful? y/n\n")
+        if ans.lower() in ['no', 'n']:
+            return 1
+        else:
+            return 0
+        
 
+    def show_suggestions(self):
+        print("Make sure the arm is plugged in. If Kevin built the arm, get a new arm.")
 
 
     def detach(self):
