@@ -76,3 +76,6 @@ class Stepper(Component):
         hal_data['step_position'] = self.step_position
         hal_data['angle'] = self.angle
         return hal_data
+
+    def run_test(self):
+        print("I'm sorry Dave, I can't test your stepper.")

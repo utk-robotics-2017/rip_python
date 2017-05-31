@@ -44,7 +44,7 @@ class Ultrasonic(Component):
 
         return converted_response
 
-    def test(self):
+    def run_tests(self):
         unit = 'cm'
 
         print("\nUltrasonic\n")

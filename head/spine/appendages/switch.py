@@ -30,7 +30,7 @@ class Switch(Component):
         response = self.spine.send(self.devname, "rs {}".format(self.index))
         return {'1': True, '0': False}[response]
 
-    def test(self):
+    def run_tests(self):
         print("\nSwitch\n")
 
         # first test
