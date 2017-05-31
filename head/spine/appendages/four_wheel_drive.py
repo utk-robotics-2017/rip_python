@@ -249,3 +249,50 @@ class FourWheelDrive(Component):
         hal_data['right_front_velocity'] = self.sim_right_front_velocity
         hal_data['right_back_velocity'] = self.sim_right_back_velocity
         return hal_data
+
+    def run_test(self):
+        print("Test 1: run the motors forward for 2 seconds")
+        self.drive_pid(1023)
+        sleep(2)
+        self.stop()
+        while True:
+            ans = input("Would you like to repeat this test? y/n\n")
+            if ans in ['Y', 'y']:
+                break
+            elif ans in ['N', 'n']:
+                return self.FAILED_TEST
+                break
+            else:
+                print("Invaild response. I'm sorry Dave. I can't do that.")
+        while True:
+            ans = input("Did the test work? y/n\n")
+            if ans in ['Y', 'y']:
+                break
+            elif ans in ['N', 'n']:
+                return self.FAILED_TEST
+                break
+            else:
+                print("Invaild response. I'm sorry Dave. I can't do that.")
+
+        print("Test 2: run the motors backwards for 2 seconds")
+        self.drive_pid(-1023)
+        sleep(2)
+        self.stop()
+        while True:
+            ans = input("Would you like to repeat this test? y/n\n")
+            if ans in ['Y', 'y']:
+                break
+            elif ans in ['N', 'n']:
+                return self.FAILED_TEST
+                break
+            else:
+                print("Invaild response. I'm sorry Dave. I can't do that.")
+        while True:
+            ans = input("Did the test work? y/n\n")
+            if ans in ['Y', 'y']:
+                break
+            elif ans in ['N', 'n']:
+                return self.FAILED_TEST
+                break
+            else:
+                print("Invaild response. I'm sorry Dave. I can't do that.")
