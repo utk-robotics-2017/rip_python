@@ -9,12 +9,11 @@ from multiprocessing import PLock
 import importlib
 
 # Third-party
-from .ourlogging import setup_logging
+from .appendages.util.logger import Logger
 from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
 from .py_cmd_messenger.src.arduino import ArduinoBoard
 
-setup_logging(__file__)
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 CURRENT_ARDUINO_CODE_DIR = "/Robot/CurrentArduinoCode"
 
@@ -353,7 +352,7 @@ class Spine:
                 # Magic voodoo that imports a class from the appendages folder with the specific
                 # type and instantiates it
                 # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
-                module = importlib.import_module("{0:s}appendages.{1:s}"
+                module = importlib.import_module("{0:s}appendages.rip.{1:s}"
                                                  .format(m, appendage['type']).lower().replace(' ', '_'))
                 class_ = getattr(module, appendage['type'].title().replace(' ', ''))
 
