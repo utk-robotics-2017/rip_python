@@ -1,5 +1,5 @@
 import os
-import getpass
+
 
 class StateMachine(object):
     def __init__(self):
@@ -10,21 +10,24 @@ class StateMachine(object):
     def create_state_file(self):
         program = os.path.basename(__file__)[:-3]  # remove .py
         user = getpass.getuser()
-        pid = os.getpid()
-        pname = subprocess.Popen(["ps -o cmd= {}".format(pid)], stdout=subprocess.PIPE, shell=True)
-        self.state_file = ("/{0:s}_{1:s}_{2:s}.state").format(program, user, pname)
+        self.state_file = ("/{0:s}_{1:s}.state").format(program, user)
+
+    def set_state_map(self, state_map):
+        self.state_map = state_map
 
     def load_state(self):
         # file does not exist
         if not os.path.isfile(self.state_file):
             return None
 
+        if not hasattr(self, 'state_map'):
+            raise Exception('No state map')
+
         # file exists
         with open(self.state_file) as f:
             text = f.read()
         self.state_variables = json.loads(text)
-
-        #TODO: load state using black magic
+        self.current_state = self.state_map[self.state_variables['current_state']]
 
     def save_state(self):
         with open(self.state_file, 'w') as f:
