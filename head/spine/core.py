@@ -40,47 +40,11 @@ class SerialLockException(Exception):
     in ``/var/lock``. It's possible that someone is using this serial port. If
     not, the fix is to simply remove the lock using `rm`.
     '''
-    pass
-
-
-class get_spine:
-    '''A controlled execution environment for Spine.
-    This controlled execution environment will provide a reference to a spine
-    object in addition to cleanly handling execution completion, keyboard
-    interrupts, and other unexpected interruptions such as exceptions. What does
-    this mean practically? Whenever your code stops running, this environment
-    will make sure that the main robot motors stop and that the serial ports get
-    properly closed. Because this environment offers an easy way to avoid
-    common issues, it is recommended to use this environment rather than by
-    instantiating a Spine object directly.
-    For more information on controlled execution environments and Python's
-    `with` statement, please see
-    `this article <http://effbot.org/zone/python-with-statement.htm>`_.
-    '''
-
-    def __init__(self, devices=None, sim=False):
-        if devices is not None:
-            self.devices = devices
-        self.sim = sim
-
-    def __enter__(self):
-        if hasattr(self, 'devices'):
-            self.s = Spine(devices=self.devices, sim=self.sim)
-        else:
-            self.s = Spine(sim=self.sim)
-        self.s.startup()
-        return self.s
-
-    def __exit__(self, type, value, traceback):
-        self.s.stop()
-        self.s.close()
+    pass        
 
 
 class Spine:
     '''Provides a simple interface to the robot's peripherals.
-    This class should probably not be instantiated directly. Please see
-    :func:`get_spine`, which provides safe error and interrupt handling, which
-    this class does not directly provide.
     There is no need to create more than one Spine object. In fact, it is not
     possible due to serial port locking.
     Note that typically commands will assert a successful response from one of
@@ -201,6 +165,11 @@ class Spine:
             if self.use_lock:
                 os.remove(lockfn)
                 logger.info("Removed lock at {0:s}.".format(lockfn))
+
+    @atexit
+    def exit(self):
+        self.stop()
+        self.close()
 
     def send(self, devname, has_response, command, *args, **kwargs):
         '''Send a command to a device and return the result.
