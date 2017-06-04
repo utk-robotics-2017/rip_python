@@ -1,15 +1,18 @@
 import time
 import os
+import serial
 import signal
 import logging
 import json
 import sys
-from thread import Lock as TLock
-from multiprocessing import PLock
+import atexit
+from threading import Lock as TLock
+from multiprocessing import Lock as PLock
 import importlib
 
+from .appendages.utils.logger import Logger
+from .appendages.utils.decorators import attr_check, type_check, void, singleton
 # Third-party
-from .appendages.util.logger import Logger
 from .py_cmd_messenger.src.py_cmd_messenger import CmdMessenger
 from .py_cmd_messenger.src.arduino import ArduinoBoard
 
@@ -40,9 +43,11 @@ class SerialLockException(Exception):
     in ``/var/lock``. It's possible that someone is using this serial port. If
     not, the fix is to simply remove the lock using `rm`.
     '''
-    pass        
+    pass
 
 
+@singleton
+@attr_check
 class Spine:
     '''Provides a simple interface to the robot's peripherals.
     There is no need to create more than one Spine object. In fact, it is not
@@ -67,8 +72,20 @@ class Spine:
           See DEF_PORTS in the module `head.spine.core` for the default and an
           example of a valid setting.
     '''
+    arduinos = dict
+    messengers = dict
+    use_lock = bool
+    lock_dir = str
+    sim = bool
+    devices = list
+    tlock = TLock
+    plock = PLock
 
-    def __init__(self, t_out=1, delim='\n', **kwargs):
+    def __new__(cls):
+        return object.__new__(cls)
+
+    @type_check
+    def __init__(self, timeout: float=1.0, delim: str='\n', **kwargs):
         self.arduinos = {}
         self.messengers = {}
         self.use_lock = kwargs.get('use_lock', True)
@@ -95,7 +112,7 @@ class Spine:
                 logger.info("Connecting to /dev/{0:s}.".format(device))
 
                 self.arduinos[device] = ArduinoBoard("/dev/{0:s}".format(device), baud_rate=115200,
-                                                     timeout=t_out)
+                                                     timeout=timeout)
                 if self.use_lock:
                     with open(lockfn, 'w') as f:
                         f.write('RIP Core')
@@ -105,8 +122,10 @@ class Spine:
             config[device] = json.loads(config_file.read())
             self.configure_arduino(config)
         self.delim = delim
+        self.serial_timeout = timeout
 
-    def grab_connected_devices(self):
+    @type_check
+    def grab_connected_devices(self) -> list:
         deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
                          if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
                          not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
@@ -117,7 +136,8 @@ class Spine:
             connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
             return connectedDeviceOptions
 
-    def startup(self):
+    @type_check
+    def startup(self) -> void:
         '''
         Ping Arduino boards and turn on their LEDs.
         This command is useful to run at the beginning of scripts to test each
@@ -135,7 +155,8 @@ class Spine:
         for devname in self.messengers.keys():
             self.set_led(devname, True)
 
-    def stop(self):
+    @type_check
+    def stop(self) -> void:
         if self.sim:
             return
 
@@ -143,6 +164,7 @@ class Spine:
             if hasattr(appendage, 'stop'):
                 appendage.stop()
 
+    @type_check
     def close(self):
         '''Close all serial connections and remove locks.
 
@@ -166,12 +188,13 @@ class Spine:
                 os.remove(lockfn)
                 logger.info("Removed lock at {0:s}.".format(lockfn))
 
-    @atexit
+    @atexit.register
     def exit(self):
         self.stop()
         self.close()
 
-    def send(self, devname, has_response, command, *args, **kwargs):
+    @type_check
+    def send(self, devname: str, has_response: bool, command: str, *args, **kwargs):
         '''Send a command to a device and return the result.
         This is an internal method and should not be used directly. This is
         only for testing new commands that do not yet have specific Spine
@@ -199,16 +222,16 @@ class Spine:
             for fails in range(3):
                 try:
                     self.messengers[devname].send(command, *args)
-                except socket.timeout as t:
+                except serial.SerialTimeoutException as t:
                     # Socket connection with the arduino has timedout
-                    f
-                except socket.error as e:
+                    pass
+                except serial.SerialException as e:
                     self.reset_connection(devname)
                 finally:
                     break
             # Reset has failed
-            if fails == 2:
-                os.system('sudo reboot')
+            if fails == 3:
+                self.reset_system()
 
             acknowledgement = self.messengers[devname].receive()
             if has_response:
@@ -240,7 +263,8 @@ class Spine:
         if has_response:
             return response[1]
 
-    def ping(self):
+    @type_check
+    def ping(self) -> void:
         '''Send a ping command to all devices and assert success.
         This is called automatically by :func:`startup()`.
         '''
@@ -251,7 +275,8 @@ class Spine:
             response = self.send(devname, True, "kPing")
             assert self.command_map[devname][response[0]] == "kPong"
 
-    def set_led(self, devname, status):
+    @type_check
+    def set_led(self, devname: str, status: bool) -> void:
         '''Turns the debug LED on or off for certain devices.
         This is typically only used for debug purposes. LEDs are flashed three
         times on all devices during the :func:`startup()` call.
@@ -267,21 +292,25 @@ class Spine:
 
         self.send(devname, False, "kSetLed", status)
 
-    def reset_connection(self, devname):
+    @type_check
+    def reset_system(self) -> void:
+        self.stop()
+        os.system('sudo reboot')
 
+    @type_check
+    def reset_connection(self, devname: str) -> void:
+        # TODO
+        # Turn off usb hub
+        # Turn on usb hub
+        time.sleep(1)
         arduinos = self.grab_connected_devices()
 
-        while devname not in arduinos:
-            # TODO
-            # Turn off usb hub
-            # Turn on usb hub
-            time.sleep(1)
-            arduinos = self.grab_connected_devices()
+        if devname in arduinos:
+            self.arduinos[devname] = ArduinoBoard("/dev/{0:s}".format(devname), baud_rate=115200,
+                                                  timeout=self.serial_timeout)
 
-        self.arduinos[devname] = ArduinoBoard("/dev/{0:s}".format(devname), baud_rate=115200,
-                                             timeout=t_out)
-
-    def configure_arduino(self, config):
+    @type_check
+    def configure_arduino(self, config: dict) -> void:
         '''Sets up the appendages dictionary with all the objects that are
         connected to each Arduino. Also sets up the `CmdMessengers` as well
         as the command map
@@ -334,11 +363,14 @@ class Spine:
             if not self.sim:
                 self.messengers[devname] = CmdMessenger(self.arduinos[devname], commands)
 
-    def get_appendage(self, label):
+    @type_check
+    def get_appendage(self, label: str):
         return self.appendages[label]
 
-    def get_appendage_dict(self):
+    @type_check
+    def get_appendage_dict(self) -> dict:
         return self.appendages
 
-    def print_appendages(self):
+    @type_check
+    def print_appendages(self) -> void:
         print(self.appendages)
