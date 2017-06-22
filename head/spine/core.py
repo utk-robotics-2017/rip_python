@@ -14,6 +14,9 @@ from .py_cmd_messenger.src.arduino import ArduinoBoard
 from .decorators import type_check
 
 
+setup_logging(__file__)
+logger = logging.getLogger(__name__)
+
 logger = Logger()
 
 CURRENT_ARDUINO_CODE_DIR = "/Robot/CurrentArduinoCode"
