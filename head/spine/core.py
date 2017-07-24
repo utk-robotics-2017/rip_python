@@ -54,23 +54,6 @@ class Spine:
     possible due to serial port locking.
     Note that typically commands will assert a successful response from one of
     the micros even if there is no return value.
-    :param t_out:
-        The serial timeout. Probably should not change
-    :type t_out: ``int``
-    :param delim:
-        The line delimeter for serial communications. Probably should not
-        change.
-    :type delim: ``string``
-    :Keyword Arguments:
-        * **use_lock** (``bool``) --
-          Whether to respect and create the lock files in ``/var/lock``. Should
-          probably always be true, the default.
-        * **lock_dir** (``str``) --
-          Location of the lock files. Defaults to ``/var/lock/``.
-        * **ports** (``dict``) --
-          A dictionary of the ports and serial devices they are connected to.
-          See DEF_PORTS in the module `head.spine.core` for the default and an
-          example of a valid setting.
     '''
     arduinos = dict
     messengers = dict
@@ -85,7 +68,25 @@ class Spine:
         return object.__new__(cls)
 
     @type_check
-    def __init__(self, timeout: float=1.0, delim: str='\n', **kwargs):
+    def __init__(self, timeout: float=1.0, **kwargs):
+        '''
+            Parameters
+            ----------
+            timeout: float
+                The serial timeout. Probably should not change
+
+            Keyword Arguments
+            -----------------
+            use_lock: bool
+                Whether to respect and create the lock files in ``/var/lock``. Should
+                probably always be true, the default.
+            lock_dir: str
+                Location of the lock files. Defaults to ``/var/lock/``.
+            ports: dict
+                A dictionary of the ports and serial devices they are connected to.
+                See DEF_PORTS in the module `head.spine.core` for the default and an
+                example of a valid setting.
+        '''
         self.arduinos = {}
         self.messengers = {}
         self.use_lock = kwargs.get('use_lock', True)
@@ -121,29 +122,40 @@ class Spine:
             config_file = open("{0:s}/{1:s}/{1:s}_core.json".format(CURRENT_ARDUINO_CODE_DIR, device))
             config[device] = json.loads(config_file.read())
             self.configure_arduino(config)
-        self.delim = delim
         self.serial_timeout = timeout
 
     @type_check
     def grab_connected_devices(self) -> list:
-        deviceOptions = [d for d in os.listdir(CURRENT_ARDUINO_CODE_DIR)
-                         if os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and
-                         not d == ".git" and os.path.exists("{0:s}/{1:s}/{1:s}.json"
-                                                            .format(CURRENT_ARDUINO_CODE_DIR, d))]
+        ''' Collects a list of the connected Microcontrollers
+
+            Returns
+            -------
+                list A list of the names of the connected microcontrollers
+        '''
+        device_options = []
+        # Loop through the Current Arduino Code Directory
+        for d in os.listdir(CURRENT_ARDUINO_CODE_DIR):
+            # If there is a directory (that isn't the hidden git directory) and it contains a config file
+            # then add its name to the list 
+            if(os.path.isdir("{0:s}/{1:s}".format(CURRENT_ARDUINO_CODE_DIR, d)) and d != ".git" and
+               os.path.exists("{0:s}/{1:s}/{1:s}.json".format(CURRENT_ARDUINO_CODE_DIR, d))):
+                device_options.append(d)
+
+        # Simulation assumes that all arduinos are connected
         if self.sim:
             return deviceOptions
+        # Filter by the devices that are connected
         else:
             connectedDeviceOptions = [d for d in deviceOptions if os.path.exists("/dev/{0:s}".format(d))]
             return connectedDeviceOptions
 
     @type_check
     def startup(self) -> void:
-        '''
-        Ping Arduino boards and turn on their LEDs.
-        This command is useful to run at the beginning of scripts to test each
-        Arduino board all at once. Since we have multiple microcontroller
-        boards, it is possible for them to encounter their own problems. This
-        command will cause the script to fail early.
+        ''' Ping Arduino boards and turn on their LEDs.
+            This command is useful to run at the beginning of scripts to test each
+            Arduino board all at once. Since we have multiple microcontroller
+            boards, it is possible for them to encounter their own problems. This
+            command will cause the script to fail early.
         '''
         if self.sim:
             return
@@ -157,6 +169,7 @@ class Spine:
 
     @type_check
     def stop(self) -> void:
+        ''' Stop as many appendages as possible'''
         if self.sim:
             return
 
@@ -166,12 +179,13 @@ class Spine:
 
     @type_check
     def close(self):
-        '''Close all serial connections and remove locks.
+        ''' Close all serial connections and remove locks.
 
-        Failing to call this when you are done with the Spine object will force
-        others to manually remove the locks that you created.
+            Failing to call this when you are done with the Spine object will force
+            others to manually remove the locks that you created.
 
-        :note:
+            Note
+            ----
             If you are using a :func:`get_spine` environment, this method will
             get called automatically during cleanup.
         '''
@@ -190,27 +204,32 @@ class Spine:
 
     @atexit.register
     def exit(self):
+        '''A destructor of sorts'''
         self.stop()
         self.close()
 
     @type_check
     def send(self, devname: str, has_response: bool, command: str, *args, **kwargs):
-        '''Send a command to a device and return the result.
-        This is an internal method and should not be used directly. This is
-        only for testing new commands that do not yet have specific Spine
-        methods written for them. This method is used internally by the other
-        Spine methods.
-        :param devname:
-            The device name to send the command to.
-        :type devname: ``string``
-        :param command:
-            The command to send. Do not include the newline at the end.
-            Information on these serial commands can be gathered through looking
-            at the Spine source or the source of the various microcontrollers
-            directly.
-        :type command: ``string``
-        :return: The string response of the command, without the newline.
+        ''' Send a command to a device and return the result. This is a method that
+            should be used by the appendages and not directly by anything else.
+
+            Parameters
+            ----------
+            devname: str
+                The device name to send the command to.
+            has_response: bool
+                Whether the command constitutes a response from the Arduino (aside from the acknowledgement)
+            command: str
+                The command to send.
+
+            *args:
+                Any arguments needed with the command
+
+            Keyword Arguments:
+                timeout: float
+                    The timeout if this particular command needs a different timeout
         '''
+
         if 'timeout' in kwargs:
             default_timeout = self.arduinos[devname].comm.timeout
             self.arduinos[devname].comm.timeout = kwargs['timeout']
@@ -218,7 +237,10 @@ class Spine:
         self.tlock.acquire()
         self.plock.acquire()
         logger.info("Sending {0:s} to '{1:s}'".format(command, devname))
+
+        # delay any keyboard interrupt until communication has completed
         with DelayedKeyboardInterrupt():
+            # 3 tries
             for fails in range(3):
                 try:
                     self.messengers[devname].send(command, *args)
@@ -230,12 +252,13 @@ class Spine:
                 finally:
                     break
             # Reset has failed
-            if fails == 3:
+            else:  #(means that the loop has completed)
                 self.reset_system()
 
             acknowledgement = self.messengers[devname].receive()
             if has_response:
                 response = self.messengers[devname].receive()
+        # Check if command acknowledged correctly
         try:
             assert (acknowledgement[0] == "kAcknowledge" and
                     self.command_map[devname][acknowledgement[1][0]] == command)
@@ -245,6 +268,8 @@ class Spine:
             logger.warning("Acknowledged Command was {0:s}.".format(self.command_map[devname][acknowledgement[1][0]]))
             logger.warning("Command was {0:s}.".format(command))
             raise
+
+        # Check if the response (if there is supposed to be a response) is to this command
         if has_response:
             try:
                 assert (response[0][:-6] == command and
@@ -265,8 +290,8 @@ class Spine:
 
     @type_check
     def ping(self) -> void:
-        '''Send a ping command to all devices and assert success.
-        This is called automatically by :func:`startup()`.
+        ''' Send a ping command to all devices and assert success.
+            This is called automatically by :func:`startup()`.
         '''
         if self.sim:
             return
@@ -277,15 +302,16 @@ class Spine:
 
     @type_check
     def set_led(self, devname: str, status: bool) -> void:
-        '''Turns the debug LED on or off for certain devices.
-        This is typically only used for debug purposes. LEDs are flashed three
-        times on all devices during the :func:`startup()` call.
-        :param devname:
-            The device to direct the LED setting to.
-        :type devname: ``string``
-        :param status:
-            True for on, False for off.
-        :type status: ``bool``
+        ''' Turns the debug LED on or off for certain devices.
+            This is typically only used for debug purposes. LEDs are flashed three
+            times on all devices during the :func:`startup()` call.
+
+            Parameters
+            ----------
+            devname: str
+                The device to direct the LED setting to.
+            status: bool
+                True for on, False for off.
         '''
         if self.sim:
             return
@@ -294,11 +320,19 @@ class Spine:
 
     @type_check
     def reset_system(self) -> void:
+        '''Reboot the system'''
         self.stop()
         os.system('sudo reboot')
 
     @type_check
     def reset_connection(self, devname: str) -> void:
+        ''' Reset the connection to a specific device
+
+            Parameters
+            ----------
+            devname: str
+                The name of the device to reset
+        '''
         # TODO
         # Turn off usb hub
         # Turn on usb hub
@@ -311,11 +345,14 @@ class Spine:
 
     @type_check
     def configure_arduino(self, config: dict) -> void:
-        '''Sets up the appendages dictionary with all the objects that are
-        connected to each Arduino. Also sets up the `CmdMessengers` as well
-        as the command map
-        :param config
-            The dict with all the appendage information needed to setup
+        ''' Sets up the appendages dictionary with all the objects that are
+            connected to each Arduino. Also sets up the `CmdMessengers` as well
+            as the command map
+
+            Parameters
+            ----------
+            config: dict
+                The dict with all the appendage information needed to setup
         '''
         self.appendages = dict()
         if not self.sim:
@@ -347,9 +384,16 @@ class Spine:
 
             m = self.__module__[:-4]
             for appendage in appendages:
-                # Magic voodoo that imports a class from the appendages folder with the specific
-                # type and instantiates it
-                # http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
+                ''' Magic voodoo that imports a class from the appendages folder with the specific
+                    type and instantiates it
+                    
+                    In reality use the name of the appendage to find the module that contains it (based on the appendage name)
+                    and then get the class from the module (also based on the appendage name)
+
+                    Reference
+                    ---------
+                    http://stackoverflow.com/questions/4821104/python-dynamic-instantiation-from-string-name-of-a-class-in-dynamically-imported
+                '''
                 module = importlib.import_module("{0:s}appendages.rip.{1:s}"
                                                  .format(m, appendage['type']).lower().replace(' ', '_'))
                 class_ = getattr(module, appendage['type'].title().replace(' ', ''))
@@ -365,12 +409,15 @@ class Spine:
 
     @type_check
     def get_appendage(self, label: str):
+        ''' Returns the appendage with the specified label'''
         return self.appendages[label]
 
     @type_check
     def get_appendage_dict(self) -> dict:
+        ''' Returns the entire appendage dict '''
         return self.appendages
 
     @type_check
     def print_appendages(self) -> void:
+        ''' Prints the appendage dict '''
         print(self.appendages)
